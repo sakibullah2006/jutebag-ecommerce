@@ -1,13 +1,21 @@
 import { getProducts } from "@/actions/products-actions";
 import Hero from "@/components/store/Hero-section";
 import ProductsGrid from "@/components/store/Products-grid";
+// import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 
 
-
-const Home = async () => {
-  const { products, totalItems, totalPages } = await getProducts({ perPage: 10 });
+const Home = async ({
+  searchParams,
+}: {
+  searchParams: { page?: string, category?: string, tag?: string };
+}) => {
+  const page = parseInt(searchParams.page || '1', 10);
+  // const category = searchParams.category || '';
+  // const tag = searchParams.tag || '';
+  const { products, totalItems, totalPages } = await getProducts({ page });
   console.log(`Total Items: ${totalItems}, Total Pages: ${totalPages}`);
+  console.log(products.length);
 
 
   return (
@@ -16,23 +24,26 @@ const Home = async () => {
       <Hero />
       {/* Product Grid */}
       <section id="product-showcase" className="container mx-auto my-5">
-        <ProductsGrid products={products} title="Featured Products" />
+
+        <ProductsGrid products={products} />
 
         {/* Pagination */}
         {/* <Pagination>
           <PaginationContent>
+            {page > 1 && (
+              <PaginationItem>
+                <PaginationPrevious href={`/?page=${page - 1}`} />
+              </PaginationItem>
+            )}
             <PaginationItem>
-              <PaginationPrevious href="#" />
+              <PaginationLink href={`?page=${page}`} >{page}</PaginationLink>
             </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="?page=1">1</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext href="?page=2" />
-            </PaginationItem>
+            {
+              products.length == 10 && (
+                <PaginationItem>
+                  <PaginationNext href={`?page=${page + 1}`} />
+                </PaginationItem>
+              )}
           </PaginationContent>
         </Pagination> */}
 

@@ -68,7 +68,7 @@ export function Navbar() {
                         </Link> : (
                             <Link
                                 key={category.name}
-                                href={`/products?category=male-fashion`}
+                                href={`/products`}
                                 className={cn(
                                     "text-sm font-medium px-3 py-2 rounded-md text-gray-700 transition-colors hover:bg-muted hover:text-gray-900 hover:dark:bg-muted dark:text-slate-100",
                                     (category.href === currentPath) ? "bg-muted text-primary dark:bg-muted" : "",
@@ -132,8 +132,8 @@ export function Navbar() {
                                                     <Button
                                                         variant="ghost"
                                                         className={cn(
-                                                            "text-base font-medium text-gray-700 transition-colors hover:text-gray-900 dark:bg-gray-800",
-                                                            (category.href === currentPath) ? "bg-muted text-primary dark:text-primary" : "",
+                                                            "text-base font-medium text-gray-700 transition-colors hover:text-gray-900 dark:bg-gray-600 dark:text-foreground",
+                                                            (category.href === currentPath) ? "bg-muted400 text-primary dark:text-primary dark:bg-gray-500" : "",
                                                         )}
                                                     >
                                                         {category.name}

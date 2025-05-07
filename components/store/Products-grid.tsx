@@ -8,7 +8,9 @@ import { Product } from "@/types/woocommerce"
 import { Plus } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useState } from "react"
+import { Button } from "../ui/button"
 
 interface ProductsGridProps {
     products: Product[]
@@ -16,7 +18,8 @@ interface ProductsGridProps {
     subtitle?: string
 }
 
-const ProductsGrid = ({ products, title = "Collection", subtitle }: ProductsGridProps) => {
+const ProductsGrid = ({ products, title, subtitle }: ProductsGridProps) => {
+    const currentPath = usePathname()
 
 
     return (
@@ -27,6 +30,11 @@ const ProductsGrid = ({ products, title = "Collection", subtitle }: ProductsGrid
                         {title && <h2 className="text-2xl font-light tracking-tight mb-2">{title}</h2>}
                         {subtitle && <p className="text-muted-foreground text-sm max-w-md mx-auto">{subtitle}</p>}
                     </div>
+                )}
+                {currentPath === "/" && (
+                    <Link href="/products" className="flex justify-end mb-5">
+                        <Button >View All</Button>
+                    </Link>
                 )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
                     {products.map((product) => (
