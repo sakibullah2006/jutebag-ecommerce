@@ -1,7 +1,13 @@
 import { getProducts } from '@/actions/products-actions';
 import ProductsGrid from '@/components/store/Products-grid';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Metadata } from 'next';
 import React from 'react';
+
+export const metadata: Metadata = {
+    title: "Products - Store with WP",
+    description: "Browse our collection of products and find what you need. Powered by WordPress and Next.js.",
+}
 
 const Page = async ({
     searchParams,

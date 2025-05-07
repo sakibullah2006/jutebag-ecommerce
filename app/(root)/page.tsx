@@ -3,7 +3,10 @@ import Hero from "@/components/store/Hero-section";
 import ProductsGrid from "@/components/store/Products-grid";
 // import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
-
+export const metadata = {
+  title: "WooNext - Store with WP",
+  description: "Browse our collection of products and find what you need. Powered by WordPress and Next.js.",
+};
 
 const Home = async ({
   searchParams,

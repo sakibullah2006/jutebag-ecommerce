@@ -4,6 +4,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+    const { id } = params;
+    const { product, status } = await getProductById({ id });
+
+    if (status === "ERROR" || !product) {
+        return {
+            title: "Product Not Found",
+            description: "The product you are looking for does not exist.",
+        };
+    }
+
+    return {
+        title: product.name,
+        description: product.short_description || "View details about this product.",
+        openGraph: {
+            title: product.name,
+            description: product.short_description || "View details about this product.",
+            images: product.images.map((image) => ({
+                url: image.src,
+                alt: image.alt,
+            })),
+        },
+    };
+}
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
     const { id } = await params

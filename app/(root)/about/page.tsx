@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ArrowRight, Award, History, Target, Users } from "lucide-react"
+import { Metadata } from "next"
 import Image from "next/image"
 import Link from "next/link"
+
+export const metadata: Metadata = {
+    title: "About Us - Our Company",
+    description: "Learn more about our company, mission, vision, team, history, and core values. Discover what makes us unique and how we can help you achieve your goals.",
+}
 
 export default function AboutPage() {
     return (

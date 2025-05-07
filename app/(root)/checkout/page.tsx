@@ -1,7 +1,13 @@
 import { CheckoutForm } from "@/components/store/checkout-form"
 import OrderSummary from "@/components/store/order-summary"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Metadata } from "next"
 import { Suspense } from "react"
+
+export const metadata: Metadata = {
+    title: "Checkout - Store with WP",
+    description: "Complete your order with our secure checkout process. Pay with Cash on Delivery and review your order summary.",
+}
 
 export default function CheckoutPage() {
 

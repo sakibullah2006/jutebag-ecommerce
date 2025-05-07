@@ -19,6 +19,7 @@ export interface Product {
     regular_price: string
     images: { src: string, alt: string, name: string }[]
     description?: string
+    short_description: string
 }
 
 export interface Order {

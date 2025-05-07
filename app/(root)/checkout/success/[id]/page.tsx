@@ -6,6 +6,23 @@ import { CheckCircle } from "lucide-react"
 import { notFound } from "next/navigation"
 
 
+export async function generateMetadata({ params }: { params: { id: string } }) {
+    const order = await getOrder(params.id);
+
+    if (!order) {
+        return {
+            title: "Order Not Found",
+            description: "The order you are looking for does not exist.",
+        };
+    }
+
+    return {
+        title: `Thank You for Your Order #${order.id}`,
+        description: `Order #${order.id} placed on ${formatDate(order.date_created)}.`,
+    };
+}
+
+
 
 export default async function ThankYouPage({ params }: { params: { id: string } }) {
     const { id } = await params
