@@ -52,7 +52,7 @@ export async function createOrder({
 export async function getOrder(orderId: string): Promise<Order | null> {
     try {
         // Replace with your actual API endpoint
-        const response = await fetch(`http://localhost:3000/api/woocommerce/orders/${orderId}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/orders/${orderId}`, {
             cache: "no-store",
         })
 

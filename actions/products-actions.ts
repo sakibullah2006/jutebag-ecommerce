@@ -15,7 +15,7 @@ import { Product } from "@/types/woocommerce";
 
 export const getProductById = async ({ id }: { id: string }): Promise<{ product?: Product | null, status: "OK" | "ERROR" }> => {
     try {
-        const product = await fetch(`http://localhost:3000/api/woocommerce/products/${id}`, { cache: 'no-store' }).then(async product => await product.json())
+        const product = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products/${id}`, { cache: 'no-store' }).then(async product => await product.json())
         console.log(product ?? "No product found")
         return {
             product: product,
@@ -44,7 +44,7 @@ export const getProducts = async ({
 }> => {
     try {
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/woocommerce/products?per_page=${perPage}&page=${page }&_fields=id,name,price,images,stock_status,average_rating`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products?per_page=${perPage}&page=${page }&_fields=id,name,price,images,stock_status,average_rating`,
             {cache: 'force-cache',next: { revalidate: 3600 }}
         );
 
