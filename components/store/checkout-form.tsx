@@ -10,10 +10,12 @@ import { useCart } from "@/hooks/use-cart"
 import { OrderData, formSchema } from "@/lib/validation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Banknote } from "lucide-react"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 import { z } from "zod"
+
 
 
 type FormValues = z.infer<typeof formSchema>
@@ -23,6 +25,7 @@ export function CheckoutForm() {
     const [formError, setFormError] = useState<string | null>(null)
     const [formSuccess, setFormSuccess] = useState<string | null>(null)
     const { setShipping, items, clearCart } = useCart()
+    const router = useRouter();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -70,9 +73,15 @@ export function CheckoutForm() {
                     "Order placed successfully! Your order will be delivered to your address with cash on delivery option.",
                 )
                 clearCart()
-                redirect(`/checkout/success/${result.order?.id}`)
+                toast.success(`Order placed successfully!`)
+                router.push(`/checkout/success/${result.order?.id}`);
+            } else {
+                toast.error(`Failed to place order: ${result.error}`)
             }
-        } finally {
+        } catch (e) {
+            setFormError(`Failed to place order: ${e}`)
+        }
+        finally {
             setIsSubmitting(false)
         }
     }

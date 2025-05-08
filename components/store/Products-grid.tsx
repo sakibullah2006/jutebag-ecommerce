@@ -10,6 +10,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
+import { toast } from "sonner"
 import { Button } from "../ui/button"
 
 interface ProductsGridProps {
@@ -49,14 +50,20 @@ const ProductsGrid = ({ products, title, subtitle }: ProductsGridProps) => {
 export const ProductCard = ({ product }: { product: Product }) => {
     const { id, name, price, images } = product
     const [isHovered, setIsHovered] = useState(false)
-    const { addItem } = useCart()
+    const { addItem, setIsOpen } = useCart()
 
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.preventDefault()
         e.stopPropagation()
         addItem(product)
-        // Here you would typically dispatch an action to add the product to the cart
+        toast.success(`${product.name} added to cart`, {
+            description: "You can view your cart in the top right corner.",
+            action: {
+                label: "View Cart",
+                onClick: () => setIsOpen(true),
+            },
+        })
     }
 
     return (
