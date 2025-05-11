@@ -7,7 +7,7 @@ import { ReactNode, createContext, useCallback, useEffect, useState } from "reac
 export type CartItem = Pick<Product, "id" | "name" | "images" | "price"> & {
   quantity: number
   size?: string
-  vairation_id?: number
+  vairation_id: number
   // total: number
 }
 
