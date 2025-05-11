@@ -45,7 +45,7 @@ export const getProducts = async ({
     try {
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products?per_page=${perPage}&page=${page }&_fields=id,name,price,images,stock_status,average_rating`,
-            {cache: 'force-cache',next: { revalidate: 3600 }}
+            {cache: 'force-cache',next: { revalidate: 30 }}
         );
 
         console.log(response)

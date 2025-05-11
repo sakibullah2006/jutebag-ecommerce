@@ -7,7 +7,7 @@ import { notFound } from "next/navigation";
 import { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-    const { id } = params;
+    const { id } = await params;
     const { product, status } = await getProductById({ id });
 
     if (status === "ERROR" || !product) {

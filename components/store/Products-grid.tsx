@@ -50,7 +50,7 @@ const ProductsGrid = ({ products, title, subtitle }: ProductsGridProps) => {
 export const ProductCard = ({ product }: { product: Product }) => {
     const { id, name, price, images } = product
     const [isHovered, setIsHovered] = useState(false)
-    const { addItem, setIsOpen } = useCart()
+    const { addItem } = useCart()
 
 
     const handleAddToCart = (e: React.MouseEvent) => {
@@ -59,10 +59,11 @@ export const ProductCard = ({ product }: { product: Product }) => {
         addItem(product)
         toast.success(`${product.name} added to cart`, {
             description: "You can view your cart in the top right corner.",
-            action: {
-                label: "View Cart",
-                onClick: () => setIsOpen(true),
-            },
+            position: "bottom-left",
+            // action: {
+            //     label: "View Cart",
+            //     onClick: () => isOpen ? console.log("cart sheet already opened") : setIsOpen(true),
+            // },
         })
     }
 

@@ -7,6 +7,7 @@ import { ReactNode, createContext, useCallback, useEffect, useState } from "reac
 export type CartItem = Pick<Product, "id" | "name" | "images" | "price"> & {
   quantity: number
   size?: string
+  vairation_id?: number
   // total: number
 }
 
@@ -39,9 +40,19 @@ const CartProvider = ({ children }: Props) => {
       typeof item === "object" &&
       item !== null &&
       typeof item.id === "number" &&
+      typeof item.vairation_id === "number" &&
       typeof item.name === "string" &&
       typeof item.price === "string" &&
       typeof item.quantity === "number" &&
+      Array.isArray(item.default_attributes) &&
+      item.default_attributes.every(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (attr: any) =>
+          typeof attr === "object" &&
+          typeof attr.id === "number" &&
+          typeof attr.name === "string" &&
+          typeof attr.option === "string"
+      ) &&
       Array.isArray(item.images) &&
       item.images.every(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,6 +65,7 @@ const CartProvider = ({ children }: Props) => {
     );
   };
 
+  // * cart items
   const [items, setItems] = useState<CartItem[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -84,6 +96,8 @@ const CartProvider = ({ children }: Props) => {
     }
   }, [items]);
 
+
+  // * add Item to cart
   const addItem = useCallback((product: Product) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id)
@@ -100,10 +114,12 @@ const CartProvider = ({ children }: Props) => {
     setIsOpen(true)
   }, [])
 
+  // * remove Item 
   const removeItem = useCallback((productId: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.id !== productId))
   }, [])
 
+  // * update quantity
   const updateQuantity = useCallback((productId: number, quantity: number) => {
     if (quantity < 1) {
       removeItem(productId)
@@ -117,6 +133,7 @@ const CartProvider = ({ children }: Props) => {
     )
   }, [removeItem])
 
+  // * clear cart
   const clearCart = useCallback(() => {
     setItems([])
   }, [])
@@ -126,6 +143,7 @@ const CartProvider = ({ children }: Props) => {
     0
   )
 
+  // * calculate total items
   const totalItems = items.reduce(
     (total, item) => total + item.quantity,
     0

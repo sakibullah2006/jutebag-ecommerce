@@ -6,7 +6,8 @@ export interface Product {
     date_on_sale_from: Date
     date_on_sale_to: Date
     total_sales: number
-    stock_status: string 
+    purchasable: boolean
+    stock_status: string
     stock_quantity: number | null
     shipping_required: boolean
     average_rating: string
@@ -15,11 +16,34 @@ export interface Product {
         width: string,
         height: string
     },
-    categories: {id: number, name: string, slug: string}[]
+    categories: { id: number, name: string, slug: string }[]
     regular_price: string
     images: { src: string, alt: string, name: string }[]
-    description?: string
+    default_attributes: {
+        id: number,
+        name: string,
+        option: string
+    }[]
+    description: string
     short_description: string
+}
+
+
+export interface VariationProduct {
+    id: number
+    name: string
+    stock_status: string
+    stock_quantity: number | null
+    price: string
+    regular_price: string
+    sale_price: string
+    images: { src: string, alt: string, name: string }
+    attributes: {
+        id: number,
+        name: string,
+        option: string
+    }[]
+    description?: string
 }
 
 export interface Order {
@@ -47,5 +71,7 @@ export interface Order {
         postcode: string;
         country: string;
     };
-    line_items: { product_id: number; quantity: number, size?: string }[];
+    line_items: {
+        product_id: number; quantity: number, size?: string, variation_id: number;
+    }[];
 }
