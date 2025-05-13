@@ -62,7 +62,12 @@ export function CartSheet() {
 
                                                 <p className="ml-4">{formatPrice(item.price * item.quantity)}</p>
                                             </div>
+                                            <div className="flex justify-between text-sm px-3">
+                                                {item.selectedAttributes?.Color && <p className="mt-1 text-sm text-muted-foreground">Color: {item.selectedAttributes.Color}</p>}
+                                                {item.selectedAttributes?.Size && <p className="mt-1 text-sm text-muted-foreground">Size: {item.selectedAttributes.Size}</p>}
+                                            </div>
                                             <div className="flex items-center justify-between">
+
                                                 <div className="flex items-center border rounded-md">
                                                     <Button
                                                         variant="ghost"
@@ -84,7 +89,6 @@ export function CartSheet() {
                                                         <span className="sr-only">Increase quantity</span>
                                                     </Button>
                                                 </div>
-                                                {item.size && <p className="mt-1 text-sm text-muted-foreground">Size: {item.size}</p>}
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -108,12 +112,10 @@ export function CartSheet() {
                                     <p>Subtotal</p>
                                     <p className="font-medium">{formatPrice(cartTotal)}</p>
                                 </div>
-                                {/* {shipping !== null && (
-                                    <div className="flex items-center justify-between text-base">
-                                        <p>Shipping</p>
-                                        <p className="font-medium">{formatPrice(shipping)}</p>
-                                    </div>
-                                )} */}
+                                <div className="flex items-center justify-between text-base">
+                                    <p>Shipping: </p>
+                                    <span>calculate at checkout</span>
+                                </div>
                                 <div className="flex items-center justify-between text-base font-medium">
                                     <p>Total</p>
                                     <p>{formatPrice(cartTotal)}</p>

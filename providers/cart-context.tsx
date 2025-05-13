@@ -4,11 +4,25 @@ import { Product, } from "@/types/woocommerce"
 import { ReactNode, createContext, useCallback, useEffect, useState } from "react"
 
 // export type CartItem = 
-export type CartItem = Pick<Product, "id" | "name" | "images" | "price"> & {
+export type CartItem = Pick<Product, "id" | "name" | "images"> & {
   quantity: number
   size?: string
-  vairation_id: number
-  // total: number
+  variation_id?: number
+  price: number
+  color?: string
+  attributes?: {
+    id: number
+    name: string
+    slug: string
+    position: number
+    visible: boolean
+    variation: boolean
+    options: string[]
+  }[],
+  selectedAttributes?: {
+    Color?: string,
+    Size?: string
+  }
 }
 
 interface CartContextType {
@@ -23,6 +37,7 @@ interface CartContextType {
   totalItems: number
   shipping: number | null
   setShipping: (shipping: number) => void
+  isItemInCart: (productId: number) => boolean
 }
 
 export const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -40,19 +55,10 @@ const CartProvider = ({ children }: Props) => {
       typeof item === "object" &&
       item !== null &&
       typeof item.id === "number" &&
-      typeof item.vairation_id === "number" &&
+      (item.variation_id === undefined || typeof item.variation_id === "number") &&
       typeof item.name === "string" &&
-      typeof item.price === "string" &&
+      typeof item.price === "number" &&
       typeof item.quantity === "number" &&
-      Array.isArray(item.default_attributes) &&
-      item.default_attributes.every(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (attr: any) =>
-          typeof attr === "object" &&
-          typeof attr.id === "number" &&
-          typeof attr.name === "string" &&
-          typeof attr.option === "string"
-      ) &&
       Array.isArray(item.images) &&
       item.images.every(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,7 +67,12 @@ const CartProvider = ({ children }: Props) => {
           typeof img.src === "string" &&
           typeof img.alt === "string"
       ) &&
-      (item.size === undefined || typeof item.size === "string")
+      (item.selectedAttributes === undefined ||
+        (typeof item.selectedAttributes === "object" &&
+          (item.selectedAttributes.Color === undefined || typeof item.selectedAttributes.Color === "string") &&
+          (item.selectedAttributes.Size === undefined || typeof item.selectedAttributes.Size === "string"))) &&
+      (item.size === undefined || typeof item.size === "string") &&
+      (item.color === undefined || typeof item.color === "string")
     );
   };
 
@@ -109,7 +120,20 @@ const CartProvider = ({ children }: Props) => {
             : item
         )
       }
-      return [...prevItems, { ...product, quantity: 1 }]
+
+      // Get default attributes
+      // const defaultSize = product.default_attributes?.find(attr => attr.name === 'Size')?.option
+      // const defaultColor = product.default_attributes?.find(attr => attr.name === 'Color')?.option
+
+      return [...prevItems, {
+        id: product.id,
+        name: product.name,
+        images: product.images,
+        price: Number(product.price),
+        quantity: 1,
+        variation_id: product.variation_id || undefined,
+        selectedAttributes: product.selectedAttributes,
+      }]
     })
     setIsOpen(true)
   }, [])
@@ -149,8 +173,13 @@ const CartProvider = ({ children }: Props) => {
     0
   )
 
+  // * check if item is in cart
+  const isItemInCart = useCallback((productId: number) => {
+    return items.some((item) => item.id === productId)
+  }, [items])
+
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, isOpen, setIsOpen, cartTotal, totalItems, setShipping, shipping }} >
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, isOpen, setIsOpen, cartTotal, totalItems, setShipping, shipping, isItemInCart }} >
       {children}
     </CartContext.Provider >
   )

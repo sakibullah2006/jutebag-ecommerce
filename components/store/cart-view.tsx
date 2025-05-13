@@ -2,7 +2,7 @@
 
 import { useCart } from '@/hooks/use-cart'
 import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator } from '@radix-ui/react-select'
+import { Separator } from '@radix-ui/react-select'
 import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 
 import Image from 'next/image'
@@ -14,6 +14,7 @@ import { Label } from '../ui/label'
 
 const CartView = () => {
     const { items, removeItem, updateQuantity, cartTotal, totalItems, shipping } = useCart()
+    // console.log(items)
     const [paymentMethod, setPaymentMethod] = useState<"cash" | "online">("cash")
 
     // Fixed shipping cost
@@ -40,7 +41,7 @@ const CartView = () => {
                                 <Card key={item.id}>
                                     <CardContent className="p-4">
                                         <div className="flex flex-col sm:flex-row gap-4">
-                                            <div className="flex-shrink-0">
+                                            <div className="flex max-sm:flex-col gap-3 ">
                                                 <Image
                                                     src={item.images?.[0]?.src || "/placeholder.svg?height=100&width=100"}
                                                     alt={item.name}
@@ -49,31 +50,21 @@ const CartView = () => {
                                                     className="rounded-md object-cover"
                                                 />
                                             </div>
-                                            <div className="flex-1 space-y-2">
-                                                <h3 className="font-medium text-lg">{item.name}</h3>
-                                                <p className="text-muted-foreground">${Number(item.price).toFixed(2)}</p>
-                                                <div className="w-24">
-                                                    <Select
-                                                        defaultValue={item.size || "M"}
-                                                        onValueChange={(value) => {
-                                                            // Note: You would need to add an updateSize function to your cart provider
-                                                            // This is a placeholder to show the UI
-                                                            console.log(`Update size for item ${item.id} to ${value}`)
-                                                        }}
-                                                    >
-                                                        <SelectTrigger className="h-8">
-                                                            <SelectValue placeholder="Size" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="S">S</SelectItem>
-                                                            <SelectItem value="M">M</SelectItem>
-                                                            <SelectItem value="L">L</SelectItem>
-                                                            <SelectItem value="XL">XL</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
+                                            <div className="grid grid-cols-2 space-y-2 w-full">
+                                                <div className='flex col-span-2 justify-between w-full'>
+                                                    <h3 className="font-medium text-lg">{item.name}</h3>
+                                                    <div className="text-right font-medium">${Number(item.price * item.quantity).toFixed(2)}</div>
                                                 </div>
 
-                                                <div className="flex items-center gap-2">
+                                                {item.variation_id &&
+                                                    <div className="flex col-span-2 justify-between text-sm px-3">
+                                                        {item.selectedAttributes?.Color && <p className="mt-1 text-sm text-muted-foreground">Color: {item.selectedAttributes.Color}</p>}
+                                                        {item.selectedAttributes?.Size && <p className="mt-1 text-sm text-muted-foreground">Size: {item.selectedAttributes.Size}</p>}
+                                                    </div>
+                                                }
+
+
+                                                <div className="flex items-center col-span-2 gap-2 ">
                                                     <Button
                                                         variant="outline"
                                                         size="icon"
@@ -93,10 +84,11 @@ const CartView = () => {
                                                         <Plus className="h-4 w-4" />
                                                         <span className="sr-only">Increase quantity</span>
                                                     </Button>
+
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-8 w-8 ml-auto text-destructive"
+                                                        className="h-8 w-8 ml-auto text-destructive self-end"
                                                         onClick={() => removeItem(item.id)}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
@@ -104,7 +96,6 @@ const CartView = () => {
                                                     </Button>
                                                 </div>
                                             </div>
-                                            <div className="text-right font-medium">${Number(item.price * item.quantity).toFixed(2)}</div>
                                         </div>
                                     </CardContent>
                                 </Card>

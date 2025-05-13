@@ -11,6 +11,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Suspense, useState } from "react"
 import { Skeleton } from "../ui/skeleton"
+import CartButton from "./CartButton"
 
 
 export function Navbar() {
@@ -84,20 +85,7 @@ export function Navbar() {
                 <div className="flex items-center gap-8 justify-between">
                     {/* Cart Icon - Always visible and sticky */}
                     <div className="flex items-center justify-center">
-                        <Link href="/cart">
-                            <Button variant="ghost" size="icon"
-                                className={cn("relative", totalItems > 0
-                                    ? "text-primary" : "text-gray-500",
-                                    (currentPath === "/cart") ? "bg-muted text-primary dark:text-primary" : "",
-
-                                )}
-                            >
-                                <ShoppingCart className="h-5 w-5" />
-                                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-white dark:bg-white dark:text-black">
-                                    {totalItems}
-                                </span>
-                            </Button>
-                        </Link>
+                        <CartButton />
 
 
                         {/* Mobile Menu */}

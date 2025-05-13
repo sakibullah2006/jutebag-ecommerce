@@ -61,7 +61,11 @@ export function CheckoutForm() {
             const lineItems: LineItem[] = items.map((item) => {
                 return {
                     product_id: item.id,
+                    // name: item.name,
+                    // price: item.price,
+                    // subtotal: item.price * item.quantity,
                     quantity: item.quantity,
+                    variation_id: item.variation_id,
                 }
             })
 

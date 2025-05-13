@@ -9,7 +9,7 @@ const OrderSummary = () => {
 
 
     return (
-        <Card>
+        <Card className="sticky top-20">
             <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
             </CardHeader>
