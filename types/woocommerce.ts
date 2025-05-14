@@ -88,6 +88,40 @@ export interface Order {
     total: string;
     date_created: string;
     billing: {
+      first_name: string;
+      last_name: string;
+      address_1: string;
+      city: string;
+      state: string;
+      postcode: string;
+      country: string;
+      email: string;
+      phone: string;
+    };
+    shipping?: {
+      first_name: string;
+      last_name: string;
+      address_1: string;
+      city: string;
+      state: string;
+      postcode: string;
+      country: string;
+    };
+    line_items: {
+      product_id: number;
+      quantity: number;
+      size?: string;
+      variation_id: number;
+    }[];
+    customer_id: number; 
+  }
+
+export interface Customer {
+    id: number;
+    email: string;
+    first_name: string;
+    last_name: string;
+    billing: {
         first_name: string;
         last_name: string;
         address_1: string;
@@ -98,7 +132,7 @@ export interface Order {
         email: string;
         phone: string;
     };
-    shipping?: {
+    shipping: {
         first_name: string;
         last_name: string;
         address_1: string;
@@ -107,7 +141,6 @@ export interface Order {
         postcode: string;
         country: string;
     };
-    line_items: {
-        product_id: number; quantity: number, size?: string, variation_id: number;
-    }[];
 }
+
+

@@ -2,14 +2,15 @@
 
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { useCart } from "@/hooks/use-cart"
+import { useAuth } from "@/hooks/use-auth"
 import { navbarData, } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { Menu, Moon, ShoppingCart, Sun } from "lucide-react"
+import { Menu, Moon, Sun, User } from "lucide-react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Suspense, useState } from "react"
+import { toast } from "sonner"
 import { Skeleton } from "../ui/skeleton"
 import CartButton from "./CartButton"
 
@@ -18,7 +19,9 @@ export function Navbar() {
     const [isScrolled, setIsScrolled] = useState(false)
     const { theme, setTheme } = useTheme()
     const currentPath = usePathname()
-    const { totalItems } = useCart()
+    const { isAuthenticated, logout } = useAuth()
+    const router = useRouter()
+
 
 
     // Handle scroll effect for sticky behavior
@@ -32,6 +35,19 @@ export function Navbar() {
         })
     }
 
+    const handleLogout = async () => {
+        try {
+            const res = await logout()
+            if (res.success) {
+                toast.success(`Successfully Logged Out`)
+                router.push("/")
+            }
+        } catch (error) {
+            console.log(`LogOut failed, ${error}`)
+        }
+    }
+
+
     return (
         <header
             className={cn(
@@ -39,7 +55,7 @@ export function Navbar() {
                 isScrolled ? "bg-white shadow-md z-50" : "bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm",
             )}
         >
-            <div className="container mx-auto flex h-16 items-center justify-between px-6 dark:text-invert ">
+            <div className="container mx-auto flex h-16 items-center justify-between md:px-6 max-sm:px-3  dark:text-invert ">
                 {/* Logo/Brand - Left side */}
                 <div className="flex items-center">
                     <Link href="/" className="flex items-center gap-2">
@@ -101,6 +117,7 @@ export function Navbar() {
                                     <SheetTitle hidden>mobile menu</SheetTitle>
                                 </SheetHeader>
                                 <div className="flex flex-col gap-6 p-6">
+
                                     <div className="flex items-center justify-between">
                                         <Link href="/" className="flex items-center gap-2">
                                             <span className="text-xl font-bold">WooNex Store</span>
@@ -110,6 +127,31 @@ export function Navbar() {
                                             <X className="h-5 w-5" />
                                         </Button>
                                     </SheetClose> */}
+                                    </div>
+                                    <div className="flex gap-3 justify-between items-center">
+                                        <Link href="/profile">
+                                            <Button
+                                                variant="ghost"
+                                                className={cn("", ("/profile" === currentPath) ? "bg-muted400 text-primary dark:text-primary dark:bg-gray-500" : "",
+                                                )}
+                                            >
+                                                <User size="icon" />
+                                                <span className="">Profile</span>
+                                            </Button>
+                                        </Link>
+
+                                        {/* Theme toggle button */}
+                                        <div className="flex items-center justify-center">
+                                            <button
+                                                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                                                className="p-2 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-200"
+                                                aria-label="Toggle theme"
+                                            >
+                                                <Suspense fallback={<Skeleton className="h-5 w-5" />}>
+                                                    {theme === "dark" ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-blue-500" />}
+                                                </Suspense>
+                                            </button>
+                                        </div>
                                     </div>
                                     <nav className="flex flex-col space-y-4">
                                         {navbarData.map((category) => (
@@ -129,15 +171,68 @@ export function Navbar() {
                                                 </Link>
                                             </SheetClose>
                                         ))}
+                                        <SheetClose asChild key="auth">
+                                            {isAuthenticated ? (
+                                                <Button
+                                                    variant="default"
+                                                    onClick={handleLogout}
+                                                >
+                                                    Log Out
+                                                </Button>
+                                            ) :
+                                                (
+                                                    <Button
+                                                        onClick={() => router.push('/auth')}
+                                                        variant="default"
+                                                    >
+                                                        Log In
+                                                    </Button>
+                                                )
+                                            }
+
+                                        </SheetClose>
+
                                     </nav>
                                 </div>
                             </SheetContent>
                         </Sheet>
                     </div>
 
+                    {/* Login/Loout Button */}
+                    <div className="flex items-center justify-center max-sm:hidden">
+                        {!isAuthenticated ? (
+                            <Link href="/auth">
+                                <Button
+                                    variant="ghost"
+                                >
+                                    Log In
+                                </Button>
+                            </Link>
+                        ) : (
+                            <div className="flex gap-3 max-sm:hidden">
+                                <Link href="/profile">
+                                    <Button
+                                        variant="ghost"
+                                        className={cn("", ("/profile" === currentPath) ? "bg-muted400 text-primary dark:text-primary dark:bg-gray-500" : "",
+                                        )}
+                                    >
+                                        <User size="icon" />
+                                        <span className="max-sm:hidden">Profile</span>
+                                    </Button>
+                                </Link>
+                                <Button
+                                    variant="ghost"
+                                    onClick={handleLogout}
+                                >
+                                    Log Out
+                                </Button>
+                            </div>
+                        )}
+
+                    </div>
 
                     {/* Theme toggle button */}
-                    <div className="flex items-center justify-center">
+                    <div className="flex items-center justify-center max-sm:hidden">
                         <button
                             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                             className="absolute top-4 right-4 p-2 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 text-slate-700 dark:text-slate-200"
@@ -150,7 +245,7 @@ export function Navbar() {
                     </div>
                 </div>
             </div>
-        </header>
+        </header >
     )
 }
 
