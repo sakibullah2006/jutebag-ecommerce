@@ -5,7 +5,6 @@ import { Customer, Order } from "@/types/woocommerce";
 import { Mail, MapPin, Package, Phone, User } from "lucide-react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { toast } from "sonner";
 import OrderCard from "../../../components/store/OrderCard"; // Import the separate Client Component
 
 export default async function ProfilePage() {

@@ -1,14 +1,16 @@
+"use server"
+
 import { OrderData, orderDataSchema } from "@/lib/validation";
 import { Order } from "@/types/woocommerce";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import Cookies from "js-cookie";
 
-export const wooCommerce = new WooCommerceRestApi({
-    url: "https://axessories.store/headless",
+
+const WooCommerce = new WooCommerceRestApi({
+    url: process.env.NEXT_PUBLIC_WORDPRESS_SITE_URL || "https://axessories.store/headless",
     consumerKey: process.env.WC_CONSUMER_KEY! as string,
     consumerSecret: process.env.WC_CONSUMER_SECRET! as string,
     version: "wc/v3",
-    queryStringAuth: true 
 });
 
 // Type for WooCommerce line items
@@ -39,7 +41,7 @@ export async function createOrder({
     };
 
     try {
-        const response = await wooCommerce.post("orders", payload);
+        const response = await WooCommerce.post("orders", payload);
 
         return { order: response.data, success: true };
     } catch (error) {
@@ -73,7 +75,7 @@ export async function fetchOrdersByUserId(userId: number): Promise<Order[]> {
     try {
         const token = Cookies.get("jwt_token");
         if (!token) throw new Error("No authentication token found");
-        const response = await wooCommerce.get("orders", {
+        const response = await WooCommerce.get("orders", {
             headers: { Authorization: `Bearer ${token}` },
             params: { customer: userId },
         });
