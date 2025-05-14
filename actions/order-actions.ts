@@ -4,6 +4,7 @@ import { OrderData, orderDataSchema } from "@/lib/validation";
 import { Order } from "@/types/woocommerce";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import Cookies from "js-cookie";
+import { cookies } from "next/headers";
 
 
 const WooCommerce = new WooCommerceRestApi({
@@ -31,10 +32,15 @@ export async function createOrder({
 
     const validatedData = orderDataSchema.parse(orderData)
 
+    const storedUser = (await cookies()).get("user")?.value
+    // const email = JSON.parse(storedUser!).user_email
+    const userId = JSON.parse(storedUser!).user_id
+
 
     // Construct the order payload
     const payload = {
         ...validatedData,
+        customer_id: userId || 0,
         line_items: lineItems,
         set_paid: false, // COD orders are typically not paid upfront
         status: "processing", // Set initial status (adjust as needed)
