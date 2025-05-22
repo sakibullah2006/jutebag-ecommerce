@@ -107,8 +107,8 @@ export function CheckoutForm({ countries, taxes, shippingZones }: CheckoutFormPr
         setStates(selectedCountry?.states || []);
         const selectedTax = taxes.find((tax) => tax.country === countryCode);
         setSelectedTaxes(selectedTax ? [selectedTax] : []);
-        form.setValue('delivery.state', ''); // Reset state when country changes
-        calculateShipping(countryCode, '');
+        // form.setValue('delivery.state', ''); // Reset state when country changes
+        // calculateShipping(countryCode, '');
     };
 
     async function onSubmit(data: FormValues) {
@@ -265,7 +265,7 @@ export function CheckoutForm({ countries, taxes, shippingZones }: CheckoutFormPr
                                             calculateShipping(form.getValues('delivery.country'), value);
                                         }}
                                         defaultValue={field.value}
-                                        disabled={!states || states.length === 0}
+                                    // disabled={!states || states.length === 0}
                                     >
                                         <FormControl>
                                             <SelectTrigger className="overflow-hidden">
