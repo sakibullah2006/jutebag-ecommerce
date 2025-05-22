@@ -4,8 +4,6 @@ import { CheckoutForm } from "@/components/store/checkout-form";
 import OrderSummary from "@/components/store/order-summary";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Metadata } from "next";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
@@ -14,22 +12,11 @@ export const metadata: Metadata = {
 };
 
 export default async function CheckoutPage() {
-    // Get cart items from cookies
-    const cartItems = (await cookies()).get("cartItems")?.value;
-    const items = cartItems ? JSON.parse(cartItems) : [];
-
-    // Redirect if cart is empty
-    if (!items.length) {
-        redirect("/cart?message=Your cart is empty");
-    }
-
     const [countries, taxes, shippingZones] = await Promise.all([
         getCountries(),
         getTaxes(),
         getShippingZones(), // New: Fetch shipping zones
     ]);
-
-
 
     return (
         <div className="container mx-auto py-10">
