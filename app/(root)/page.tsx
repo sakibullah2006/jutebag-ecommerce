@@ -16,8 +16,7 @@ const Home = async ({
   const page = parseInt((await searchParams).page || '1', 10);
   // const category = searchParams.category || '';
   // const tag = searchParams.tag || '';
-  const { products, totalItems, totalPages } = await getProducts({ page });
-  console.log(`Total Items: ${totalItems}, Total Pages: ${totalPages}`);
+  const { products } = await getProducts({ page });
   console.log(products.length);
 
 

@@ -37,9 +37,7 @@ export function CheckoutForm({ countries, taxes, shippingZones }: CheckoutFormPr
         name: country.name,
     }))
 
-    if (items) {
-        router.push("/cart")
-    }
+
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
