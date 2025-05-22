@@ -1,6 +1,5 @@
 "use client"
 
-import { getShippingData, getTaxes } from "@/actions/data-actions"
 import { LineItem, createOrder } from "@/actions/order-actions"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -9,20 +8,22 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCart } from "@/hooks/use-cart"
 import { FormValues, OrderData, formSchema } from "@/lib/validation"
-import { CountryData, ShippingMethodData, StateData, TaxtData } from "@/types/woocommerce"
+import { CountryData, ShippingMethodData, ShippingZoneData, StateData, TaxtData } from "@/types/woocommerce"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { debounce } from "lodash"
 import { Banknote } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 interface CheckoutFormProps {
     countries: CountryData[]
     taxes: TaxtData[]
+    shippingZones: ShippingZoneData[];
 }
 
-export function CheckoutForm({ countries }: CheckoutFormProps) {
+export function CheckoutForm({ countries, taxes, shippingZones }: CheckoutFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [formError, setFormError] = useState<string | null>(null)
     const [formSuccess, setFormSuccess] = useState<string | null>(null)
@@ -30,6 +31,11 @@ export function CheckoutForm({ countries }: CheckoutFormProps) {
     const { items, clearCart, appliedCoupon, setSelectedTaxes, selectedTaxes, cartTotal, setShipping, shipping } = useCart()
     const [shippingMethod, setShippingMethod] = useState<ShippingMethodData | null>(null)
     const router = useRouter();
+    const [isLoadingShipping, setIsLoadingShipping] = useState(false);
+    const countryOptions = countries.map((country) => ({
+        code: country.code,
+        name: country.name,
+    }))
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -50,15 +56,58 @@ export function CheckoutForm({ countries }: CheckoutFormProps) {
         },
     })
 
-    // Reset shipping and appliedCoupon when the component is unmounted
+    // Reset shipping and taxes on unmount
     useEffect(() => {
         return () => {
-            setShipping(0);
+            setShipping(null);
             setSelectedTaxes([]);
-
         };
-    }, []);
+    }, [setShipping, setSelectedTaxes]);
 
+
+
+    // Debounced calculateShipping
+    const calculateShipping = useCallback(
+        debounce(async (countryCode: string, stateCode: string) => {
+            if (!countryCode || !stateCode) return;
+            setIsLoadingShipping(true);
+
+            try {
+                // Find matching zone
+                const matchingZone = shippingZones.find((zone) =>
+                    zone.locations.some((loc) => {
+                        if (loc.type === 'country' && loc.code === countryCode) return true;
+                        if (loc.type === 'state' && loc.code === `${countryCode}:${stateCode}`) return true;
+                        return false;
+                    })
+                ) || shippingZones.find((zone) => zone.id === 0); // Fallback to zone 0
+
+                if (matchingZone && matchingZone.methods.length > 0) {
+                    const shippingMethod = matchingZone.methods[0];
+                    const shippingCost = parseFloat(shippingMethod.settings?.cost?.value || shippingMethod.settings?.min_amount?.value || '0');
+                    setShippingMethod(shippingMethod);
+                    setShipping(shippingCost);
+                } else {
+                    setShipping(0);
+                }
+            } catch (error) {
+                console.error('Error calculating shipping:', error);
+                setShipping(0);
+            } finally {
+                setIsLoadingShipping(false);
+            }
+        }, 300),
+        [shippingZones, setShipping]
+    );
+
+    const handleCountryChange = (countryCode: string) => {
+        const selectedCountry = countries.find((country) => country.code === countryCode);
+        setStates(selectedCountry?.states || []);
+        const selectedTax = taxes.find((tax) => tax.country === countryCode);
+        setSelectedTaxes(selectedTax ? [selectedTax] : []);
+        form.setValue('delivery.state', ''); // Reset state when country changes
+        calculateShipping(countryCode, '');
+    };
 
     async function onSubmit(data: FormValues) {
         setIsSubmitting(true)
@@ -121,33 +170,6 @@ export function CheckoutForm({ countries }: CheckoutFormProps) {
         }
     }
 
-    const calculateShipping = async (stateCode: string) => {
-        const countryCode = stateCode.split("-")[0].trim()
-        try {
-            const shippingMethod = await getShippingData(countryCode, stateCode.trim())
-            // console.log("country:", countryCode, "state:", stateCode)
-            // console.log("shippingMethod:", shippingMethod)
-            setShippingMethod(shippingMethod)
-            if (shippingMethod.settings.cost && shippingMethod.settings.cost.value) {
-                const shippingCost = parseFloat(shippingMethod.settings.cost.value)
-                setShipping(shippingCost)
-                return
-            }
-            const shippingCost = parseFloat(shippingMethod.settings.min_amount.value)
-            setShipping(shippingCost)
-            return
-        } catch (error) {
-            console.error("Error fetching shipping data:", error)
-            setShipping(0)
-        }
-
-    }
-
-    const handleCountryChange = async (countryCode: string) => {
-        setStates(countries.find(country => country.code === countryCode)?.states || []);
-        const Taxes = (await getTaxes()).find(tax => tax.country === countryCode);
-        setSelectedTaxes(Taxes ? [Taxes] : []);
-    }
 
     return (
         <Form {...form}>
@@ -196,13 +218,12 @@ export function CheckoutForm({ countries }: CheckoutFormProps) {
                             </FormItem>
                         )}
                     />
-                    <div className="grid grid-cols-1 md:grid-cols-2">
-
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <FormField
                             control={form.control}
                             name="delivery.country"
                             render={({ field }) => (
-                                <FormItem className="mt-4 overflow-hidden">
+                                <FormItem>
                                     <FormLabel>Country</FormLabel>
                                     <Select
                                         onValueChange={(value) => {
@@ -218,11 +239,11 @@ export function CheckoutForm({ countries }: CheckoutFormProps) {
                                         </FormControl>
                                         <SelectContent>
                                             <Suspense fallback={<div>Loading countries...</div>}>
-                                                {countries ? countries.map((country) => (
+                                                {countryOptions.map((country) => (
                                                     <SelectItem key={country.code} value={country.code}>
                                                         {country.name}
                                                     </SelectItem>
-                                                )) : "Loading countries..."}
+                                                ))}
                                             </Suspense>
                                         </SelectContent>
                                     </Select>
@@ -230,27 +251,27 @@ export function CheckoutForm({ countries }: CheckoutFormProps) {
                                 </FormItem>
                             )}
                         />
-
                         <FormField
                             control={form.control}
                             name="delivery.state"
                             render={({ field }) => (
-                                <FormItem className="items-center mt-4">
+                                <FormItem>
                                     <FormLabel>District/State</FormLabel>
                                     <Select
                                         onValueChange={(value) => {
-                                            field.onChange(value)
-                                            calculateShipping(value)
+                                            field.onChange(value);
+                                            calculateShipping(form.getValues('delivery.country'), value);
                                         }}
                                         defaultValue={field.value}
+                                        disabled={!states || states.length === 0}
                                     >
                                         <FormControl>
                                             <SelectTrigger className="overflow-hidden">
-                                                <SelectValue placeholder="Select a district/State" />
+                                                <SelectValue placeholder={isLoadingShipping ? 'Loading...' : 'Select a district/state'} />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {states && states.map((state) => (
+                                            {states?.map((state) => (
                                                 <SelectItem key={state.code} value={state.code}>
                                                     {state.name}
                                                 </SelectItem>
@@ -263,7 +284,7 @@ export function CheckoutForm({ countries }: CheckoutFormProps) {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 justify-between">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <FormField
                             control={form.control}
                             name="delivery.city"
@@ -277,7 +298,6 @@ export function CheckoutForm({ countries }: CheckoutFormProps) {
                                 </FormItem>
                             )}
                         />
-
                         <FormField
                             control={form.control}
                             name="delivery.postcode"
@@ -292,9 +312,6 @@ export function CheckoutForm({ countries }: CheckoutFormProps) {
                             )}
                         />
                     </div>
-
-
-
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <FormField
@@ -344,11 +361,11 @@ export function CheckoutForm({ countries }: CheckoutFormProps) {
                             <div className="space-y-1 leading-none">
                                 <FormLabel>I agree to the terms and conditions</FormLabel>
                                 <FormDescription>
-                                    By checking this box, you agree to our{" "}
+                                    By checking this box, you agree to our{' '}
                                     <a href="#" className="text-primary underline">
                                         Terms of Service
-                                    </a>{" "}
-                                    and{" "}
+                                    </a>{' '}
+                                    and{' '}
                                     <a href="#" className="text-primary underline">
                                         Privacy Policy
                                     </a>
@@ -365,9 +382,231 @@ export function CheckoutForm({ countries }: CheckoutFormProps) {
                 {formSuccess && <div className="bg-green-100 text-green-800 p-3 rounded-md">{formSuccess}</div>}
 
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Processing..." : "Place Order (Cash on Delivery)"}
+                    {isSubmitting ? 'Processing...' : 'Place Order (Cash on Delivery)'}
                 </Button>
             </form>
         </Form>
-    )
+    );
 }
+
+// return (
+//     <Form {...form}>
+//         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 overflow-hidden">
+//             <div>
+//                 <h3 className="text-lg font-medium mb-4">Delivery Information</h3>
+//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//                     <FormField
+//                         control={form.control}
+//                         name="delivery.first_name"
+//                         render={({ field }) => (
+//                             <FormItem>
+//                                 <FormLabel>First Name</FormLabel>
+//                                 <FormControl>
+//                                     <Input placeholder="John" {...field} />
+//                                 </FormControl>
+//                                 <FormMessage />
+//                             </FormItem>
+//                         )}
+//                     />
+//                     <FormField
+//                         control={form.control}
+//                         name="delivery.last_name"
+//                         render={({ field }) => (
+//                             <FormItem>
+//                                 <FormLabel>Last Name</FormLabel>
+//                                 <FormControl>
+//                                     <Input placeholder="Doe" {...field} />
+//                                 </FormControl>
+//                                 <FormMessage />
+//                             </FormItem>
+//                         )}
+//                     />
+//                 </div>
+
+//                 <FormField
+//                     control={form.control}
+//                     name="delivery.address_1"
+//                     render={({ field }) => (
+//                         <FormItem className="mt-4">
+//                             <FormLabel>Address</FormLabel>
+//                             <FormControl>
+//                                 <Input placeholder="123 Main St" {...field} />
+//                             </FormControl>
+//                             <FormMessage />
+//                         </FormItem>
+//                     )}
+//                 />
+//                 <div className="grid grid-cols-1 md:grid-cols-2">
+
+//                     <FormField
+//                         control={form.control}
+//                         name="delivery.country"
+//                         render={({ field }) => (
+//                             <FormItem className="mt-4 overflow-hidden">
+//                                 <FormLabel>Country</FormLabel>
+//                                 <Select
+//                                     onValueChange={(value) => {
+//                                         field.onChange(value);
+//                                         handleCountryChange(value);
+//                                     }}
+//                                     defaultValue={field.value}
+//                                 >
+//                                     <FormControl>
+//                                         <SelectTrigger className="overflow-hidden">
+//                                             <SelectValue placeholder="Select a country" />
+//                                         </SelectTrigger>
+//                                     </FormControl>
+//                                     <SelectContent>
+//                                         <Suspense fallback={<div>Loading countries...</div>}>
+//                                             {countries ? countries.map((country) => (
+//                                                 <SelectItem key={country.code} value={country.code}>
+//                                                     {country.name}
+//                                                 </SelectItem>
+//                                             )) : "Loading countries..."}
+//                                         </Suspense>
+//                                     </SelectContent>
+//                                 </Select>
+//                                 <FormMessage />
+//                             </FormItem>
+//                         )}
+//                     />
+
+//                     <FormField
+//                         control={form.control}
+//                         name="delivery.state"
+//                         render={({ field }) => (
+//                             <FormItem className="items-center mt-4">
+//                                 <FormLabel>District/State</FormLabel>
+//                                 <Select
+//                                     onValueChange={(value) => {
+//                                         field.onChange(value)
+//                                         calculateShipping(value)
+//                                     }}
+//                                     defaultValue={field.value}
+//                                 >
+//                                     <FormControl>
+//                                         <SelectTrigger className="overflow-hidden">
+//                                             <SelectValue placeholder="Select a district/State" />
+//                                         </SelectTrigger>
+//                                     </FormControl>
+//                                     <SelectContent>
+//                                         {states && states.map((state) => (
+//                                             <SelectItem key={state.code} value={state.code}>
+//                                                 {state.name}
+//                                             </SelectItem>
+//                                         ))}
+//                                     </SelectContent>
+//                                 </Select>
+//                                 <FormMessage />
+//                             </FormItem>
+//                         )}
+//                     />
+//                 </div>
+
+//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 justify-between">
+//                     <FormField
+//                         control={form.control}
+//                         name="delivery.city"
+//                         render={({ field }) => (
+//                             <FormItem>
+//                                 <FormLabel>City</FormLabel>
+//                                 <FormControl>
+//                                     <Input placeholder="Enter the City or Area" {...field} />
+//                                 </FormControl>
+//                                 <FormMessage />
+//                             </FormItem>
+//                         )}
+//                     />
+
+//                     <FormField
+//                         control={form.control}
+//                         name="delivery.postcode"
+//                         render={({ field }) => (
+//                             <FormItem>
+//                                 <FormLabel>Postal Code</FormLabel>
+//                                 <FormControl>
+//                                     <Input placeholder="1016" {...field} />
+//                                 </FormControl>
+//                                 <FormMessage />
+//                             </FormItem>
+//                         )}
+//                     />
+//                 </div>
+
+
+
+
+//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+//                     <FormField
+//                         control={form.control}
+//                         name="delivery.email"
+//                         render={({ field }) => (
+//                             <FormItem>
+//                                 <FormLabel>Email</FormLabel>
+//                                 <FormControl>
+//                                     <Input type="email" placeholder="john.doe@example.com" {...field} />
+//                                 </FormControl>
+//                                 <FormMessage />
+//                             </FormItem>
+//                         )}
+//                     />
+//                     <FormField
+//                         control={form.control}
+//                         name="delivery.phone"
+//                         render={({ field }) => (
+//                             <FormItem>
+//                                 <FormLabel>Phone</FormLabel>
+//                                 <FormControl>
+//                                     <Input placeholder="(123) 456-7890" {...field} />
+//                                 </FormControl>
+//                                 <FormMessage />
+//                             </FormItem>
+//                         )}
+//                     />
+//                 </div>
+//             </div>
+
+//             <div className="flex items-center p-4 bg-muted/50 rounded-lg">
+//                 <Banknote className="h-5 w-5 mr-2 text-muted-foreground" />
+//                 <p className="text-sm text-muted-foreground">
+//                     This order will be delivered with Cash on Delivery payment option.
+//                 </p>
+//             </div>
+
+//             <FormField
+//                 control={form.control}
+//                 name="terms"
+//                 render={({ field }) => (
+//                     <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+//                         <FormControl>
+//                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+//                         </FormControl>
+//                         <div className="space-y-1 leading-none">
+//                             <FormLabel>I agree to the terms and conditions</FormLabel>
+//                             <FormDescription>
+//                                 By checking this box, you agree to our{" "}
+//                                 <a href="#" className="text-primary underline">
+//                                     Terms of Service
+//                                 </a>{" "}
+//                                 and{" "}
+//                                 <a href="#" className="text-primary underline">
+//                                     Privacy Policy
+//                                 </a>
+//                                 .
+//                             </FormDescription>
+//                             <FormMessage />
+//                         </div>
+//                     </FormItem>
+//                 )}
+//             />
+
+//             {formError && <div className="bg-destructive/15 text-destructive p-3 rounded-md">{formError}</div>}
+
+//             {formSuccess && <div className="bg-green-100 text-green-800 p-3 rounded-md">{formSuccess}</div>}
+
+//             <Button type="submit" className="w-full" disabled={isSubmitting}>
+//                 {isSubmitting ? "Processing..." : "Place Order (Cash on Delivery)"}
+//             </Button>
+//         </form>
+//     </Form>
+// )

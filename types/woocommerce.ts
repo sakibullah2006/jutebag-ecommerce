@@ -225,6 +225,8 @@ export interface ShippingZoneData {
     id: number;
     name: string;
     order: number;
+    methods: ShippingMethodData[];
+    locations: ShippingLocationData[];
 }
 export interface ShippingLocationData {
     code: string;

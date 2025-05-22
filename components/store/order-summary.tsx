@@ -2,7 +2,7 @@
 
 import { validateCoupon } from "@/actions/coupon"
 import { useCart } from "@/hooks/use-cart"
-import { useCallback, useEffect, useState } from "react"
+import { Suspense, useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
@@ -23,7 +23,7 @@ const OrderSummary = () => {
             return;
         }
 
-        const result = await validateCoupon(couponCode);
+        const result = await validateCoupon(couponCode, items);
         setCouponStatus(result);
         if (result.isValid) {
             setAppliedCoupon(couponCode);
@@ -99,7 +99,9 @@ const OrderSummary = () => {
 
                         <div className="flex justify-between mt-2">
                             <span>Shipping</span>
-                            <span>{shipping !== 0 ? shipping : "select city to know"}</span>
+                            <Suspense fallback={<span>Loading...</span>}>
+                                <span>{shipping !== null ? shipping : "select city to know"}</span>
+                            </Suspense>
                         </div>
 
                         {/* Coupon Input */}
@@ -135,7 +137,7 @@ const OrderSummary = () => {
                             </form>
                         </div>
 
-                        <span className="text-sm text-muted-foreground">shipping cost inside dhaka is $1.20</span>
+                        <span className="text-sm text-muted-foreground">Free Shipping inside Dhaka 🎉 </span>
                         <div className="flex justify-between mt-2 font-bold">
                             <span>Total</span>
                             <span>{calculatedPrice}</span>

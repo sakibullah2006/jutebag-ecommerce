@@ -36,7 +36,7 @@ interface CartContextType {
   cartTotal: number
   totalItems: number
   shipping: number | null
-  setShipping: (shipping: number) => void
+  setShipping: (shipping: number | null) => void
   isItemInCart: (productId: number) => boolean
   appliedCoupon: string | null
   setAppliedCoupon: (coupon: string | null) => void

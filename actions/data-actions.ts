@@ -12,7 +12,7 @@ const WooCommerce = new WooCommerceRestApi({
 
 export const getCountries = async (): Promise<CountryData[]> => {
     try {
-        const response = await WooCommerce.get("data/countries");
+        const response = await WooCommerce.get("data/countries", {caches: true});
         return response.data;
     } catch (error) {
         console.error("Error fetching countries:", error);
@@ -22,12 +22,46 @@ export const getCountries = async (): Promise<CountryData[]> => {
 
 export const getTaxes = async (): Promise<TaxtData[]> => {
     try {
-        const response = await WooCommerce.get("taxes");
+        const response = await WooCommerce.get("taxes", {caches: true});
         return response.data;
     } catch (error) {
         console.error("Error fetching countries:", error);
         return [];
     }
+}
+
+export async function getShippingZones(): Promise<ShippingZoneData[]> {
+  try {
+    const zonesResponse = await WooCommerce.get('shipping/zones', {caches: true});
+    const zones: ShippingZoneData[] = zonesResponse.data.filter((zone: ShippingZoneData) => zone.id !== 0); // Exclude "Locations not covered"
+
+    const zonesWithMethods = await Promise.all(
+      zones.map(async (zone) => {
+        const methodsResponse = await WooCommerce.get(`shipping/zones/${zone.id}/methods`, {caches: true});
+        const methods: ShippingMethodData[] = methodsResponse.data.filter((method: ShippingMethodData) => method.enabled);
+        return {
+          ...zone,
+          methods,
+          locations: (await WooCommerce.get(`shipping/zones/${zone.id}/locations`, {caches: true})).data,
+        };
+      })
+    );
+
+    // Include zone ID 0 as fallback
+    const defaultZoneMethods = await WooCommerce.get('shipping/zones/0/methods',{caches: true});
+    zonesWithMethods.push({
+          id: 0,
+          name: 'Locations not covered',
+          methods: defaultZoneMethods.data.filter((method: ShippingMethodData) => method.enabled),
+          locations: [],
+          order: 0, // Add the missing 'order' property
+        });
+
+    return zonesWithMethods;
+  } catch (error) {
+    console.error('Error fetching shipping zones:', error);
+    return [];
+  }
 }
 
 export const getShippingData = async (
@@ -36,7 +70,7 @@ export const getShippingData = async (
   ): Promise<ShippingMethodData> => {
     try {
       // Fetch all shipping zones
-      const response = await WooCommerce.get('shipping/zones');
+      const response = await WooCommerce.get('shipping/zones', { caches: true });
       const shippingZones: ShippingZoneData[] = response.data;
   
       let matchingZone: ShippingZoneData | null = null;
@@ -46,7 +80,7 @@ export const getShippingData = async (
         if (zone.id === 0) continue; // Skip "Locations not covered" zone initially
   
         // Fetch locations for the current zone
-        const zoneLocationsResponse = await WooCommerce.get(`shipping/zones/${zone.id}/locations`);
+        const zoneLocationsResponse = await WooCommerce.get(`shipping/zones/${zone.id}/locations`, { caches: true });
         const zoneLocations: ShippingLocationData[] = zoneLocationsResponse.data;
   
         // Check if any location in the zone matches the provided country and state
@@ -73,7 +107,7 @@ export const getShippingData = async (
       const zoneName = matchingZone ? matchingZone.name : 'Locations not covered';
   
       // Fetch shipping methods for the selected zone
-      const shippingMethodsResponse = await WooCommerce.get(`shipping/zones/${targetZoneId}/methods`);
+      const shippingMethodsResponse = await WooCommerce.get(`shipping/zones/${targetZoneId}/methods`, {caches: true});
       const shippingMethods: ShippingMethodData[] = shippingMethodsResponse.data;
   
       // Filter enabled methods and return the first one
