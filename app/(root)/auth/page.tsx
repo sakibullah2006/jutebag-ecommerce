@@ -15,7 +15,6 @@ export default function AuthPage() {
     if (isAuthenticated) {
         return null;
     }
-    console.log("Consumer Key:", process.env.WC_CONSUMER_KEY! as string);
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">

@@ -28,7 +28,7 @@ export function CheckoutForm({ countries, taxes, shippingZones }: CheckoutFormPr
     const [formError, setFormError] = useState<string | null>(null)
     const [formSuccess, setFormSuccess] = useState<string | null>(null)
     const [states, setStates] = useState<StateData[] | null>(null)
-    const { items, clearCart, appliedCoupon, setSelectedTaxes, selectedTaxes, cartTotal, setShipping, shipping, totalItems } = useCart()
+    const { items, clearCart, appliedCoupon, setSelectedTaxes, selectedTaxes, cartTotal, setShipping, shipping } = useCart()
     const [shippingMethod, setShippingMethod] = useState<ShippingMethodData | null>(null)
     const router = useRouter();
     const [isLoadingShipping, setIsLoadingShipping] = useState(false);
@@ -37,7 +37,7 @@ export function CheckoutForm({ countries, taxes, shippingZones }: CheckoutFormPr
         name: country.name,
     }))
 
-    if (totalItems === 0) {
+    if (items) {
         router.push("/cart")
     }
 

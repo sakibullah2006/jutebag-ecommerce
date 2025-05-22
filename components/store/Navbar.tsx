@@ -5,7 +5,7 @@ import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger 
 import { useAuth } from "@/hooks/use-auth"
 import { navbarData, } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { Menu, Moon, Sun, User } from "lucide-react"
+import { Loader2, Menu, Moon, Sun, User } from "lucide-react"
 import { useTheme } from "next-themes"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -21,6 +21,7 @@ export function Navbar() {
     const currentPath = usePathname()
     const { isAuthenticated, logout } = useAuth()
     const router = useRouter()
+    const [isLoading, setIsLoading] = useState(false)
 
 
 
@@ -37,6 +38,7 @@ export function Navbar() {
 
     const handleLogout = async () => {
         try {
+            setIsLoading(true)
             const res = await logout()
             if (res.success) {
                 toast.success(`Successfully Logged Out`)
@@ -44,6 +46,8 @@ export function Navbar() {
             }
         } catch (error) {
             console.log(`LogOut failed, ${error}`)
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -177,14 +181,22 @@ export function Navbar() {
                                                     variant="default"
                                                     onClick={handleLogout}
                                                 >
-                                                    Log Out
+
+                                                    {isLoading ? (
+                                                        <span className="flex items-center">
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            Logging Out
+                                                        </span>) : <span>Log Out</span>}
                                                 </Button>
                                             ) :
                                                 (
                                                     <Button
                                                         onClick={() => router.push('/auth')}
                                                         variant="default"
+                                                        disabled={isLoading}
+
                                                     >
+
                                                         Log In
                                                     </Button>
                                                 )
@@ -224,7 +236,12 @@ export function Navbar() {
                                     variant="ghost"
                                     onClick={handleLogout}
                                 >
-                                    Log Out
+                                    {isLoading ? (
+                                        <span className="flex items-center">
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Logging Out
+                                        </span>) : <span>Log Out</span>
+                                    }
                                 </Button>
                             </div>
                         )}
