@@ -120,8 +120,9 @@ const CartView = () => {
                                     <span>${cartTotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span>Shipping</span>
-                                    <span>${Number(shipping!).toFixed(2)}</span>
+                                    <span>Shipping & Discount</span>
+                                    {/* <span> {shipping !== 0 ? '$' + Number(shipping!).toFixed(2) : "calculate at checkout"} </span> */}
+                                    <span>Calculate at checkout</span>
                                 </div>
                                 <Separator />
                                 <div className="flex justify-between font-bold">

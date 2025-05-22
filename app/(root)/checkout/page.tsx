@@ -1,3 +1,4 @@
+import { getCountries, getTaxes } from "@/actions/data-actions"
 import { CheckoutForm } from "@/components/store/checkout-form"
 import OrderSummary from "@/components/store/order-summary"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,7 +10,10 @@ export const metadata: Metadata = {
     description: "Complete your order with our secure checkout process. Pay with Cash on Delivery and review your order summary.",
 }
 
-export default function CheckoutPage() {
+export default async function CheckoutPage() {
+
+    const contries = await getCountries()
+    const taxes = await getTaxes()
 
     return (
         <div className="container mx-auto py-10">
@@ -22,7 +26,7 @@ export default function CheckoutPage() {
                         </CardHeader>
                         <CardContent>
                             <Suspense fallback={<div>Loading checkout form...</div>}>
-                                <CheckoutForm />
+                                <CheckoutForm countries={contries} taxes={taxes} />
                             </Suspense>
                         </CardContent>
                     </Card>

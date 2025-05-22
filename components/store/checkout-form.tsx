@@ -1,5 +1,6 @@
 "use client"
 
+import { getShippingData, getTaxes } from "@/actions/data-actions"
 import { LineItem, createOrder } from "@/actions/order-actions"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -7,43 +8,57 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCart } from "@/hooks/use-cart"
-import { OrderData, formSchema } from "@/lib/validation"
+import { FormValues, OrderData, formSchema } from "@/lib/validation"
+import { CountryData, ShippingMethodData, StateData, TaxtData } from "@/types/woocommerce"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Banknote } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { z } from "zod"
 
+interface CheckoutFormProps {
+    countries: CountryData[]
+    taxes: TaxtData[]
+}
 
-
-type FormValues = z.infer<typeof formSchema>
-
-export function CheckoutForm() {
+export function CheckoutForm({ countries }: CheckoutFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [formError, setFormError] = useState<string | null>(null)
     const [formSuccess, setFormSuccess] = useState<string | null>(null)
-    const { setShipping, items, clearCart } = useCart()
+    const [states, setStates] = useState<StateData[] | null>(null)
+    const { items, clearCart, appliedCoupon, setSelectedTaxes, selectedTaxes, cartTotal, setShipping, shipping } = useCart()
+    const [shippingMethod, setShippingMethod] = useState<ShippingMethodData | null>(null)
     const router = useRouter();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             delivery: {
-                first_name: "",
-                last_name: "",
-                address_1: "",
-                city: "Dhaka",
+                first_name: "sakin",
+                last_name: "ullah",
+                address_1: "mirpur, dhaka",
+                city: "",
                 state: "",
-                postcode: "",
                 country: "",
-                email: "",
-                phone: "",
+                postcode: "1215",
+                email: "sakib@gmail.com",
+                phone: "112323413",
             },
             terms: false,
+            couponCode: "",
         },
     })
+
+    // Reset shipping and appliedCoupon when the component is unmounted
+    useEffect(() => {
+        return () => {
+            setShipping(0);
+            setSelectedTaxes([]);
+
+        };
+    }, []);
+
 
     async function onSubmit(data: FormValues) {
         setIsSubmitting(true)
@@ -69,8 +84,24 @@ export function CheckoutForm() {
                 }
             })
 
+            const cart_tax = selectedTaxes.reduce((total, tax) => total + parseFloat(tax.rate) * cartTotal / 100, 0)
+            const shipping_lines = []
+            if (shippingMethod) {
+                shipping_lines.push({
+                    total: shipping?.toString() || "0",
+                    method_id: shippingMethod.method_id,
+                    method_title: shippingMethod.method_title,
+                })
+            }
+
             // Submit the order
-            const result = await createOrder({ orderData, lineItems })
+            const result = await createOrder({
+                orderData,
+                lineItems,
+                shipping_lines: shipping_lines,
+                cart_tax: cart_tax || 0,
+                coupon_lines: appliedCoupon ? [{ code: appliedCoupon }] : [],
+            })
 
             if (result.success) {
                 setFormSuccess(
@@ -90,12 +121,32 @@ export function CheckoutForm() {
         }
     }
 
-    const calculateShipping = () => {
-        if (form.getValues("delivery").city.toLowerCase() === "dhaka" && form.getValues("delivery").state!.toLowerCase() === "dhaka") {
-            setShipping(1.20)
-        } else (
-            setShipping(5.00)
-        )
+    const calculateShipping = async (stateCode: string) => {
+        const countryCode = stateCode.split("-")[0].trim()
+        try {
+            const shippingMethod = await getShippingData(countryCode, stateCode.trim())
+            // console.log("country:", countryCode, "state:", stateCode)
+            // console.log("shippingMethod:", shippingMethod)
+            setShippingMethod(shippingMethod)
+            if (shippingMethod.settings.cost && shippingMethod.settings.cost.value) {
+                const shippingCost = parseFloat(shippingMethod.settings.cost.value)
+                setShipping(shippingCost)
+                return
+            }
+            const shippingCost = parseFloat(shippingMethod.settings.min_amount.value)
+            setShipping(shippingCost)
+            return
+        } catch (error) {
+            console.error("Error fetching shipping data:", error)
+            setShipping(0)
+        }
+
+    }
+
+    const handleCountryChange = async (countryCode: string) => {
+        setStates(countries.find(country => country.code === countryCode)?.states || []);
+        const Taxes = (await getTaxes()).find(tax => tax.country === countryCode);
+        setSelectedTaxes(Taxes ? [Taxes] : []);
     }
 
     return (
@@ -145,34 +196,88 @@ export function CheckoutForm() {
                             </FormItem>
                         )}
                     />
+                    <div className="grid grid-cols-1 md:grid-cols-2">
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <FormField
+                            control={form.control}
+                            name="delivery.country"
+                            render={({ field }) => (
+                                <FormItem className="mt-4 overflow-hidden">
+                                    <FormLabel>Country</FormLabel>
+                                    <Select
+                                        onValueChange={(value) => {
+                                            field.onChange(value);
+                                            handleCountryChange(value);
+                                        }}
+                                        defaultValue={field.value}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger className="overflow-hidden">
+                                                <SelectValue placeholder="Select a country" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <Suspense fallback={<div>Loading countries...</div>}>
+                                                {countries ? countries.map((country) => (
+                                                    <SelectItem key={country.code} value={country.code}>
+                                                        {country.name}
+                                                    </SelectItem>
+                                                )) : "Loading countries..."}
+                                            </Suspense>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="delivery.state"
+                            render={({ field }) => (
+                                <FormItem className="items-center mt-4">
+                                    <FormLabel>District/State</FormLabel>
+                                    <Select
+                                        onValueChange={(value) => {
+                                            field.onChange(value)
+                                            calculateShipping(value)
+                                        }}
+                                        defaultValue={field.value}
+                                    >
+                                        <FormControl>
+                                            <SelectTrigger className="overflow-hidden">
+                                                <SelectValue placeholder="Select a district/State" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {states && states.map((state) => (
+                                                <SelectItem key={state.code} value={state.code}>
+                                                    {state.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 justify-between">
                         <FormField
                             control={form.control}
                             name="delivery.city"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>City</FormLabel>
-                                    <FormControl onChange={calculateShipping}>
-                                        <Input placeholder="Dhaka" {...field} />
+                                    <FormControl>
+                                        <Input placeholder="Enter the City or Area" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="delivery.state"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>District</FormLabel>
-                                    <FormControl onChange={calculateShipping}>
-                                        <Input placeholder="Dhaka" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+
                         <FormField
                             control={form.control}
                             name="delivery.postcode"
@@ -180,7 +285,7 @@ export function CheckoutForm() {
                                 <FormItem>
                                     <FormLabel>Postal Code</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="10001" {...field} />
+                                        <Input placeholder="1016" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -188,26 +293,8 @@ export function CheckoutForm() {
                         />
                     </div>
 
-                    <FormField
-                        control={form.control}
-                        name="delivery.country"
-                        render={({ field }) => (
-                            <FormItem className="mt-4 overflow-hidden">
-                                <FormLabel>Country</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl >
-                                        <SelectTrigger className="overflow-hidden">
-                                            <SelectValue placeholder="Select a country" />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="BD">Bangladesh</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+
+
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <FormField

@@ -1,6 +1,6 @@
 "use client"
 
-import { Product, } from "@/types/woocommerce"
+import { Product, TaxtData, } from "@/types/woocommerce"
 import { ReactNode, createContext, useCallback, useEffect, useState } from "react"
 
 // export type CartItem = 
@@ -38,6 +38,10 @@ interface CartContextType {
   shipping: number | null
   setShipping: (shipping: number) => void
   isItemInCart: (productId: number) => boolean
+  appliedCoupon: string | null
+  setAppliedCoupon: (coupon: string | null) => void
+  selectedTaxes: TaxtData[]
+  setSelectedTaxes: (taxes: TaxtData[]) => void
 }
 
 export const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -95,6 +99,10 @@ const CartProvider = ({ children }: Props) => {
   });
   const [isOpen, setIsOpen] = useState(false)
   const [shipping, setShipping] = useState<number | null>(null)
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null)
+  const [selectedTaxes, setSelectedTaxes] = useState<TaxtData[]>([])
+
+
 
 
 
@@ -179,7 +187,7 @@ const CartProvider = ({ children }: Props) => {
   }, [items])
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, isOpen, setIsOpen, cartTotal, totalItems, setShipping, shipping, isItemInCart }} >
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, isOpen, setIsOpen, cartTotal, totalItems, setShipping, shipping, isItemInCart, appliedCoupon, setAppliedCoupon, selectedTaxes, setSelectedTaxes }} >
       {children}
     </CartContext.Provider >
   )
