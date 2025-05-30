@@ -77,7 +77,7 @@ import { AddressFormValues, addressSchema } from '@/lib/validation';
 import { CountryData, Customer, StateData } from '@/types/woocommerce';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Badge } from '../ui/badge';
@@ -114,18 +114,20 @@ export function Addresses({ billing, shipping, countries }: AddressesProps) {
     const { user } = useAuth()
 
     useEffect(() => {
-        // Initialize billing states if billing address is present
+        // Initialize billing states if billing address is provided
         if (billing?.country) {
             const country = countries.find((c) => c.code === billing.country);
             setBillingStates(country?.states || []);
         }
 
-        // Initialize shipping states if shipping address is present
+        // Initialize shipping states if shipping address is provided
         if (shipping?.country) {
             const country = countries.find((c) => c.code === shipping.country);
             setShippingStates(country?.states || []);
         }
-    })
+    }, [countries]);
+
+
 
     // Billing Form
     const billingForm = useForm<AddressFormValues>({
