@@ -17,6 +17,7 @@ import { Addresses } from "./addresses-section"
 import Dashboard from "./dashboard"
 import { Orders } from "./order-section"
 import { ProfileSidebar } from "./profile-sidebar"
+import router from "next/router"
 
 // Sample data
 export const userData = {
@@ -76,8 +77,7 @@ interface ProfilePageProps {
 
 export default function ProfilePage({ orders, customer, countries }: ProfilePageProps) {
   const [activeSection, setActiveSection] = useState("dashboard")
-  const { isAuthenticated } = useAuth()
-  const router = useRouter()
+  // const router = useRouter()
 
 
   const renderContent = () => {
@@ -97,15 +97,15 @@ export default function ProfilePage({ orders, customer, countries }: ProfilePage
     }
   }
 
-  if (isAuthenticated === false) {
-    router.back();
+  // if (isAuthenticated === false) {
+  //   router.push("/auth");
 
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg text-muted-foreground">You are not logged in. Please log in to access your account.</p>
-      </div>
-    )
-  }
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen">
+  //       <p className="text-lg text-muted-foreground">You are not logged in. Please log in to access your account.</p>
+  //     </div>
+  //   )
+  // }
 
   return (
     <SidebarProvider>

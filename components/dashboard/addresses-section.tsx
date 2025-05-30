@@ -125,7 +125,7 @@ export function Addresses({ billing, shipping, countries }: AddressesProps) {
             const country = countries.find((c) => c.code === shipping.country);
             setShippingStates(country?.states || []);
         }
-    }, [countries]);
+    }, []);
 
 
 
