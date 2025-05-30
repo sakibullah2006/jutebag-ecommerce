@@ -6,7 +6,7 @@ export const deliverySchema = z.object({
   last_name: z.string().min(1, "Last name is required"),
   address_1: z.string().min(1, "Address is required"),
   city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State is required").optional(),
+  state: z.string().min(1, "State/District is required").optional(),
   postcode: z.string().min(1, "Postal code is required"),
   country: z.string().min(1, "Country is required"),
   email: z.string().email("Invalid email address"),
@@ -19,6 +19,7 @@ export const formSchema = z.object({
   terms: z.boolean().refine((val) => val === true, {
     message: "You must agree to the terms and conditions",
   }),
+  couponCode: z.string().optional(),
 })
 
 export type FormValues = z.infer<typeof formSchema>

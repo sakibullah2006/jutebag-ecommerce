@@ -1,13 +1,12 @@
-import { getProductById } from "@/actions/products-actions";
+import { getProductById, getProductVariationsById } from "@/actions/products-actions";
 import ProductDetails from "@/components/store/Product-details";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Image from "next/image";
-import { notFound } from "next/navigation";
-
 import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import sanitize from "sanitize-html";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-    const { id } = params;
+    const { id } = await params;
     const { product, status } = await getProductById({ id });
 
     if (status === "ERROR" || !product) {
@@ -33,51 +32,31 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
     const { id } = await params
-    const { product, status } = await getProductById({ id })
+    const [{ product, status }, { variations }] = await Promise.all([
+        getProductById({ id }),
+        getProductVariationsById({ id }),
+    ])
+
+    // console.log(variations)
 
     if (status === "ERROR" || !product) {
         notFound()
     }
 
-    const { name, images, average_rating, dimensions, shipping_required, total_sales } = product!
+    const { average_rating, dimensions, shipping_required, total_sales, description } = product!
 
-    const mainImage = (images[0] != undefined) ? images[0] : {
-        src: "/placeholder.svg?height=600&width=600",
-        alt: name,
-        name: "product",
-    }
 
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-2 gap-8">
-                {/* Product Images */}
-                <div className="space-y-4">
-                    <div className="relative aspect-square overflow-hidden rounded-lg border bg-background">
-                        <Image
-                            src={mainImage.src || "/placeholder.svg"}
-                            alt={mainImage.alt}
-                            fill
-                            className="object-cover"
-                            priority
-                        />
-                    </div>
 
-                    {images.length > 1 && (
-                        <div className="grid grid-cols-4 gap-2">
-                            {images.map((image, index) => (
-                                <div key={index} className="relative aspect-square overflow-hidden rounded-lg border bg-background">
-                                    <Image src={image.src || "/placeholder.svg"} alt={image.alt} fill className="object-cover" />
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
 
                 {/* Product Details */}
-                <ProductDetails product={product} />
+                <ProductDetails product={product} variations={variations || []} />
 
-                <Tabs defaultValue="shipping" className="mt-12">
+                <Tabs defaultValue="description" className="mt-12 col-span-2 mx-6 max-sm:text-sm">
                     <TabsList>
+                        <TabsTrigger value="description">Description</TabsTrigger>
                         <TabsTrigger value="shipping">Shipping</TabsTrigger>
                         {dimensions && (dimensions.length.length > 0 || dimensions.width.length > 0 || dimensions.height.length > 0) && (
                             <TabsTrigger value="details">Product Details</TabsTrigger>
@@ -106,6 +85,15 @@ export default async function ProductPage({ params }: { params: { id: string } }
                                 ? "This product requires shipping. Shipping costs will be calculated at checkout."
                                 : "This product does not require shipping."}
                         </p>
+                    </TabsContent>
+
+                    <TabsContent value="description" className="py-4">
+                        {description && (
+                            <div className="prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-ul:list-disc prose-ol:list-decimal prose-li:text-gray-600 prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic">
+                                <div dangerouslySetInnerHTML={{ __html: sanitize(description) }} />
+                            </div>
+                        )
+                        }
                     </TabsContent>
                 </Tabs>
             </div>

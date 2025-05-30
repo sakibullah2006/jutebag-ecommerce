@@ -10,6 +10,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
+import { toast } from "sonner"
 import { Button } from "../ui/button"
 
 interface ProductsGridProps {
@@ -56,7 +57,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
         e.preventDefault()
         e.stopPropagation()
         addItem(product)
-        // Here you would typically dispatch an action to add the product to the cart
+        toast.success(`${product.name} added to cart`, {
+            description: "You can view your cart in the top right corner.",
+            position: "bottom-left",
+            // action: {
+            //     label: "View Cart",
+            //     onClick: () => isOpen ? console.log("cart sheet already opened") : setIsOpen(true),
+            // },
+        })
     }
 
     return (

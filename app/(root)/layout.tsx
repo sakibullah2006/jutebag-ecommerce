@@ -1,5 +1,6 @@
 import Footer from "@/components/store/Fotter"
 import { Navbar, } from "@/components/store/Navbar"
+import { CartSheet } from "@/components/store/cart-sheet"
 import React from "react"
 // import Loading from "./loading"
 
@@ -28,6 +29,7 @@ export default function MainLayout({
             <div className="container mx-auto">
                 <Footer />
             </div>
+            <CartSheet />
         </>
     )
 }

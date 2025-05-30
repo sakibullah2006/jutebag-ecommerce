@@ -2,7 +2,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { AuthProvider } from "@/providers/auth-context";
 import CartProvider from "@/providers/cart-context";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 
@@ -29,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      suppressHydrationWarning={true}
+      suppressHydrationWarning
     >
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -40,9 +42,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <CartProvider>
-            {children}
-          </CartProvider>
+          <AuthProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

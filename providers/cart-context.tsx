@@ -1,13 +1,28 @@
 "use client"
 
-import { Product, } from "@/types/woocommerce"
+import { Product, TaxtData, } from "@/types/woocommerce"
 import { ReactNode, createContext, useCallback, useEffect, useState } from "react"
 
 // export type CartItem = 
-export type CartItem = Pick<Product, "id" | "name" | "images" | "price"> & {
+export type CartItem = Pick<Product, "id" | "name" | "images"> & {
   quantity: number
   size?: string
-  // total: number
+  variation_id?: number
+  price: number
+  color?: string
+  attributes?: {
+    id: number
+    name: string
+    slug: string
+    position: number
+    visible: boolean
+    variation: boolean
+    options: string[]
+  }[],
+  selectedAttributes?: {
+    Color?: string,
+    Size?: string
+  }
 }
 
 interface CartContextType {
@@ -21,7 +36,12 @@ interface CartContextType {
   cartTotal: number
   totalItems: number
   shipping: number | null
-  setShipping: (shipping: number) => void
+  setShipping: (shipping: number | null) => void
+  isItemInCart: (productId: number) => boolean
+  appliedCoupon: string | null
+  setAppliedCoupon: (coupon: string | null) => void
+  selectedTaxes: TaxtData[]
+  setSelectedTaxes: (taxes: TaxtData[]) => void
 }
 
 export const CartContext = createContext<CartContextType | undefined>(undefined)
@@ -39,8 +59,9 @@ const CartProvider = ({ children }: Props) => {
       typeof item === "object" &&
       item !== null &&
       typeof item.id === "number" &&
+      (item.variation_id === undefined || typeof item.variation_id === "number") &&
       typeof item.name === "string" &&
-      typeof item.price === "string" &&
+      typeof item.price === "number" &&
       typeof item.quantity === "number" &&
       Array.isArray(item.images) &&
       item.images.every(
@@ -50,10 +71,16 @@ const CartProvider = ({ children }: Props) => {
           typeof img.src === "string" &&
           typeof img.alt === "string"
       ) &&
-      (item.size === undefined || typeof item.size === "string")
+      (item.selectedAttributes === undefined ||
+        (typeof item.selectedAttributes === "object" &&
+          (item.selectedAttributes.Color === undefined || typeof item.selectedAttributes.Color === "string") &&
+          (item.selectedAttributes.Size === undefined || typeof item.selectedAttributes.Size === "string"))) &&
+      (item.size === undefined || typeof item.size === "string") &&
+      (item.color === undefined || typeof item.color === "string")
     );
   };
 
+  // * cart items
   const [items, setItems] = useState<CartItem[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -72,6 +99,10 @@ const CartProvider = ({ children }: Props) => {
   });
   const [isOpen, setIsOpen] = useState(false)
   const [shipping, setShipping] = useState<number | null>(null)
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null)
+  const [selectedTaxes, setSelectedTaxes] = useState<TaxtData[]>([])
+
+
 
 
 
@@ -84,6 +115,8 @@ const CartProvider = ({ children }: Props) => {
     }
   }, [items]);
 
+
+  // * add Item to cart
   const addItem = useCallback((product: Product) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id)
@@ -95,15 +128,30 @@ const CartProvider = ({ children }: Props) => {
             : item
         )
       }
-      return [...prevItems, { ...product, quantity: 1 }]
+
+      // Get default attributes
+      // const defaultSize = product.default_attributes?.find(attr => attr.name === 'Size')?.option
+      // const defaultColor = product.default_attributes?.find(attr => attr.name === 'Color')?.option
+
+      return [...prevItems, {
+        id: product.id,
+        name: product.name,
+        images: product.images,
+        price: Number(product.price),
+        quantity: 1,
+        variation_id: product.variation_id || undefined,
+        selectedAttributes: product.selectedAttributes,
+      }]
     })
     setIsOpen(true)
   }, [])
 
+  // * remove Item 
   const removeItem = useCallback((productId: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.id !== productId))
   }, [])
 
+  // * update quantity
   const updateQuantity = useCallback((productId: number, quantity: number) => {
     if (quantity < 1) {
       removeItem(productId)
@@ -117,6 +165,7 @@ const CartProvider = ({ children }: Props) => {
     )
   }, [removeItem])
 
+  // * clear cart
   const clearCart = useCallback(() => {
     setItems([])
   }, [])
@@ -126,13 +175,19 @@ const CartProvider = ({ children }: Props) => {
     0
   )
 
+  // * calculate total items
   const totalItems = items.reduce(
     (total, item) => total + item.quantity,
     0
   )
 
+  // * check if item is in cart
+  const isItemInCart = useCallback((productId: number) => {
+    return items.some((item) => item.id === productId)
+  }, [items])
+
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, isOpen, setIsOpen, cartTotal, totalItems, setShipping, shipping }} >
+    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, isOpen, setIsOpen, cartTotal, totalItems, setShipping, shipping, isItemInCart, appliedCoupon, setAppliedCoupon, selectedTaxes, setSelectedTaxes }} >
       {children}
     </CartContext.Provider >
   )

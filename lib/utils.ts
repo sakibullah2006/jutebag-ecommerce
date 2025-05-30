@@ -14,3 +14,18 @@ export function formatDate(dateString: string): string {
       day: "numeric",
   })
 }
+
+export function formatPrice(price: number | string): string {
+  const numericPrice = typeof price === "string" ? Number.parseFloat(price) : price
+
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(numericPrice)
+  } catch(e) {
+    console.log(`Error formating price: ${e}`)
+  } 
+  return String(price)
+
+}
