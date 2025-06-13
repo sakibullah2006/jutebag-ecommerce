@@ -48,13 +48,13 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-8 max-sm:grid-cols-1">
 
 
                 {/* Product Details */}
                 <ProductDetails product={product} variations={variations || []} />
 
-                <Tabs defaultValue="description" className="mt-12 col-span-2 mx-6 max-sm:text-sm">
+                <Tabs defaultValue="description" className="mt-12 col-span-2 mx-2 max-sm:text-sm">
                     <TabsList>
                         <TabsTrigger value="description">Description</TabsTrigger>
                         <TabsTrigger value="shipping">Shipping</TabsTrigger>

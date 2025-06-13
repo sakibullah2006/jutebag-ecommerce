@@ -1,19 +1,19 @@
 "use client"
 
-import { LineItem, createOrder } from "@/actions/order-actions"
+import { createOrder, LineItem } from "@/actions/order-actions"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCart } from "@/hooks/use-cart"
-import { FormValues, OrderData, checkoutFormSchema } from "@/lib/validation"
-import { CountryData, Customer, ShippingMethodData, ShippingZoneData, StateData, TaxtData } from "@/types/woocommerce"
+import { checkoutFormSchema, FormValues, OrderData } from "@/lib/validation"
+import { CountryData, ShippingMethodData, ShippingZoneData, StateData, TaxtData } from "@/types/woocommerce"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { debounce } from "lodash"
 import { Banknote } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { Suspense, use, useCallback, useEffect, useState } from "react"
+import { Suspense, useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -21,10 +21,9 @@ interface CheckoutFormProps {
     countries: CountryData[]
     taxes: TaxtData[]
     shippingZones: ShippingZoneData[];
-    customer?: Customer;
 }
 
-export function CheckoutForm({ countries, taxes, shippingZones, customer }: CheckoutFormProps) {
+export function CheckoutForm({ countries, taxes, shippingZones }: CheckoutFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [formError, setFormError] = useState<string | null>(null)
     const [formSuccess, setFormSuccess] = useState<string | null>(null)
@@ -44,15 +43,15 @@ export function CheckoutForm({ countries, taxes, shippingZones, customer }: Chec
         resolver: zodResolver(checkoutFormSchema),
         defaultValues: {
             delivery: {
-                first_name: customer?.billing.first_name || "",
-                last_name: customer?.billing.last_name || "",
-                address_1: customer?.billing.address_1 || "",
-                city: customer?.billing.city || "",
+                first_name: "sakin",
+                last_name: "ullah",
+                address_1: "mirpur, dhaka",
+                city: "",
                 state: "",
                 country: "",
-                postcode: customer?.billing.postcode || "",
-                email: customer?.billing.email || "",
-                phone: customer?.billing.phone || "",
+                postcode: "1215",
+                email: "sakib@gmail.com",
+                phone: "112323413",
             },
             terms: false,
             couponCode: "",
@@ -67,16 +66,6 @@ export function CheckoutForm({ countries, taxes, shippingZones, customer }: Chec
         };
     }, [setShipping, setSelectedTaxes]);
 
-    // useEffect(() => {
-    //     // Set initial states based on selected country
-    //     const initialCountry = form.getValues('delivery.country');
-    //     if (initialCountry) {
-    //         const selectedCountry = countries.find((country) => country.code === initialCountry);
-    //         setStates(selectedCountry?.states || []);
-    //         const selectedTax = taxes.find((tax) => tax.country === initialCountry);
-    //         setSelectedTaxes(selectedTax ? [selectedTax] : []);
-    //     }
-    // })
 
 
     // Debounced calculateShipping

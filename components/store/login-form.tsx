@@ -43,7 +43,6 @@ export function LoginForm() {
         setError(null);
 
         try {
-            console.log("Login data:", data);
             const response = await login(data.username, data.password);
             if (response.success) {
                 toast.success("Login successful");

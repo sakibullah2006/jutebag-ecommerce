@@ -24,9 +24,9 @@ export interface Product {
         id: number,
         name: string,
         slug: string,
-        position: number,
-        visible: boolean,
-        variation: boolean,
+        position?: number,
+        visible?: boolean,
+        variation?: boolean,
         options: string[]
     }[]
     default_attributes: {
@@ -35,8 +35,7 @@ export interface Product {
         option: string
     }[]
     selectedAttributes?: {
-        Color?: string
-        Size?: string
+        [key: string]: string
     },
     description: string
     short_description: string

@@ -17,7 +17,6 @@ import { Addresses } from "./addresses-section"
 import Dashboard from "./dashboard"
 import { Orders } from "./order-section"
 import { ProfileSidebar } from "./profile-sidebar"
-import router from "next/router"
 
 // Sample data
 export const userData = {
@@ -77,7 +76,7 @@ interface ProfilePageProps {
 
 export default function ProfilePage({ orders, customer, countries }: ProfilePageProps) {
   const [activeSection, setActiveSection] = useState("dashboard")
-  // const router = useRouter()
+  const router = useRouter()
 
 
   const renderContent = () => {
@@ -112,25 +111,27 @@ export default function ProfilePage({ orders, customer, countries }: ProfilePage
       <div className="flex min-h-screen w-full">
         <ProfileSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
         <SidebarInset className="flex-1">
-          <div className="w-full hidden sm:flex items-center justify-between h-16 px-4 md:border-b">
+          <div className="w-full hidden md:flex items-center justify-between h-16 px-4 md:border-b">
             <div className="flex items-center">
               <Link href="/" className="flex items-center gap-2">
                 <span className="text-xl font-bold">WooNex Store</span>
               </Link>
             </div>
 
-            <div>
+            <div className="hidden md:flex items-center">
               <Button variant="default" onClick={() => router.push("/")}>
                 Continue Shopping
               </Button>
             </div>
           </div>
           <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 md:hidden">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="-ml-1" />
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <h1 className="font-semibold">My Account</h1>
+                <SidebarTrigger className="-ml-1" />
               </div>
+              <h1 className="font-semibold">My Account</h1>
+
+
             </div>
 
             <div>

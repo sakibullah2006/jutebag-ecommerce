@@ -5,7 +5,7 @@ import { Customer, DownloadData, Order } from "@/types/woocommerce";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 
 const WooCommerce = new WooCommerceRestApi({
-    url: process.env.NEXT_PUBLIC_WORDPRESS_SITE_URL || "https://axessories.store/headless",
+    url: process.env.WORDPRESS_SITE_URL || "https://axessories.store/headless",
     consumerKey: process.env.WC_CONSUMER_KEY! as string,
     consumerSecret: process.env.WC_CONSUMER_SECRET! as string,
     version: "wc/v3",

@@ -1,3 +1,5 @@
+"use server"
+
 import { Product, VariationProduct } from "@/types/woocommerce";
 
 export const getProductById = async ({ id }: { id: string }): Promise<{ product?: Product | null, status: "OK" | "ERROR" }> => {

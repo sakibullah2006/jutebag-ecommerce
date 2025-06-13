@@ -62,9 +62,12 @@ export function CartSheet() {
 
                                                 <p className="ml-4">{formatPrice(item.price * item.quantity)}</p>
                                             </div>
-                                            <div className="flex justify-between text-sm px-3">
-                                                {item.selectedAttributes?.Color && <p className="mt-1 text-sm text-muted-foreground">Color: {item.selectedAttributes.Color}</p>}
-                                                {item.selectedAttributes?.Size && <p className="mt-1 text-sm text-muted-foreground">Size: {item.selectedAttributes.Size}</p>}
+                                            <div className="flex items-start gap-3 text-sm px-3">
+                                                {Object.entries(item.selectedAttributes || {}).map(([key, value]) => (
+                                                    <p key={key} className="mt-1 text-sm text-muted-foreground">
+                                                        {key}: {value}
+                                                    </p>
+                                                ))}
                                             </div>
                                             <div className="flex items-center justify-between">
 

@@ -20,8 +20,7 @@ export type CartItem = Pick<Product, "id" | "name" | "images"> & {
     options: string[]
   }[],
   selectedAttributes?: {
-    Color?: string,
-    Size?: string
+    [key: string]: string
   }
 }
 
