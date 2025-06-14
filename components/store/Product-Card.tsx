@@ -61,12 +61,12 @@ const ProductCard = ({ product }: { product: Product }) => {
                 <Button
                     onClick={handleAddToCart}
                     className={cn(
-                        "absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center transition-all duration-300 opacity-100 translate-y-0",
+                        "absolute bottom-4 right-4 w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-all duration-300 opacity-100 translate-y-0",
                         'md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0',
                     )}
                     aria-label={`Add ${name} to cart`}
                 >
-                    <Plus className="h-5 w-5 text-gray-800" />
+                    <Plus className="h-5 w-5" />
                 </Button>
             </div>
             <div className="flex items-center justify-between">

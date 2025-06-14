@@ -1,10 +1,14 @@
 // app/checkout/page.tsx
+import { getCustomerInfo } from "@/actions/customer-action";
 import { getCountries, getShippingZones, getTaxes } from "@/actions/data-actions";
 import { CheckoutForm } from "@/components/store/checkout-form";
 import OrderSummary from "@/components/store/order-summary";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Customer } from "@/types/woocommerce";
 import { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Suspense } from "react";
+
 
 export const metadata: Metadata = {
     title: "Checkout - Store with WP",
@@ -12,11 +16,16 @@ export const metadata: Metadata = {
 };
 
 export default async function CheckoutPage() {
-    const [countries, taxes, shippingZones] = await Promise.all([
+    const storedUser = (await cookies()).get("user")?.value
+    const userId = storedUser ? (JSON.parse(storedUser).user_id || 0) : 0;
+
+    const [countries, taxes, shippingZones, customerData] = await Promise.all([
         getCountries(),
         getTaxes(),
-        getShippingZones(), // New: Fetch shipping zones
+        getShippingZones(),
+        getCustomerInfo(userId) // New: Fetch shipping zones
     ]);
+    const customer = customerData.data;
 
     return (
         <div className="container mx-auto py-10">
@@ -29,7 +38,7 @@ export default async function CheckoutPage() {
                         </CardHeader>
                         <CardContent>
                             <Suspense fallback={<div>Loading checkout form...</div>}>
-                                <CheckoutForm countries={countries} taxes={taxes} shippingZones={shippingZones} />
+                                <CheckoutForm countries={countries} taxes={taxes} shippingZones={shippingZones} customer={customer!} />
                             </Suspense>
                         </CardContent>
                     </Card>

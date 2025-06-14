@@ -3,9 +3,11 @@
 import { AddressFormValues, PersonalInfoFormValues, personalInfoSchema } from "@/lib/validation";
 import { Customer, DownloadData, Order } from "@/types/woocommerce";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
+import next from "next";
+import { revalidatePath } from "next/cache";
 
 const WooCommerce = new WooCommerceRestApi({
-    url: process.env.WORDPRESS_SITE_URL || "https://axessories.store/headless",
+    url: process.env.WORDPRESS_SITE_URL! as string,
     consumerKey: process.env.WC_CONSUMER_KEY! as string,
     consumerSecret: process.env.WC_CONSUMER_SECRET! as string,
     version: "wc/v3",
@@ -23,12 +25,9 @@ export async function fetchProfileData(userId: number) {
 
     try {
         const [customerResponse, ordersResponse, customerDownloads] = await Promise.all([
-            WooCommerce.get(`customers/${encodeURIComponent(userId)}`),
-            // WooCommerce.get("orders", {
-            //     params: { customer_id: userId },
-            // }),
-            WooCommerce.get("orders"),
-            WooCommerce.get(`customers/${encodeURIComponent(userId)}/downloads`)
+            WooCommerce.get(`customers/${encodeURIComponent(userId)}`, { next: { revalidate: 0 } }),
+            WooCommerce.get("orders", { params: { customer: userId } }),
+            WooCommerce.get(`customers/${encodeURIComponent(userId)}/downloads`, { next: { revalidate: 0 } })
         ]);
 
         const customer = customerResponse.data as Customer;
@@ -72,19 +71,11 @@ export async function updateCustomerPersonalInfo(userId: number, data: PersonalI
     const validatedData = personalInfoSchema.parse(data)
 
     const response = await WooCommerce.put(`customers/${userId}`, {
-        ...validatedData,
-        // billing: {
-        // first_name: validatedData.first_name,
-        // last_name: validatedData.last_name || '',
-        // email: validatedData.email,
-        // },
-        // shipping: {
-        // first_name: validatedData.first_name,
-        // last_name: validatedData.last_name || '',
-        // email: validatedData.email,
-        // phone: validatedData.phone || '',
-        // },
+      ...validatedData,
+      next: { revalidatePath: `/profile/${userId}` },
     });
+
+    console.log('Personal info updated successfully:', response.data);
     return { success: true, message: 'Personal information updated successfully', data: response.data };
   } catch (error) {
     console.error('Error updating personal info:', error);
@@ -109,7 +100,10 @@ export async function updateCustomerAddress(id: number, type: 'billing' | 'shipp
       },
     };
 
-    const response = await WooCommerce.put(`customers/${encodeURIComponent(id)}`, updateData);
+    const response = await WooCommerce.put(`customers/${encodeURIComponent(id)}`, {
+      ...updateData,
+      next: { revalidatePath: `/profile/${id}` },
+    });
     return { success: true, message: `${type.charAt(0).toUpperCase() + type.slice(1)} address updated successfully`, data: response.data };
   } catch (error) {
     console.error(`Error updating ${type} address:`, error);

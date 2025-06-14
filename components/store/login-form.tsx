@@ -86,8 +86,8 @@ export function LoginForm() {
                     <Label htmlFor="password">Password</Label>
                     <button
                         type="button"
-                        className="text-sm text-primary hover:text-primary/90 transition-colors"
-                        onClick={() => toast.info("Forgot password feature coming soon!")}
+                        className="text-sm hover:text-primary/90 transition-colors text-blue-600"
+                        onClick={() => router.push("/auth/reset-password")}
                     >
                         Forgot password?
                     </button>
@@ -113,5 +113,7 @@ export function LoginForm() {
                 )}
             </Button>
         </form>
+
+
     );
 }

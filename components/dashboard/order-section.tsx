@@ -1,6 +1,6 @@
 import { formatDate } from "@/lib/utils";
 import { Order } from "@/types/woocommerce";
-import { Eye } from "lucide-react";
+import { Eye, PackageX } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -43,78 +43,94 @@ export function Orders({ orders }: OrdersProps) {
                     <CardContent>
                         {/* Mobile-friendly order cards */}
                         <div className="block md:hidden space-y-4">
-                            {orders?.map((order) => (
-                                <Card key={order.id} className="p-4">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                            <p className="font-medium">{order.id}</p>
-                                            <p className="text-sm text-muted-foreground">{formatDate(order.date_created)}</p>
-                                            <p className="text-sm text-muted-foreground">{order.line_items.reduce((total, item) => total = total + item.quantity, 0)} items</p>
+                            {orders?.length === 0 ? (
+                                <div className="text-center text-muted-foreground">
+                                    <PackageX className="mx-auto h-12 w-12 mb-4 text-muted-foreground" />
+                                    <p className="text-lg font-medium">No orders found</p>
+                                    <p className="text-sm">You have not placed any orders yet.</p>
+                                </div>
+                            ) : (
+                                orders?.map((order) => (
+                                    <Card key={order.id} className="p-4">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <p className="font-medium">{order.id}</p>
+                                                <p className="text-sm text-muted-foreground">{formatDate(order.date_created)}</p>
+                                                <p className="text-sm text-muted-foreground">{order.line_items.reduce((total, item) => total = total + item.quantity, 0)} items</p>
+                                            </div>
+                                            <Badge
+                                                variant={
+                                                    order.status.toLowerCase() === "completed"
+                                                        ? "default"
+                                                        : order.status.toLowerCase() === "cancelled"
+                                                            ? "destructive"
+                                                            : "secondary"
+                                                }
+                                            >
+                                                {order.status}
+                                            </Badge>
                                         </div>
-                                        <Badge
-                                            variant={
-                                                order.status.toLowerCase() === "completed"
-                                                    ? "default"
-                                                    : order.status.toLowerCase() === "cancelled"
-                                                        ? "destructive"
-                                                        : "secondary"
-                                            }
-                                        >
-                                            {order.status}
-                                        </Badge>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="font-medium">{order.total}</span>
-                                        {/* <Button variant="ghost" size="sm">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium">{order.total}</span>
+                                            {/* <Button variant="ghost" size="sm">
                                         <Eye className="h-4 w-4" />
                                     </Button> */}
-                                    </div>
-                                </Card>
-                            ))}
+                                        </div>
+                                    </Card>
+                                ))
+                            )}
                         </div>
 
                         {/* Desktop table */}
                         <div className="hidden md:block">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Order</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Items</TableHead>
-                                        <TableHead>Total</TableHead>
-                                        <TableHead></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {orders?.map((order) => (
-                                        <TableRow key={order.id}>
-                                            <TableCell className="font-medium">#{order.number}</TableCell>
-                                            <TableCell>{formatDate(order.date_created)}</TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    variant={
-                                                        order.status.toLowerCase() === "completed"
-                                                            ? "default"
-                                                            : order.status.toLowerCase() === "cancelled"
-                                                                ? "destructive"
-                                                                : "secondary"
-                                                    }
-                                                >
-                                                    {order.status}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>{order.line_items.reduce((total, item) => total = total + item.quantity, 0)} items</TableCell>
-                                            <TableCell>${order.total}</TableCell>
-                                            <TableCell>
-                                                <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
-                                                    <Eye className="h-4 w-4" />
-                                                </Button>
-                                            </TableCell>
+                            {orders?.length === 0 ? (
+                                <div className="text-center text-muted-foreground">
+                                    <PackageX className="mx-auto h-12 w-12 mb-4 text-muted-foreground" />
+                                    <p className="text-lg font-medium">No orders found</p>
+                                    <p className="text-sm">You have not placed any orders yet.</p>
+                                </div>
+                            ) : (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Order</TableHead>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>Status</TableHead>
+                                            <TableHead>Items</TableHead>
+                                            <TableHead>Total</TableHead>
+                                            <TableHead></TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {orders?.map((order) => (
+                                            <TableRow key={order.id}>
+                                                <TableCell className="font-medium">#{order.number}</TableCell>
+                                                <TableCell>{formatDate(order.date_created)}</TableCell>
+                                                <TableCell>
+                                                    <Badge
+                                                        variant={
+                                                            order.status.toLowerCase() === "completed"
+                                                                ? "default"
+                                                                : order.status.toLowerCase() === "cancelled"
+                                                                    ? "destructive"
+                                                                    : "secondary"
+                                                        }
+                                                    >
+                                                        {order.status}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>{order.line_items.reduce((total, item) => total = total + item.quantity, 0)} items</TableCell>
+                                                <TableCell>${order.total}</TableCell>
+                                                <TableCell>
+                                                    <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            )}
                         </div>
                     </CardContent>
                 </Card>

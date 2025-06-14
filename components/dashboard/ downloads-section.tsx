@@ -3,7 +3,6 @@ import { Download } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
-import { Dummydownloads } from "./profile-page";
 
 
 interface DownloadsProps {
@@ -21,6 +20,7 @@ export function Downloads({ downloads }: DownloadsProps) {
                 </div>
 
                 <div className="text-center p-6 flex flex-col items-center justify-center min-h-max">
+                    <Download className="h-12 w-12 mb-4 text-muted-foreground" />
                     <p className="text-muted-foreground">You have no downloadable files at this time.</p>
                 </div>
             </div>
@@ -41,13 +41,13 @@ export function Downloads({ downloads }: DownloadsProps) {
                 <CardContent>
                     {/* Mobile-friendly download cards */}
                     <div className="block md:hidden space-y-4">
-                        {Dummydownloads.map((download, index) => (
+                        {downloads?.map((download, index) => (
                             <Card key={index} className="p-4">
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-medium truncate">{download.name}</p>
-                                        <p className="text-sm text-muted-foreground">{download.date}</p>
-                                        <p className="text-sm text-muted-foreground">{download.size}</p>
+                                        <p className="font-medium truncate">{download.file.name}</p>
+                                        <p className="text-sm text-muted-foreground">{download.access_expires}</p>
+                                        <p className="text-sm text-muted-foreground">{download.downloads_remaining} downloads remaining</p>
                                     </div>
                                     <Button variant="ghost" size="sm" className="ml-2 flex-shrink-0">
                                         <Download className="h-4 w-4" />

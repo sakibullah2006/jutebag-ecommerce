@@ -75,9 +75,11 @@
 
 import { updateCustomerPersonalInfo } from '@/actions/customer-action';
 import { useAuth } from '@/hooks/use-auth';
-import { PasswordFormValues, passwordSchema, PersonalInfoFormValues, personalInfoSchema } from '@/lib/validation';
+import { PersonalInfoFormValues, personalInfoSchema } from '@/lib/validation';
 import { Customer } from '@/types/woocommerce';
 import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -99,8 +101,11 @@ interface AccountDetailsProps {
 
 export function AccountDetails({ customer }: AccountDetailsProps) {
     const [isSubmittingPersonal, setIsSubmittingPersonal] = useState(false);
-    const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
-    const { isAuthenticated, user } = useAuth();
+    const { user } = useAuth();
+    const router = useRouter()
+
+
+    console.log('AccountDetails customer:', customer);
 
     // Personal Info Form
     const personalForm = useForm<PersonalInfoFormValues>({
@@ -112,15 +117,6 @@ export function AccountDetails({ customer }: AccountDetailsProps) {
         },
     });
 
-    // Password Form
-    const passwordForm = useForm<PasswordFormValues>({
-        resolver: zodResolver(passwordSchema),
-        defaultValues: {
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: '',
-        },
-    });
 
     // Handle Personal Info Submission
     const onPersonalSubmit = async (data: PersonalInfoFormValues) => {
@@ -140,23 +136,7 @@ export function AccountDetails({ customer }: AccountDetailsProps) {
         }
     };
 
-    // Handle Password Submission
-    const onPasswordSubmit = async (data: PasswordFormValues) => {
-        setIsSubmittingPassword(true);
-        try {
-            // const result = await updateCustomerPassword(customer.id, data.newPassword);
-            // if (result.success) {
-            //     toast.success(result.message);
-            //     passwordForm.reset(); // Clear password fields
-            // } else {
-            //     toast.error(result.message);
-            // }
-        } catch (error) {
-            toast.error('An unexpected error occurred');
-        } finally {
-            setIsSubmittingPassword(false);
-        }
-    };
+
 
     return (
         <div className="space-y-6">
@@ -246,53 +226,12 @@ export function AccountDetails({ customer }: AccountDetailsProps) {
                         <CardTitle>Change Password</CardTitle>
                         <CardDescription>Update your password</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4 ">
-                        <Form {...passwordForm}>
-                            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                                <FormField
-                                    control={passwordForm.control}
-                                    name="currentPassword"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Current Password</FormLabel>
-                                            <FormControl>
-                                                <Input id="current-password" type="password" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={passwordForm.control}
-                                    name="newPassword"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>New Password</FormLabel>
-                                            <FormControl>
-                                                <Input id="new-password" type="password" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={passwordForm.control}
-                                    name="confirmPassword"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Confirm New Password</FormLabel>
-                                            <FormControl>
-                                                <Input id="confirm-password" type="password" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <Button type="submit" className="w-full sm:w-auto" disabled={isSubmittingPassword}>
-                                    {isSubmittingPassword ? 'Updating...' : 'Update Password'}
-                                </Button>
-                            </form>
-                        </Form>
+                    <CardContent className="space-y-4">
+                        <div className='flex justify-end-safe'>
+                            <Link href={`/auth/reset-password?email=${customer.email}`} className='w-full sm:w-auto'>
+                                <Button variant="default" className='w-full sm:w-auto hover:bg-red-600'> Reset Password</Button>
+                            </Link>
+                        </div>
                     </CardContent>
                 </Card>
             </div>

@@ -1,0 +1,145 @@
+"use client"
+
+import { AuthResponse, userResetPassword } from '@/actions/auth-actions'
+import { ConfirmationDialog } from '@/components/dialog/confirmation-dialog'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { DialogFooter, DialogHeader } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { useAuth } from '@/hooks/use-auth'
+import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
+import { CheckCircle, Loader2, XCircle } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { useState } from 'react'
+
+
+type Props = {}
+
+const Page = (props: Props) => {
+    const searchParams = useSearchParams()
+    const defaultEmail = searchParams.get('email') || ''
+    const [email, setEmail] = useState(defaultEmail)
+    const [response, setResponse] = useState<AuthResponse | null>(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const { isAuthenticated, logout } = useAuth()
+    const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false)
+
+    const handleSubmit = async () => {
+        setIsLoading(true)
+        setResponse(null)
+
+        // Simulate API call
+        try {
+            if (isAuthenticated) {
+                // If user is authenticated, log them out before resetting password
+                await logout()
+            }
+            const response = await userResetPassword(email);
+
+            // Simulate different responses based on email
+            if (response.success) {
+                setResponse({
+                    success: true,
+                    message: `A reset link has been sent to ${email}. Please check your inbox.`,
+                })
+            } else {
+                setResponse({
+                    success: false,
+                    message: response.message || "Failed to send reset email. Please try again.",
+                })
+            }
+        } catch (error) {
+            setResponse({
+                success: false,
+                message: "An error occurred while sending the reset email. Please try again.",
+            })
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+
+
+    return (
+        <>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+                <Card className="w-full max-w-md">
+                    <CardHeader className="space-y-1">
+                        <CardTitle className="text-2xl font-bold text-center">Reset Password</CardTitle>
+                        <CardDescription className="text-center">
+                            Enter your email address and we'll send you a link to reset your password
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <form onSubmit={(e) => { e.preventDefault(); setConfirmationDialogOpen(true) }} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email Address</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="Enter your email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    disabled={isLoading || isAuthenticated}
+                                />
+                            </div>
+
+                            <Button type="submit" className="w-full" disabled={isLoading || !email}>
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Sending...
+                                    </>
+                                ) : (
+                                    "Send Reset Email"
+                                )}
+                            </Button>
+                        </form>
+
+                        {response && (
+                            <Alert className={response.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}>
+                                {response.success ? (
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                ) : (
+                                    <XCircle className="h-4 w-4 text-red-600" />
+                                )}
+                                <AlertDescription className={`ml-2 ${response.success ? "text-green-800" : "text-red-800"}`}>
+                                    {response.message}
+                                </AlertDescription>
+                            </Alert>
+                        )}
+
+                        <div className="text-center text-sm text-gray-600">
+                            Remember your password?{" "}
+                            <a href="/login" className="text-blue-600 hover:underline">
+                                Back to login
+                            </a>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <ConfirmationDialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
+                <div className="p-6">
+                    <DialogHeader>
+                        <DialogTitle>Confirm Reset</DialogTitle>
+                        <DialogDescription>Are you sure you want to reset your password? This action cannot be undone.</DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className='w-full mt-2'>
+                        <Button variant="outline" onClick={() => setConfirmationDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="default" onClick={() => { handleSubmit(); setConfirmationDialogOpen(false) }} disabled={isLoading || !email}>
+                            Confirm Reset
+                        </Button>
+                    </DialogFooter>
+                </div>
+            </ConfirmationDialog>
+        </>
+    )
+}
+
+export default Page

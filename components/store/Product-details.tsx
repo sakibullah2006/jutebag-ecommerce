@@ -13,6 +13,7 @@ import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import QuantityButton from "./Quantity-Button";
 
 type Props = {
     product: Product;
@@ -34,6 +35,7 @@ export default function ProductDetails({ product, variations }: Props) {
         attributes,
     } = product;
 
+    const [quantity, setQuantity] = useState(1);
     const [mainImage, setMainImage] = useState<{ src: string; alt: string; name: string }>(images[0]);
     const [variationId, setVariationId] = useState<number | null>(null);
     const [variationPrice, setVariationPrice] = useState<string | null>(null);
@@ -46,6 +48,14 @@ export default function ProductDetails({ product, variations }: Props) {
         // console.log(product.default_attributes, "default attributes")
         console.log("Product details component mounted with product:", product);
     }, [])
+
+    const updateQuantity = (id: number, newQuantity: number) => {
+        if (newQuantity < 1) {
+            console.warn("Quantity cannot be less than 1");
+            return;
+        }
+        setQuantity(newQuantity);
+    }
 
     // Create a dynamic Zod schema based on product attributes
     const createProductSchema = (product: Product) => {
@@ -168,13 +178,13 @@ export default function ProductDetails({ product, variations }: Props) {
     return (
         <>
             {/* Product Images */}
-            <div className="max-sm:col-span-2 space-y-4 h-fit">
-                <div className="relative aspect-square overflow-hidden rounded-lg border bg-background ">
+            <div className="max-sm:col-span-2 space-y-4">
+                <div className="relative aspect-square overflow-hidden rounded-lg border bg-background w-full h-fit  max-h-[400px] ">
                     <Image
                         src={mainImage.src || "/placeholder.svg"}
                         alt={mainImage.alt || ""}
                         fill
-                        className="object-contain h-1/2"
+                        className="object-contain"
                         priority
                     />
                 </div>
@@ -195,7 +205,7 @@ export default function ProductDetails({ product, variations }: Props) {
             </div>
 
             {/* Product Details */}
-            <div className="space-y-6 max-sm:col-span-2">
+            <div className="space-y-6 max-sm:col-span-2 h-full">
                 <div>
                     <h1 className="text-3xl font-bold">{name}</h1>
                     <div className="flex items-center gap-2 mt-2">
@@ -288,17 +298,22 @@ export default function ProductDetails({ product, variations }: Props) {
 
 
 
-                        <div className="space-y-4">
+                        <div className="space-y-4 h-full w-full">
                             <div className="flex flex-col gap-3">
-                                <Button
-                                    type="submit"
-                                    className="flex-1 py-4 px-2 text-lg font-bold"
-                                    size="default"
-                                    disabled={(product.attributes.length > 0 && !variationId)}
-                                >
-                                    <ShoppingCart className="mr-2 h-5 w-5" />
-                                    Add to Cart
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-30">
+                                        <QuantityButton id={product.id} quantity={quantity} updateQuantity={updateQuantity} />
+                                    </div>
+                                    <Button
+                                        type="submit"
+                                        className="flex-1 py-4 px-2 text-lg font-bold"
+                                        size="default"
+                                        disabled={(product.attributes.length > 0 && !variationId)}
+                                    >
+                                        <ShoppingCart className="mr-2 h-5 w-5" />
+                                        Add to Cart
+                                    </Button>
+                                </div>
                                 <Button
                                     type="button"
                                     className="bg-green-500 text-white text-lg font-bold hover:bg-green-700 flex-1 py-4 px-2"

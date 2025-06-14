@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth"
 import { CountryData, Customer, DownloadData, Order } from "@/types/woocommerce"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "../ui/button"
 import {
   SidebarInset,
@@ -75,9 +75,19 @@ interface ProfilePageProps {
 }
 
 export default function ProfilePage({ orders, customer, countries }: ProfilePageProps) {
-  const [activeSection, setActiveSection] = useState("dashboard")
+  // Get the value of the "tab" search parameter and set it to activeSection
+  const searchParams = new URLSearchParams(window.location.search);
+  const tab = searchParams.get("tab");
+  const [activeSection, setActiveSection] = useState(tab || "dashboard")
   const router = useRouter()
 
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.set("tab", activeSection);
+    const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
+    window.history.replaceState(null, "", newUrl);
+  }, [activeSection]);
 
   const renderContent = () => {
     switch (activeSection) {
