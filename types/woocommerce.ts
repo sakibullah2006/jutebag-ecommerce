@@ -294,3 +294,21 @@ export interface CouponData {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     meta_data: any[];
 }
+
+export interface ProductReview {
+  id: number
+  date_created: string
+  date_created_gmt: string
+  product_id: number
+  status: "approved" | "hold" | "spam" | "unspam" | "trash" | "untrash"
+  reviewer: string
+  reviewer_email: string
+  review: string
+  rating: number
+  verified: boolean
+}
+
+export interface ProductReviewsProps {
+  reviews: ProductReview[]
+  showProductId?: boolean
+}

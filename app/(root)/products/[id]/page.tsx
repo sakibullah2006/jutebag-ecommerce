@@ -1,6 +1,8 @@
-import { getProductById, getProductVariationsById } from "@/actions/products-actions";
+import { getProductById, getProductReviews, getProductVariationsById } from "@/actions/products-actions";
 import ProductDetails from "@/components/store/Product-details";
+import ProductReviews from "@/components/store/product-reviews";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProductReview } from "@/types/woocommerce";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import sanitize from "sanitize-html";
@@ -30,11 +32,67 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     };
 }
 
+const sampleReviews: ProductReview[] = [
+    {
+        id: 1,
+        date_created: "2024-01-15T10:30:00",
+        date_created_gmt: "2024-01-15T10:30:00Z",
+        product_id: 123,
+        status: "approved",
+        reviewer: "Sarah Johnson",
+        reviewer_email: "sarah@example.com",
+        review:
+            "Absolutely love this product! The quality exceeded my expectations and it arrived quickly. The design is beautiful and it works perfectly. Would definitely recommend to others.",
+        rating: 5,
+        verified: true,
+    },
+    {
+        id: 2,
+        date_created: "2024-01-10T14:20:00",
+        date_created_gmt: "2024-01-10T14:20:00Z",
+        product_id: 123,
+        status: "approved",
+        reviewer: "Mike Chen",
+        reviewer_email: "mike@example.com",
+        review:
+            "Good product overall. The functionality is solid and it does what it promises. Only minor complaint is that the packaging could be better, but the product itself is great.",
+        rating: 4,
+        verified: true,
+    },
+    {
+        id: 3,
+        date_created: "2024-01-08T09:15:00",
+        date_created_gmt: "2024-01-08T09:15:00Z",
+        product_id: 123,
+        status: "approved",
+        reviewer: "Emily Rodriguez",
+        reviewer_email: "emily@example.com",
+        review:
+            "Decent product but not quite what I expected. It works fine but the quality feels a bit cheap for the price. Customer service was helpful though.",
+        rating: 3,
+        verified: false,
+    },
+    {
+        id: 4,
+        date_created: "2024-01-05T16:45:00",
+        date_created_gmt: "2024-01-05T16:45:00Z",
+        product_id: 123,
+        status: "approved",
+        reviewer: "David Thompson",
+        reviewer_email: "david@example.com",
+        review:
+            "Fantastic purchase! This has made my daily routine so much easier. The build quality is excellent and it looks great too. Highly recommend!",
+        rating: 5,
+        verified: true,
+    },
+]
+
 export default async function ProductPage({ params }: { params: { id: string } }) {
     const { id } = await params
-    const [{ product, status }, { variations }] = await Promise.all([
+    const [{ product, status }, { variations }, { reviews }] = await Promise.all([
         getProductById({ id }),
         getProductVariationsById({ id }),
+        getProductReviews(parseInt(id))
     ])
 
     // console.log(variations)
@@ -96,6 +154,10 @@ export default async function ProductPage({ params }: { params: { id: string } }
                         }
                     </TabsContent>
                 </Tabs>
+
+            </div>
+            <div className="mt-12">
+                <ProductReviews reviews={reviews} showProductId={true} />
             </div>
         </div>
     )

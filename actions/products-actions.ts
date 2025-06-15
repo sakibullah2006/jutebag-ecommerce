@@ -1,6 +1,14 @@
 "use server"
 
 import { Product, VariationProduct } from "@/types/woocommerce";
+import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
+
+const WooCommerce = new WooCommerceRestApi({
+    url: process.env.WORDPRESS_SITE_URL as string,
+    consumerKey: process.env.WC_CONSUMER_KEY! as string,
+    consumerSecret: process.env.WC_CONSUMER_SECRET! as string,
+    version: "wc/v3",
+});
 
 export const getProductById = async ({ id }: { id: string }): Promise<{ product?: Product | null, status: "OK" | "ERROR" }> => {
     try {
@@ -73,3 +81,37 @@ export const getProducts = async ({
         };
     }
 };
+
+export async function getProductReviews(productId: number) {
+  try {
+    // Validate productId
+    if (!productId || isNaN(productId)) {
+      throw new Error("Invalid product ID");
+    }
+
+    // Make API request to get reviews for the specific product
+    const response = await WooCommerce.get("products/reviews", {
+      product: productId,
+    });
+
+    // Check if response contains reviews
+    if (response.data && response.data.length > 0) {
+      return {
+        success: true,
+        reviews: response.data,
+      };
+    } else {
+      return {
+        success: true,
+        reviews: [],
+        message: "No reviews found for this product",
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching product reviews:", error);
+    return {
+      success: false,
+      message: "Failed to fetch product reviews",
+    };
+  }
+}
