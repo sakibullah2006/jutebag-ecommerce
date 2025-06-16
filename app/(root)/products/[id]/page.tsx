@@ -89,13 +89,15 @@ const sampleReviews: ProductReview[] = [
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
     const { id } = await params
+    console.log("Product ID:", id)
     const [{ product, status }, { variations }, { reviews }] = await Promise.all([
         getProductById({ id }),
         getProductVariationsById({ id }),
-        getProductReviews(parseInt(id))
+        getProductReviews(Number(id))
     ])
 
     // console.log(variations)
+    console.log("Reviews: \n", reviews)
 
     if (status === "ERROR" || !product) {
         notFound()

@@ -1,9 +1,14 @@
-import { Avatar, AvatarFallback, } from "@/components/ui/avatar"
+"use client"
+
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { getRelativeTime } from "@/lib/utils"
 import { ProductReview, ProductReviewsProps } from "@/types/woocommerce"
-import { ReviewStars } from "./product-review-start"
 import { Star } from "lucide-react"
+import { useParams } from "next/navigation"
+import { useState } from "react"
+import { AddReview } from "./add-review"
+import { ReviewStars } from "./product-review-start"
 
 function getInitials(name: string): string {
     return name
@@ -54,10 +59,22 @@ function ReviewItem({ review }: { review: ProductReview }) {
     )
 }
 
-export default function ProductReviews({ reviews, showProductId = false }: ProductReviewsProps) {
+export default function ProductReviews({ reviews: initialReviews, showProductId = false }: ProductReviewsProps) {
+    const [reviews, setReviews] = useState(initialReviews || [])
+
+    const handleReviewSubmitted = (newReview: ProductReview) => {
+        const reviewWithMetadata: ProductReview = {
+            ...newReview,
+        }
+
+        setReviews((prev) => [reviewWithMetadata, ...prev])
+    }
+
+    const productId = Number(useParams<{ id: string }>().id)
+
     if (!reviews || reviews.length === 0) {
         return (
-            <div className="w-full max-w-4xl mx-auto">
+            <div className="w-full max-w-4xl mx-auto space-y-8">
                 <div className="text-center py-16">
                     <div className="mb-6">
                         <div className="w-24 h-24 mx-auto mb-4 bg-gray-50 rounded-full flex items-center justify-center">
@@ -85,6 +102,8 @@ export default function ProductReviews({ reviews, showProductId = false }: Produ
                     </div>
                     <p className="text-sm text-gray-400 mt-2">Waiting for the first review...</p>
                 </div>
+
+                <AddReview productId={productId} onReviewSubmitted={handleReviewSubmitted} />
             </div>
         )
     }
@@ -94,9 +113,9 @@ export default function ProductReviews({ reviews, showProductId = false }: Produ
     const approvedReviews = reviews.filter((review) => review.status === "approved")
 
     return (
-        <div className="max-w-screen mx-auto space-y-6">
+        <div className="w-full max-w-4xl mx-auto space-y-8">
             {/* Reviews Summary */}
-            <div className="border-b w-full pb-6">
+            <div className="border-b pb-6">
                 <div className="flex items-center justify-between">
                     <div className="space-y-2">
                         <h2 className="text-2xl font-semibold">Reviews</h2>
@@ -112,9 +131,12 @@ export default function ProductReviews({ reviews, showProductId = false }: Produ
                 </div>
             </div>
 
+            {/* Add Review Form */}
+            <AddReview productId={productId} onReviewSubmitted={handleReviewSubmitted} />
+
             {/* Reviews List */}
             <div className="space-y-0 divide-y">
-                {approvedReviews.map((review) => (
+                {reviews.map((review) => (
                     <ReviewItem key={review.id} review={review} />
                 ))}
             </div>

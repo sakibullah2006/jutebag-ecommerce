@@ -46,7 +46,7 @@ export default function ProductDetails({ product, variations }: Props) {
 
     useEffect(() => {
         // console.log(product.default_attributes, "default attributes")
-        console.log("Product details component mounted with product:", product);
+        // console.log("Product details component mounted with product:", product);
     }, [])
 
     const updateQuantity = (id: number, newQuantity: number) => {
