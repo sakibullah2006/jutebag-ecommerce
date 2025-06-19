@@ -16,25 +16,17 @@ import React, { useEffect, useState } from 'react';
 type Props = {}
 
 const PasswordResetVIew = (props: Props) => {
-    const searchParams = new URLSearchParams(window.location.search);
-    let defaultEmail = searchParams.get("email");
-    const [email, setEmail] = useState(defaultEmail || "");
+    const [email, setEmail] = useState("");
     const [response, setResponse] = useState<AuthResponse | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { isAuthenticated, logout } = useAuth();
     const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
-    // Access searchParams only on the client side
-
     useEffect(() => {
-        const searchParams = new URLSearchParams(window.location.search);
-        // This runs only on the client, so searchParams is safe to access
-        let defaultEmail = searchParams.get("email") || "";
-        // If email is not provided, set it to an empty string
-
-        // Update the email state with the value from searchParams
-        setEmail(defaultEmail);
-    }, [searchParams]);
+        if (isAuthenticated) {
+            setEmail(""); // Clear email if user is authenticated
+        }
+    }, [isAuthenticated]);
 
     const handleSubmit = async () => {
         setIsLoading(true);
