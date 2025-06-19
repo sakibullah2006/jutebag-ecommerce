@@ -1,9 +1,8 @@
 import PasswordResetView from "@/components/store/password-reset-view";
 
 
-type Props = {};
 
-const Page = (props: Props) => {
+const Page = () => {
     return (
         <div className="container max-w-md mx-auto py-12 px-4">
             <PasswordResetView />

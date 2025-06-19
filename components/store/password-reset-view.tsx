@@ -1,3 +1,5 @@
+"use client";
+
 import { AuthResponse, userResetPassword } from "@/actions/auth-actions";
 import { ConfirmationDialog } from "@/components/dialog/confirmation-dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
