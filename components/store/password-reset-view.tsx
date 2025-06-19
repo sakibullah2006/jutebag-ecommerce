@@ -17,17 +17,19 @@ import React, { useEffect, useState } from 'react';
 type Props = {}
 
 const PasswordResetVIew = (props: Props) => {
-    const [email, setEmail] = useState("");
+    const searchParams = new URLSearchParams(window.location.search);
+    let defaultEmail = searchParams.get("email");
+    const [email, setEmail] = useState(defaultEmail || "");
     const [response, setResponse] = useState<AuthResponse | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { isAuthenticated, logout } = useAuth();
     const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
     // Access searchParams only on the client side
-    const searchParams = useSearchParams();
+
     useEffect(() => {
         // This runs only on the client, so searchParams is safe to access
-        const defaultEmail = searchParams.get("email") || "";
+        let defaultEmail = searchParams.get("email") || "";
         setEmail(defaultEmail);
     }, [searchParams]);
 
