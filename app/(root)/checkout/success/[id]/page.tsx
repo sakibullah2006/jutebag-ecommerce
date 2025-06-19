@@ -7,7 +7,7 @@ import { notFound } from "next/navigation"
 
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
-    const order = await getOrder(params.id);
+    const order = await getOrder((await params).id);
 
     if (!order) {
         return {

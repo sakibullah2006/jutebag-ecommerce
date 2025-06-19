@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 
 
 const WooCommerce = new WooCommerceRestApi({
-    url: process.env.NEXT_PUBLIC_WORDPRESS_SITE_URL || "https://axessories.store/headless",
+    url: process.env.WORDPRESS_SITE_URL as string,
     consumerKey: process.env.WC_CONSUMER_KEY! as string,
     consumerSecret: process.env.WC_CONSUMER_SECRET! as string,
     version: "wc/v3",
@@ -94,6 +94,7 @@ export async function fetchOrdersByUserId(userId: number): Promise<Order[]> {
         const response = await WooCommerce.get("orders", {
             headers: { Authorization: `Bearer ${token}` },
             params: { customer: userId },
+            caches: false,
         });
         return response.data as Order[];
     } catch (error) {

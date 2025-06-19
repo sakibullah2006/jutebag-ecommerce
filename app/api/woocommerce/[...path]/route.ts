@@ -3,7 +3,7 @@ import WooCommerceRestApi from '@woocommerce/woocommerce-rest-api';
 import { NextRequest, NextResponse } from 'next/server';
 
 const wooCommerce = new WooCommerceRestApi({
-    url: "https://axessories.store/headless",
+    url: "https://outdated.digital/woonex/",
     consumerKey: process.env.WC_CONSUMER_KEY! as string,
     consumerSecret: process.env.WC_CONSUMER_SECRET! as string,
     version: "wc/v3",

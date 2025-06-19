@@ -27,7 +27,7 @@ const Page = async ({
                 <PaginationContent>
                     {page > 1 && (
                         <PaginationItem>
-                            <PaginationPrevious href={`/?page=${page - 1}`} />
+                            <PaginationPrevious href={`?page=${page - 1}`} />
                         </PaginationItem>
                     )}
                     <PaginationItem>

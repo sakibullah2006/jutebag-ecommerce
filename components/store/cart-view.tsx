@@ -11,6 +11,7 @@ import { useState } from 'react'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card'
 import { Label } from '../ui/label'
+import QuantityButton from './Quantity-Button'
 
 const CartView = () => {
     const { items, removeItem, updateQuantity, cartTotal, totalItems, shipping } = useCart()
@@ -42,58 +43,48 @@ const CartView = () => {
                                     <CardContent className="p-4">
                                         <div className="flex flex-col sm:flex-row gap-4">
                                             <div className="flex max-sm:flex-col gap-3 ">
-                                                <Image
-                                                    src={item.images?.[0]?.src || "/placeholder.svg?height=100&width=100"}
-                                                    alt={item.name}
-                                                    width={100}
-                                                    height={100}
-                                                    className="rounded-md object-cover"
-                                                />
+                                                <Link href={`/products/${item.id}`} >
+                                                    <Image
+                                                        src={item.images?.[0]?.src || "/placeholder.svg?height=100&width=100"}
+                                                        alt={item.name}
+                                                        width={100}
+                                                        height={100}
+                                                        className="rounded-md object-cover"
+                                                    />
+                                                </Link>
                                             </div>
-                                            <div className="grid grid-cols-2 space-y-2 w-full">
-                                                <div className='flex col-span-2 justify-between w-full'>
-                                                    <h3 className="font-medium text-lg">{item.name}</h3>
-                                                    <div className="text-right font-medium">${Number(item.price * item.quantity).toFixed(2)}</div>
-                                                </div>
+                                            <div className="grid space-y-2 w-full">
+                                                <div className='grid grid-cols-4 gap-2'>
+                                                    <div className='items-start row-span-2'>
+                                                        <Link href={`/products/${item.id}`} >
+                                                            <h3 className="font-medium text-lg text-top">{item.name}</h3>
+                                                        </Link>
+                                                    </div>
 
-                                                {item.variation_id &&
-                                                    <div className="flex col-span-2 justify-between text-sm px-3">
+                                                    {/* {item.variation_id && */}
+                                                    <div className="justify-between text-sm px-3">
                                                         {item.selectedAttributes?.Color && <p className="mt-1 text-sm text-muted-foreground">Color: {item.selectedAttributes.Color}</p>}
                                                         {item.selectedAttributes?.Size && <p className="mt-1 text-sm text-muted-foreground">Size: {item.selectedAttributes.Size}</p>}
                                                     </div>
-                                                }
+                                                    {/* } */}
 
 
-                                                <div className="flex items-center col-span-2 gap-2 ">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="icon"
-                                                        className="h-8 w-8"
-                                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                    >
-                                                        <Minus className="h-4 w-4" />
-                                                        <span className="sr-only">Decrease quantity</span>
-                                                    </Button>
-                                                    <span className="w-8 text-center">{item.quantity}</span>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="icon"
-                                                        className="h-8 w-8"
-                                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                    >
-                                                        <Plus className="h-4 w-4" />
-                                                        <span className="sr-only">Increase quantity</span>
-                                                    </Button>
+                                                    <div className="flex gap-2 col-span-1">
+                                                        <div>
+                                                            <QuantityButton id={item.id} quantity={item.quantity} />
+                                                        </div>
 
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-8 w-8 ml-auto text-destructive self-end"
-                                                        onClick={() => removeItem(item.id)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                        <span className="sr-only">Remove item</span>
-                                                    </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="icon"
+                                                            className="h-10 w-10 ml-auto rounded-r-sm"
+                                                            onClick={() => removeItem(item.id)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            <span className="sr-only">Remove item</span>
+                                                        </Button>
+                                                    </div>
+                                                    <div className="text-right font-medium ml-10">${Number(item.price * item.quantity).toFixed(2)}</div>
                                                 </div>
                                             </div>
                                         </div>

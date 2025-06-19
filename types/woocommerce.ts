@@ -2,6 +2,7 @@ export interface Product {
     id: number
     name: string
     price: string
+    
     regular_price: string
     sale_price: string
     featured: boolean
@@ -24,9 +25,9 @@ export interface Product {
         id: number,
         name: string,
         slug: string,
-        position: number,
-        visible: boolean,
-        variation: boolean,
+        position?: number,
+        visible?: boolean,
+        variation?: boolean,
         options: string[]
     }[]
     default_attributes: {
@@ -35,8 +36,7 @@ export interface Product {
         option: string
     }[]
     selectedAttributes?: {
-        Color?: string
-        Size?: string
+        [key: string]: string
     },
     description: string
     short_description: string
@@ -84,6 +84,9 @@ export interface VariationProduct {
 export interface Order {
     id: number;
     status: string;
+    parent_id: string;
+    number: string;
+    total_tax: string;
     total: string;
     date_created: string;
     billing: {
@@ -118,6 +121,8 @@ export interface Order {
 export interface Customer {
     id: number;
     email: string;
+    phone: string;
+    date_created: string;
     first_name: string;
     last_name: string;
     username: string;
@@ -126,6 +131,7 @@ export interface Customer {
         first_name: string;
         last_name: string;
         address_1: string;
+        address_2?: string;
         city: string;
         state: string;
         postcode: string;
@@ -137,11 +143,30 @@ export interface Customer {
         first_name: string;
         last_name: string;
         address_1: string;
+        address_2?: string;
         city: string;
         state: string;
         postcode: string;
         country: string;
     };
+}
+
+export interface DownloadData {
+    download_id: string;
+    download_url: string;
+    product_id: number;
+    product_name: string;
+    download_name: string;
+    order_id: number;
+    order_key: string;
+    downloads_remaining: string;
+    access_expires: string;
+    access_expires_gmt: string;
+    file: {
+        name: string;
+        file: string;
+    };
+   
 }
 
 export interface CountryData {
@@ -268,4 +293,22 @@ export interface CouponData {
     used_by: string[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     meta_data: any[];
+}
+
+export interface ProductReview {
+  id: number
+  date_created: string
+  date_created_gmt: string
+  product_id: number
+  status: "approved" | "hold" | "spam" | "unspam" | "trash" | "untrash"
+  reviewer: string
+  reviewer_email: string
+  review: string
+  rating: number
+  verified: boolean
+}
+
+export interface ProductReviewsProps {
+  reviews: ProductReview[]
+  showProductId?: boolean
 }
