@@ -13,20 +13,20 @@ import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import React, { useEffect, useState } from 'react';
 
-type Props = {}
+type Props = { userEmail?: string };
 
-const PasswordResetVIew = (props: Props) => {
-    const [email, setEmail] = useState("");
+const PasswordResetVIew = ({ userEmail }: Props) => {
+    const [email, setEmail] = useState(userEmail || "");
     const [response, setResponse] = useState<AuthResponse | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { isAuthenticated, logout } = useAuth();
     const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
     useEffect(() => {
-        if (isAuthenticated) {
-            setEmail(""); // Clear email if user is authenticated
+        if (userEmail && userEmail.trim() !== "" && !isAuthenticated) {
+            setEmail(userEmail);
         }
-    }, [isAuthenticated]);
+    }, []);
 
     const handleSubmit = async () => {
         setIsLoading(true);
@@ -86,7 +86,7 @@ const PasswordResetVIew = (props: Props) => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    disabled={isLoading || isAuthenticated}
+                                    disabled={isLoading}
                                 />
                             </div>
 
