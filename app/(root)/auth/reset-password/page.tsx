@@ -1,66 +1,66 @@
-"use client"
+"use client";
 
-import { AuthResponse, userResetPassword } from '@/actions/auth-actions'
-import { ConfirmationDialog } from '@/components/dialog/confirmation-dialog'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DialogFooter, DialogHeader } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { useAuth } from '@/hooks/use-auth'
-import { DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
-import { CheckCircle, Loader2, XCircle } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { AuthResponse, userResetPassword } from "@/actions/auth-actions";
+import { ConfirmationDialog } from "@/components/dialog/confirmation-dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DialogFooter, DialogHeader } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/use-auth";
+import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
+import { CheckCircle, Loader2, XCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-
-type Props = {}
+type Props = {};
 
 const Page = (props: Props) => {
-    const searchParams = useSearchParams()
-    const defaultEmail = searchParams.get('email') || ''
-    const [email, setEmail] = useState(defaultEmail)
-    const [response, setResponse] = useState<AuthResponse | null>(null)
-    const [isLoading, setIsLoading] = useState(false)
-    const { isAuthenticated, logout } = useAuth()
-    const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false)
+    const [email, setEmail] = useState("");
+    const [response, setResponse] = useState<AuthResponse | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const { isAuthenticated, logout } = useAuth();
+    const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
+
+    // Access searchParams only on the client side
+    const searchParams = useSearchParams();
+    useEffect(() => {
+        // This runs only on the client, so searchParams is safe to access
+        const defaultEmail = searchParams.get("email") || "";
+        setEmail(defaultEmail);
+    }, [searchParams]);
 
     const handleSubmit = async () => {
-        setIsLoading(true)
-        setResponse(null)
+        setIsLoading(true);
+        setResponse(null);
 
-        // Simulate API call
         try {
             if (isAuthenticated) {
-                // If user is authenticated, log them out before resetting password
-                await logout()
+                await logout();
             }
             const response = await userResetPassword(email);
 
-            // Simulate different responses based on email
             if (response.success) {
                 setResponse({
                     success: true,
                     message: `A reset link has been sent to ${email}. Please check your inbox.`,
-                })
+                });
             } else {
                 setResponse({
                     success: false,
                     message: response.message || "Failed to send reset email. Please try again.",
-                })
+                });
             }
         } catch (error) {
             setResponse({
                 success: false,
                 message: "An error occurred while sending the reset email. Please try again.",
-            })
+            });
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
-
-
+    };
 
     return (
         <>
@@ -73,7 +73,13 @@ const Page = (props: Props) => {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <form onSubmit={(e) => { e.preventDefault(); setConfirmationDialogOpen(true) }} className="space-y-4">
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                setConfirmationDialogOpen(true);
+                            }}
+                            className="space-y-4"
+                        >
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
                                 <Input
@@ -126,20 +132,29 @@ const Page = (props: Props) => {
                 <div className="p-6">
                     <DialogHeader>
                         <DialogTitle>Confirm Reset</DialogTitle>
-                        <DialogDescription>Are you sure you want to reset your password? This action cannot be undone.</DialogDescription>
+                        <DialogDescription>
+                            Are you sure you want to reset your password? This action cannot be undone.
+                        </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className='w-full mt-2'>
+                    <DialogFooter className="w-full mt-2">
                         <Button variant="outline" onClick={() => setConfirmationDialogOpen(false)}>
                             Cancel
                         </Button>
-                        <Button variant="default" onClick={() => { handleSubmit(); setConfirmationDialogOpen(false) }} disabled={isLoading || !email}>
+                        <Button
+                            variant="default"
+                            onClick={() => {
+                                handleSubmit();
+                                setConfirmationDialogOpen(false);
+                            }}
+                            disabled={isLoading || !email}
+                        >
                             Confirm Reset
                         </Button>
                     </DialogFooter>
                 </div>
             </ConfirmationDialog>
         </>
-    )
-}
+    );
+};
 
-export default Page
+export default Page;
