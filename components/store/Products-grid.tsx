@@ -16,7 +16,16 @@ interface ProductsGridProps {
 
 const ProductsGrid = ({ products, title, subtitle }: ProductsGridProps) => {
     const currentPath = usePathname()
-
+    if (!products || products.length === 0) {
+        return (
+            <section className="w-full py-16 min-h-[400px] items-center flex justify-center">
+                <div className="container px-4 md:px-6 text-center">
+                    <h2 className="text-2xl font-light tracking-tight mb-2">You have reached the End</h2>
+                    <p className="text-muted-foreground text-sm max-w-md mx-auto">There are no more products available.</p>
+                </div>
+            </section>
+        )
+    }
 
     return (
         <section className="w-full py-16">

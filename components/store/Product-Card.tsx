@@ -70,7 +70,7 @@ const ProductCard = ({ product }: { product: Product }) => {
                 </Button>
             </div>
             <div className="flex items-center justify-between">
-                <h3 className="font-mono text-lg">{name}</h3>
+                <h3 className="font-mono text-lg">{name.split(" ").slice(0, 4).join(" ")}</h3>
                 <p className="text-md font-mono">${Number(price).toFixed(2)}</p>
             </div>
         </Link>
