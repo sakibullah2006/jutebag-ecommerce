@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from 'react';
 
 type Props = {}
