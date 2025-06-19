@@ -1,16 +1,14 @@
-import dynamic from "next/dynamic";
+import PasswordResetView from "@/components/store/password-reset-view";
+import { Suspense } from "react";
 
-// Dynamically import the PasswordResetView component with SSR disabled
-const PasswordResetView = dynamic(() => import("@/components/store/password-reset-view"), {
-    ssr: false, // Disable server-side rendering
-});
+
 
 const Page = () => {
     return (
-        <div className="container max-w-md mx-auto py-12 px-4">
+        <Suspense fallback={<>Loading</>}>
             <PasswordResetView />
-        </div>
-    );
+        </Suspense>
+    )
 };
 
 export default Page;
