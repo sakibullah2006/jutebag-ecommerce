@@ -27,8 +27,12 @@ const PasswordResetVIew = (props: Props) => {
     // Access searchParams only on the client side
 
     useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
         // This runs only on the client, so searchParams is safe to access
         let defaultEmail = searchParams.get("email") || "";
+        // If email is not provided, set it to an empty string
+
+        // Update the email state with the value from searchParams
         setEmail(defaultEmail);
     }, [searchParams]);
 
