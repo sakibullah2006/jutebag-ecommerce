@@ -117,7 +117,7 @@ const PasswordResetVIew = ({ userEmail }: Props) => {
 
                         <div className="text-center text-sm text-gray-600">
                             Remember your password?{" "}
-                            <a href="/login" className="text-blue-600 hover:underline">
+                            <a href="/auth" className="text-blue-600 hover:underline">
                                 Back to login
                             </a>
                         </div>
