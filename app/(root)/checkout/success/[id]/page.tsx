@@ -96,7 +96,7 @@ export default async function ThankYouPage({ params }: { params: { id: string } 
                         <div>
                             <h3 className="font-medium mb-2">Payment</h3>
                             <p className="text-sm text-muted-foreground">
-                                Total: <span className="font-medium text-foreground">{order?.total}</span>
+                                Total: <span className="font-medium text-foreground">{order?.currency_symbol}{order?.total}</span>
                             </p>
                         </div>
 

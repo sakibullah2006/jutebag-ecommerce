@@ -7,7 +7,6 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { OrderDetailsModal } from "./order-details-modal";
-import { allOrders } from "./profile-page";
 
 interface OrdersProps {
     orders?: Order[],

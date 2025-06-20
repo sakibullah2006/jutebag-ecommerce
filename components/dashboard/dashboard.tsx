@@ -5,7 +5,6 @@ import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table"
-import { recentOrders } from "./profile-page"
 
 interface DashboardProps {
     orders?: Order[],
@@ -42,7 +41,7 @@ export default function Dashboard({ orders, customer, setActiveSection }: Dashbo
                         <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl text-green-500 font-bold">${totalSpent}</div>
+                        <div className="text-2xl text-green-500 font-bold">${totalSpent.toFixed(2)}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -125,7 +124,7 @@ export default function Dashboard({ orders, customer, setActiveSection }: Dashbo
                                                 {order.status}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>${order.total}</TableCell>
+                                        <TableCell>${Number(order.total).toFixed(2)}</TableCell>
                                         {/* <TableCell>
                       <Button variant="ghost" size="sm">
                         <Eye className="h-4 w-4" />
