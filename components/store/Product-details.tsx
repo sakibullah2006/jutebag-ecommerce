@@ -13,6 +13,7 @@ import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "../ui/carousel";
 import QuantityButton from "./Quantity-Button";
 
 type Props = {
@@ -40,6 +41,7 @@ export default function ProductDetails({ product, variations }: Props) {
     const [variationId, setVariationId] = useState<number | null>(null);
     const [variationPrice, setVariationPrice] = useState<string | null>(null);
     const isInStock = stock_status === "instock";
+    const [selectedAttr, setSelectedAttr] = useState<Record<string, string>>({});
     // console.log("stock status:", isInStock);
 
     const { addItem, setIsOpen } = useCart();
@@ -47,6 +49,7 @@ export default function ProductDetails({ product, variations }: Props) {
     useEffect(() => {
         // console.log(product.default_attributes, "default attributes")
         // console.log("Product details component mounted with product:", product);
+        // setSelectedAttributes(getDefaultValues());
     }, [])
 
     const updateQuantity = (id: number, newQuantity: number) => {
@@ -101,6 +104,7 @@ export default function ProductDetails({ product, variations }: Props) {
                 {} as Record<string, string>,
             );
 
+
             // filter out attributes that has attribute.variation as true
             const filteredAttributes = attributes.filter((attr) => attr.variation);
             // console.log("filtered attributes:", filteredAttributes)
@@ -113,9 +117,25 @@ export default function ProductDetails({ product, variations }: Props) {
         });
     };
 
+    const getSelectedAttributes = () => {
+        const values = form.getValues();
+        const selectedAttributes: Record<string, string> = {};
+
+        attributes.forEach((attr) => {
+            if (values[attr.slug]) {
+                selectedAttributes[attr.name] = values[attr.slug];
+            }
+        });
+
+        return selectedAttributes;
+    }
+
+
     // Handle attribute change
     const handleAttributeChange = () => {
         const values = form.getValues();
+        const selectedAttributes = getSelectedAttributes()
+
         const matchingVariation = findMatchingVariation(values);
 
         if (matchingVariation) {
@@ -131,16 +151,13 @@ export default function ProductDetails({ product, variations }: Props) {
             setMainImage(images[0]); // Fallback to default product image
             setVariationPrice(null);
         }
+        // setSelectedAttributes({ ...values });
+        console.log("Selected attributes:", selectedAttributes);
     };
 
     const onSubmit = (values: z.infer<typeof productSchema>) => {
-        const selectedAttributes: Record<string, string> = {};
+        const selectedAttributes = getSelectedAttributes();
 
-        attributes.forEach((attr) => {
-            if (values[attr.slug]) {
-                selectedAttributes[attr.name] = values[attr.slug];
-            }
-        });
 
         const productWithAttributes = {
             ...product,
@@ -155,13 +172,7 @@ export default function ProductDetails({ product, variations }: Props) {
 
     const handleBuyNow = () => {
         form.handleSubmit((values) => {
-            const selectedAttributes: Record<string, string> = {};
-
-            attributes.forEach((attr) => {
-                if (values[attr.slug]) {
-                    selectedAttributes[attr.name] = values[attr.slug];
-                }
-            });
+            const selectedAttributes = getSelectedAttributes();
 
             const productWithAttributes = {
                 ...product,
@@ -189,7 +200,7 @@ export default function ProductDetails({ product, variations }: Props) {
                     />
                 </div>
 
-                {images.length > 1 && (
+                {/* {images.length > 1 && (
                     <div className="grid grid-cols-5 gap-2 overflow-hidden max-w-full">
                         {images.map((image, index) => (
                             <div
@@ -201,7 +212,25 @@ export default function ProductDetails({ product, variations }: Props) {
                             </div>
                         ))}
                     </div>
-                )}
+                )} */}
+                <Carousel className="m-8 ">
+                    <CarouselContent>
+                        {images.map((image, index) => (
+                            <CarouselItem className="basis-1/4">
+                                <div
+                                    key={index}
+                                    className="relative aspect-square overflow-hidden rounded-lg border bg-background cursor-pointer"
+                                    onClick={() => setMainImage(image)}
+                                >
+                                    <Image src={image.src || "/placeholder.svg"} alt={image.alt} fill className="object-contain" />
+                                </div>
+                            </CarouselItem>
+                        ))}
+                        {/* <CarouselItem className="md:basis-1/2 lg:basis-1/3">...</CarouselItem> */}
+                    </CarouselContent>
+                    <CarouselPrevious variant="outline" className="rounded-sm h-full" />
+                    <CarouselNext variant="outline" className="rounded-sm h-full" />
+                </Carousel>
             </div>
 
             {/* Product Details */}
@@ -319,7 +348,7 @@ export default function ProductDetails({ product, variations }: Props) {
                                     className="bg-green-500 text-white text-lg font-bold hover:bg-green-700 flex-1 py-4 px-2"
                                     size="default"
                                     variant="secondary"
-                                    disabled={(product.attributes.length > 0 && variationId === null)}
+                                    disabled={(product.type != "simple" && variationId === null)}
                                     onClick={handleBuyNow}
                                 >
                                     <CreditCard className="mr-2 h-5 w-5" />

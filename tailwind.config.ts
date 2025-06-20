@@ -126,10 +126,15 @@ module.exports = {
       },
     },
     plugins: [
+      require("daisyui"),
         typography,
         forms,
         asRatio,
         container_quries
     ],
+    daisyui: {
+      themes: false,
+      base: false, // Disable Daisy's base styles
+    },
     darkMode: 'class',
   }

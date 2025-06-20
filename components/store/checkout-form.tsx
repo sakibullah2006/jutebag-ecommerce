@@ -40,15 +40,23 @@ export function CheckoutForm({ countries, taxes, shippingZones, customer }: Chec
     const defaultBillingAddress = customer?.billing || {}
     const defaultShippingAddress = customer?.shipping || {}
 
-
-
-
     const form = useForm<FormValues>({
         resolver: zodResolver(checkoutFormSchema),
         defaultValues: {
             delivery: {
                 first_name: defaultShippingAddress.first_name,
                 last_name: defaultBillingAddress.last_name,
+                address_1: defaultBillingAddress.address_1 || "",
+                city: defaultBillingAddress.city || "",
+                state: "",
+                country: "",
+                postcode: defaultBillingAddress.postcode || "",
+                email: defaultBillingAddress.email || "",
+                phone: defaultBillingAddress.phone || "",
+            },
+            billing: {
+                first_name: defaultBillingAddress.first_name || "",
+                last_name: defaultBillingAddress.last_name || "",
                 address_1: defaultBillingAddress.address_1 || "",
                 city: defaultBillingAddress.city || "",
                 state: "",

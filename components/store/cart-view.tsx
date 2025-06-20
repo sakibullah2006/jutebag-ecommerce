@@ -3,11 +3,11 @@
 import { useCart } from '@/hooks/use-cart'
 import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group'
 import { Separator } from '@radix-ui/react-select'
-import { Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
+import { ShoppingBag, Trash2 } from 'lucide-react'
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card'
 import { Label } from '../ui/label'
@@ -20,6 +20,10 @@ const CartView = () => {
 
     // Fixed shipping cost
     const total = cartTotal + shipping!
+
+    useEffect(() => {
+        console.log("Cart items updated:", items)
+    }, [items])
 
     return (
         <div className="container mx-auto py-8 px-4">

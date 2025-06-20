@@ -125,7 +125,7 @@ const PasswordResetVIew = ({ userEmail }: Props) => {
                 </Card>
             </div>
 
-            <ConfirmationDialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
+            {/* <ConfirmationDialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
                 <div className="p-6">
                     <DialogHeader>
                         <DialogTitle>Confirm Reset</DialogTitle>
@@ -148,6 +148,34 @@ const PasswordResetVIew = ({ userEmail }: Props) => {
                             Confirm Reset
                         </Button>
                     </DialogFooter>
+                </div>
+            </ConfirmationDialog> */}
+            <ConfirmationDialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
+                <h3 className="font-bold text-lg">Confirm Reset</h3>
+                <p className="py-4">
+                    Are you sure you want to reset your password? This action cannot be undone.
+                </p>
+                <div className="modal-action flex gap-3 justify-end-safe">
+                    <Button
+                        className=""
+                        onClick={() => setConfirmationDialogOpen(false)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        className=""
+                        onClick={() => {
+                            handleSubmit();
+                            setConfirmationDialogOpen(false);
+                        }}
+                        disabled={isLoading || !email}
+                    >
+                        {isLoading ? (
+                            <span className="loading loading-spinner"></span>
+                        ) : (
+                            "Confirm Reset"
+                        )}
+                    </Button>
                 </div>
             </ConfirmationDialog>
         </>

@@ -28,6 +28,7 @@ export const deliverySchema = z.object({
 // Define the schema for the entire form
 export const checkoutFormSchema = z.object({
   delivery: deliverySchema,
+  billing: deliverySchema.optional(),
   terms: z.boolean().refine((val) => val === true, {
     message: "You must agree to the terms and conditions",
   }),
