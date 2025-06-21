@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/utils";
 import { DownloadData } from "@/types/woocommerce";
 import { Download } from "lucide-react";
 import { Button } from "../ui/button";
@@ -11,21 +12,21 @@ interface DownloadsProps {
 
 export function Downloads({ downloads }: DownloadsProps) {
 
-    if (downloads === undefined || downloads.length === 0) {
-        return (
-            <div className="space-y-6">
-                <div>
-                    <h2 className="text-2xl font-bold">Downloads</h2>
-                    <p className="text-muted-foreground">Access your downloadable files</p>
-                </div>
+    // if (downloads?.length === 0) {
+    //     return (
+    //         <div className="space-y-6">
+    //             <div>
+    //                 <h2 className="text-2xl font-bold">Downloads</h2>
+    //                 <p className="text-muted-foreground">Access your downloadable files</p>
+    //             </div>
 
-                <div className="text-center p-6 flex flex-col items-center justify-center min-h-max">
-                    <Download className="h-12 w-12 mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">You have no downloadable files at this time.</p>
-                </div>
-            </div>
-        )
-    }
+    //             <div className="text-center p-6 flex flex-col items-center justify-center min-h-max">
+    //                 <Download className="h-12 w-12 mb-4 text-muted-foreground" />
+    //                 <p className="text-muted-foreground">You have no downloadable files at this time.</p>
+    //             </div>
+    //         </div>
+    //     )
+    // }
 
     return (
         <div className="space-y-6">
@@ -36,7 +37,7 @@ export function Downloads({ downloads }: DownloadsProps) {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Available Downloads</CardTitle>
+                    <CardTitle>Available Downloads - {downloads?.length}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {/* Mobile-friendly download cards */}
@@ -46,10 +47,10 @@ export function Downloads({ downloads }: DownloadsProps) {
                                 <div className="flex justify-between items-start">
                                     <div className="flex-1 min-w-0">
                                         <p className="font-medium truncate">{download.file.name}</p>
-                                        <p className="text-sm text-muted-foreground">{download.access_expires}</p>
+                                        <p className="text-sm text-muted-foreground">{formatDate(download.access_expires)}</p>
                                         <p className="text-sm text-muted-foreground">{download.downloads_remaining} downloads remaining</p>
                                     </div>
-                                    <Button variant="ghost" size="sm" className="ml-2 flex-shrink-0">
+                                    <Button variant="ghost" size="sm" className="ml-2 flex-shrink-0" onClick={() => window.open(download.download_url, "_blank")}>
                                         <Download className="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -71,16 +72,17 @@ export function Downloads({ downloads }: DownloadsProps) {
                             <TableBody>
                                 {downloads?.map((download, index) => (
                                     <TableRow key={index}>
-                                        <TableCell className="font-medium">{download.file.name}</TableCell>
-                                        <TableCell>{download.access_expires}</TableCell>
+                                        <TableCell className="font-medium w-1/3">{download.file.name.split("-")[0]}</TableCell>
+                                        <TableCell>{formatDate(download.access_expires)}</TableCell>
                                         <TableCell>{download.downloads_remaining}</TableCell>
                                         <TableCell>
-                                            <Button variant="ghost" size="sm">
+                                            <Button variant="ghost" size="sm" onClick={() => window.open(download.download_url, "_blank")}>
                                                 <Download className="h-4 w-4" />
                                             </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}
+
                             </TableBody>
                         </Table>
                     </div>

@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation"
 import { Suspense, useCallback, useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
+import { Label } from "../ui/label"
 
 interface CheckoutFormProps {
     countries: CountryData[]
@@ -31,17 +32,15 @@ export function CheckoutForm({ countries, taxes, shippingZones, customer }: Chec
     const [states, setStates] = useState<StateData[] | null>(null)
     const { items, clearCart, appliedCoupon, setSelectedTaxes, selectedTaxes, cartTotal, setShipping, shipping } = useCart()
     const [shippingMethod, setShippingMethod] = useState<ShippingMethodData | null>(null)
-    const router = useRouter();
     const [isLoadingShipping, setIsLoadingShipping] = useState(false);
+    const [useSeparateBilling, setUseSeparateBilling] = useState(false);
     const countryOptions = countries.map((country) => ({
         code: country.code,
         name: country.name,
     }))
     const defaultBillingAddress = customer?.billing || {}
     const defaultShippingAddress = customer?.shipping || {}
-
-
-
+    const router = useRouter();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(checkoutFormSchema),
@@ -57,6 +56,17 @@ export function CheckoutForm({ countries, taxes, shippingZones, customer }: Chec
                 email: defaultBillingAddress.email || "",
                 phone: defaultBillingAddress.phone || "",
             },
+            billing: {
+                first_name: defaultBillingAddress.first_name || "",
+                last_name: defaultBillingAddress.last_name || "",
+                address_1: defaultBillingAddress.address_1 || "",
+                city: defaultBillingAddress.city || "",
+                state: "",
+                country: "",
+                postcode: defaultBillingAddress.postcode || "",
+                email: defaultBillingAddress.email || "",
+                phone: defaultBillingAddress.phone || "",
+            },
             terms: false,
             couponCode: "",
         },
@@ -64,12 +74,18 @@ export function CheckoutForm({ countries, taxes, shippingZones, customer }: Chec
 
     // Reset shipping and taxes on unmount
     useEffect(() => {
+        console.log("Shipping", form.getValues("delivery"));
+        console.log("Billing", form.getValues("billing"));
         return () => {
             setShipping(null);
             setSelectedTaxes([]);
         };
     }, [setShipping, setSelectedTaxes]);
 
+    const printAddresses = useCallback(() => {
+        console.log("Shipping", form.getValues("delivery"));
+        console.log("Billing", form.getValues("billing"));
+    }, [])
 
 
     // Debounced calculateShipping
@@ -123,9 +139,10 @@ export function CheckoutForm({ countries, taxes, shippingZones, customer }: Chec
         try {
             // Create the order object
             const orderData: OrderData = {
-                billing: data.delivery,
+                billing: data.billing ?? data.delivery,
                 shipping: data.delivery, // Same address for billing and shipping
                 payment_method: "cod",
+                payment_method_title: "Cash on Delivery",
             }
 
             const lineItems: LineItem[] = items.map((item) => {
@@ -246,7 +263,7 @@ export function CheckoutForm({ countries, taxes, shippingZones, customer }: Chec
                                         <SelectContent>
                                             <Suspense fallback={<div>Loading countries...</div>}>
                                                 {countryOptions.map((country) => (
-                                                    <SelectItem key={country.code} value={country.code}>
+                                                    <SelectItem key={country.code} value={country.code} defaultValue={field.value}>
                                                         {country.name}
                                                     </SelectItem>
                                                 ))}
@@ -278,7 +295,7 @@ export function CheckoutForm({ countries, taxes, shippingZones, customer }: Chec
                                         </FormControl>
                                         <SelectContent>
                                             {states?.map((state) => (
-                                                <SelectItem key={state.code} value={state.code}>
+                                                <SelectItem key={state.code} value={state.code} defaultValue={field.value}>
                                                     {state.name}
                                                 </SelectItem>
                                             ))}
@@ -349,6 +366,183 @@ export function CheckoutForm({ countries, taxes, shippingZones, customer }: Chec
                     </div>
                 </div>
 
+                <div className="flex items-center gap-3">
+                    <Checkbox id="isDualAddress" checked={useSeparateBilling} onCheckedChange={(checked) => setUseSeparateBilling(!!checked)} />
+                    <Label htmlFor="terms">Use Seperate Billing Address</Label>
+                </div>
+
+                {/* *Todo Separate Billing */}
+                {useSeparateBilling && (
+                    <div>
+                        <h3 className="text-lg font-medium mb-4">Delivery Information</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="billing.first_name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>First Name</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="John" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="billing.last_name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Last Name</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Doe" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <FormField
+                            control={form.control}
+                            name="billing.address_1"
+                            render={({ field }) => (
+                                <FormItem className="mt-4">
+                                    <FormLabel>Address</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="123 Main St" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <FormField
+                                control={form.control}
+                                name="billing.country"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Country</FormLabel>
+                                        <Select
+                                            onValueChange={(value) => {
+                                                field.onChange(value);
+                                                handleCountryChange(value);
+                                            }}
+                                            defaultValue={field.value}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger className="overflow-hidden">
+                                                    <SelectValue placeholder="Select a country" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <Suspense fallback={<div>Loading countries...</div>}>
+                                                    {countryOptions.map((country) => (
+                                                        <SelectItem key={country.code} value={country.code} defaultValue={field.value}>
+                                                            {country.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </Suspense>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="billing.state"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>District/State</FormLabel>
+                                        <Select
+                                            onValueChange={(value) => {
+                                                field.onChange(value);
+                                                calculateShipping(form.getValues('billing.country'), value);
+                                            }}
+                                            defaultValue={field.value}
+                                        // disabled={!states || states.length === 0}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger className="overflow-hidden">
+                                                    <SelectValue placeholder={isLoadingShipping ? 'Loading...' : 'Select a district/state'} />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {states?.map((state) => (
+                                                    <SelectItem key={state.code} value={state.code} defaultValue={field.value}>
+                                                        {state.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <FormField
+                                control={form.control}
+                                name="billing.city"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>City</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Enter the City or Area" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="billing.postcode"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Postal Code</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="1016" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <FormField
+                                control={form.control}
+                                name="billing.email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl>
+                                            <Input type="email" placeholder="john.doe@example.com" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="billing.phone"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Phone</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="(123) 456-7890" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex items-center p-4 bg-muted/50 rounded-lg">
                     <Banknote className="h-5 w-5 mr-2 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
@@ -383,9 +577,12 @@ export function CheckoutForm({ countries, taxes, shippingZones, customer }: Chec
                     )}
                 />
 
+
                 {formError && <div className="bg-destructive/15 text-destructive p-3 rounded-md">{formError}</div>}
 
                 {formSuccess && <div className="bg-green-100 text-green-800 p-3 rounded-md">{formSuccess}</div>}
+
+                {/* <Button type="button" className="w-full" onClick={printAddresses}>Print Addresses</Button> */}
 
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? 'Processing...' : 'Place Order (Cash on Delivery)'}

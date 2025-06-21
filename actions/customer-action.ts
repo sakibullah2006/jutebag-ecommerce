@@ -25,9 +25,9 @@ export async function fetchProfileData(userId: number) {
 
     try {
         const [customerResponse, ordersResponse, customerDownloads] = await Promise.all([
-            WooCommerce.get(`customers/${encodeURIComponent(userId)}`, { next: { revalidate: 0 } }),
+            WooCommerce.get(`customers/${encodeURIComponent(userId)}`, { next: { revalidate: 2 } }),
             WooCommerce.get("orders", { params: { customer: userId } }),
-            WooCommerce.get(`customers/${encodeURIComponent(userId)}/downloads`, { next: { revalidate: 0 } })
+            WooCommerce.get(`customers/${userId}/downloads`, { next: { revalidate: 0 } })
         ]);
 
         const customer = customerResponse.data as Customer;

@@ -3,7 +3,7 @@ import { menuItems } from "@/lib/data"
 import { Loader2, User } from "lucide-react"
 import { useState } from "react"
 import { Button } from "../ui/button"
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "../ui/sidebar"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "../ui/sidebar"
 
 export function ProfileSidebar({
     activeSection,
@@ -27,7 +27,7 @@ export function ProfileSidebar({
     }
 
     return (
-        <Sidebar>
+        <Sidebar >
             <SidebarHeader className="p-4">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">

@@ -89,6 +89,8 @@ export interface Order {
     total_tax: string;
     total: string;
     date_created: string;
+    currency: string;
+    currency_symbol: string;
     billing: {
         first_name: string;
         last_name: string;

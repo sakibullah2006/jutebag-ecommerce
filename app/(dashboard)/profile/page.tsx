@@ -25,6 +25,8 @@ const Page = async () => {
     getCountries()
   ]);
 
+  console.log("Fetched profile data:", { customer, orders, downloads });
+
   return (
     <ProfilePage customer={customer} orders={orders} downloads={downloads} countries={countries} />
   )

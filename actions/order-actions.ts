@@ -50,6 +50,7 @@ export async function createOrder({
         cart_tax,
         line_items: lineItems,
         set_paid: false, // COD orders are typically not paid upfront
+        needs_payment: true,
         status: "processing", // Set initial status (adjust as needed)
         shipping_lines: shipping_lines || [],
         coupon_lines: coupon_lines || [],

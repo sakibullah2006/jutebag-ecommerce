@@ -28,6 +28,7 @@ export const deliverySchema = z.object({
 // Define the schema for the entire form
 export const checkoutFormSchema = z.object({
   delivery: deliverySchema,
+  billing: deliverySchema.optional(),
   terms: z.boolean().refine((val) => val === true, {
     message: "You must agree to the terms and conditions",
   }),
@@ -41,7 +42,8 @@ export type FormValues = z.infer<typeof checkoutFormSchema>;
 export const orderDataSchema = z.object({
   billing: deliverySchema,
   shipping: deliverySchema,
-  payment_method: z.literal("cod"),
+  payment_method: z.enum(["cod", "bacs", "paypal", "stripe"]),
+  payment_method_title: z.enum(["Cash on Delivery", "Stripe", "PayPal", "Bank Transfer"]).optional(),
 });
 
 export type OrderData = z.infer<typeof orderDataSchema>;
@@ -76,7 +78,7 @@ export const addressSchema = z.object({
     .min(3, 'Postcode must be at least 3 characters')
     .max(10, 'Postcode cannot exceed 10 characters')
     .regex(/^[A-Za-z0-9\s\-]+$/, 'Postcode can only contain letters, digits, spaces, or hyphens'),
-  country: z.string().min(1, 'Country is required'),
+  country: z.string().optional(),
   email: z
     .string()
     .email('Invalid email address')
