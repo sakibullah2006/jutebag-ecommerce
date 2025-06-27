@@ -45,7 +45,7 @@ export const getProductVariationsById = async ({ id }: { id: string }): Promise<
 }
 
 export const getProducts = async ({
-    perPage = 10,
+    perPage = 50,
     page = 1,
 }: {
     perPage?: number;
@@ -56,7 +56,7 @@ export const getProducts = async ({
 }> => {
     try {
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products?per_page=${perPage}&page=${page }&_fields=id,name,price,images,stock_status,average_rating`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products?per_page=${perPage}&page=${page}`,
             {cache: 'force-cache',next: { revalidate: 30 }}
         );
 
