@@ -1,7 +1,7 @@
 'use client'
 
 import { MotionDiv } from '@/types/montion-types'
-import { Product as ProductType } from '@/types/product-type'
+import { Product as ProductType } from '@/types/product-type copy'
 // import { ProductType } from '@/types/ProductType'
 import React, { useState } from 'react'
 import Product from '../Product/Product'

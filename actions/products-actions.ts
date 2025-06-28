@@ -1,6 +1,6 @@
 "use server"
 
-import { Product, ProductReview, VariationProduct } from "@/types/woocommerce";
+import { Product, ProductReview, VariationProduct } from "@/types/product-type copy";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 
 const WooCommerce = new WooCommerceRestApi({

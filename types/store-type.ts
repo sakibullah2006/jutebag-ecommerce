@@ -1,4 +1,4 @@
-import { Product } from "./product-type"
+import { Product } from "./product-type copy"
 
 // export type CartItem = 
 export type CartItem = Pick<Product, "id" | "name" | "images"> & {
