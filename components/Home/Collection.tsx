@@ -1,12 +1,12 @@
 'use client'
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import React from 'react';
-import 'swiper/css/bundle';
-import { Autoplay, Navigation } from 'swiper/modules';
+import React from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Navigation } from 'swiper/modules';
+import 'swiper/css/bundle';
+import { useRouter } from 'next/navigation';
 
 interface Props {
     props: string;
@@ -55,10 +55,7 @@ const Collection: React.FC<Props> = ({ props }) => {
                                         alt='swimwear'
                                     />
                                 </div>
-                                <div
-                                    className="collection-name heading5 text-center sm:bottom-8 bottom-4 lg:w-[200px] md:w-[160px] w-[100px] md:py-3 py-1.5 bg-white rounded-xl duration-500"
-                                >Swimwear
-                                </div>
+                                <div className="collection-name heading5 text-center sm:bottom-8 bottom-4 lg:w-[200px] md:w-[160px] w-[100px] md:py-3 py-1.5 bg-white rounded-xl duration-500">Swimwear</div>
                             </div>
                         </SwiperSlide>
                         <SwiperSlide>
