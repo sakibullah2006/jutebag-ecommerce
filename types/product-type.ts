@@ -96,6 +96,11 @@ export interface Product {
         name: string
         option: string
     }[]
+    brands: {
+        id: number,
+        name: string,
+        slug: string
+    }[]
     variations: number[]
     grouped_products: number[]
     menu_order: number

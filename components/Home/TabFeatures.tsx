@@ -3,7 +3,7 @@
 import { MotionDiv } from '@/types/montion-types';
 import React, { useState } from 'react';
 
-import { Product as ProductType } from '@/types/product-type copy';
+import { Product as ProductType } from '@/types/product-type';
 import Product from '../Product/Product';
 
 

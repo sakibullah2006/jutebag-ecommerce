@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState } from 'react'
-import Link from 'next/link';
-import Image from 'next/image';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
+import Image from 'next/image';
+import Link from 'next/link';
+import React, { useState } from 'react';
 
 interface Props {
     props: string;
@@ -39,7 +39,7 @@ const TopNavOne: React.FC<Props> = ({ props, slogan }) => {
                                         }
                                     </ul>
                                 </div>
-                                <Icon.CaretDown size={12} color='#fff' />
+                                <Icon.CaretDownIcon size={12} color='#fff' />
                             </div>
                             <div
                                 className="choose-type choose-currency flex items-center gap-1.5"
@@ -52,13 +52,13 @@ const TopNavOne: React.FC<Props> = ({ props, slogan }) => {
                                     <p className="selected caption2 text-white">{currence}</p>
                                     <ul className={`list-option bg-white ${isOpenCurrence ? 'open' : ''}`}>
                                         {
-                                            ['USD', 'EUR', 'GBP'].map((item, index) => (
+                                            ['USD'].map((item, index) => (
                                                 <li key={index} className="caption2" onClick={() => setCurrence(item)}>{item}</li>
                                             ))
                                         }
                                     </ul>
                                 </div>
-                                <Icon.CaretDown size={12} color='#fff' />
+                                <Icon.CaretDownIcon size={12} color='#fff' />
                             </div>
                         </div>
                         <div className="text-center text-button-uppercase text-white flex items-center">

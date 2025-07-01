@@ -1,7 +1,7 @@
 'use client'
 
+import { getCurrentCurrency } from '@/actions/data-actions'
 import { getProductVariationsById } from '@/actions/products-actions'
-import { productVariations } from '@/app/page'
 import { useCart } from '@/context/CartContext'
 import { useCompare } from '@/context/CompareContext'
 import { useModalCartContext } from '@/context/ModalCartContext'
@@ -10,6 +10,8 @@ import { useModalQuickviewContext } from '@/context/ModalQuickviewContext'
 import { useModalWishlistContext } from '@/context/ModalWishlistContext'
 import { useWishlist } from '@/context/WishlistContext'
 import { COLORS } from '@/data/color-codes'
+import { decodeHtmlEntities } from '@/lib/utils'
+import { CurrencyType } from '@/types/data-type'
 import { Product as ProductType, VariationProduct } from '@/types/product-type'
 import * as Icon from "@phosphor-icons/react/dist/ssr"
 import Image from 'next/image'
@@ -33,6 +35,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     const [activeColor, setActiveColor] = useState<string>('')
     const [activeSize, setActiveSize] = useState<string>('')
     const [openQuickShop, setOpenQuickShop] = useState<boolean>(false)
+    const [currentCurrency, setCurrentCurrency] = useState<CurrencyType>({ name: 'doller', symbol: '$', code: 'USD' })
     const { addToCart, updateCart, cartState } = useCart();
     const { openModalCart } = useModalCartContext()
     const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist();
@@ -60,6 +63,12 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                 if (isMounted) console.error(error);
             }
         };
+        const loadCurrency = async () => {
+            const currency = await getCurrentCurrency();
+            if (isMounted) {
+                setCurrentCurrency(currency);
+            }
+        }
         loadVariations();
         setIsLoading(false);
         return () => { isMounted = false; };
@@ -70,7 +79,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
             const matchingVariation = findMatchingVariation();
             setSelectedVariation(matchingVariation);
         }
-        console.log(selectedVariation)
+        // console.log(selectedVariation)
     }, [activeColor, activeSize]);
 
 
@@ -258,12 +267,12 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     ) : <></>}
                                 </div>
                             ) : <></>}
-                            <div className="product-img w-full h-full aspect-[3/4]">
+                            {/* <div className="product-img w-full h-full aspect-[3/4]">
                                 {activeColor ? (
                                     <>
                                         {
                                             <Image
-                                                src={selectedVariation?.image.src ?? data.images[0].src}
+                                                src={selectedVariation?.image.src ?? (data.images[0].src)}
                                                 width={500}
                                                 height={500}
                                                 alt={data.name}
@@ -288,6 +297,39 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                             ))
                                         }
                                     </>
+                                )}
+                            </div> */}
+                            <div className="product-img w-full h-full aspect-[3/4]">
+                                {activeColor && selectedVariation?.image.src ? (
+                                    <Image
+                                        src={selectedVariation.image.src}
+                                        width={500}
+                                        height={500}
+                                        alt={data.name}
+                                        priority={true}
+                                        className="w-full h-full object-cover duration-700"
+                                    />
+                                ) : data.images[0]?.src ? (
+                                    data.images.map((img, index) => (
+                                        <Image
+                                            key={index}
+                                            src={img.src}
+                                            width={500}
+                                            height={500}
+                                            priority={true}
+                                            alt={data.name}
+                                            className="w-full h-full object-cover duration-700"
+                                        />
+                                    ))
+                                ) : (
+                                    <Image
+                                        src="/images/placeholder.png" // Fallback placeholder image
+                                        width={500}
+                                        height={500}
+                                        alt={data.name}
+                                        priority={true}
+                                        className="w-full h-full object-cover duration-700"
+                                    />
                                 )}
                             </div>
                             {data.on_sale && Number(data.regular_price) !== Number(data.sale_price) && (
@@ -518,7 +560,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     </div>
                                     <div className="text-button-uppercase">
                                         <span className='text-secondary2 max-sm:text-xs'>Available: </span>
-                                        <span className='max-sm:text-xs'>{data.stock_quantity! - data.total_sales}</span>
+                                        {/* <span className='max-sm:text-xs'>{data.stock_quantity! - data.total_sales}</span> */}
                                     </div>
                                 </div>
                             </div>
@@ -566,10 +608,10 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                             )} */}
                             {selectedVariation != null ?
                                 (<div className="product-price-block flex items-center gap-2 flex-wrap mt-1 duration-300 relative z-[1]">
-                                    <div className="product-price text-title">${selectedVariation.on_sale ? Number(selectedVariation.sale_price).toFixed(2) : Number(selectedVariation.price).toFixed(2)}</div>
+                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency.symbol)}{selectedVariation.on_sale ? Number(selectedVariation.sale_price).toFixed(2) : Number(selectedVariation.price).toFixed(2)}</div>
                                     {selectedVariation.on_sale && percentSale > 0 && (
                                         <>
-                                            <div className="product-origin-price caption1 text-secondary2"><del>${Number(selectedVariation.regular_price).toFixed(2)}</del></div>
+                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency.symbol)}{Number(selectedVariation.regular_price).toFixed(2)}</del></div>
                                             <div className="product-sale caption1 font-medium bg-green px-3 py-0.5 inline-block rounded-full">
                                                 -{percentSale}%
                                             </div>
@@ -577,10 +619,10 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     )}
                                 </div>) :
                                 (<div className="product-price-block flex items-center gap-2 flex-wrap mt-1 duration-300 relative z-[1]">
-                                    <div className="product-price text-title">${data.on_sale ? Number(data.sale_price).toFixed(2) : Number(data.price).toFixed(2)}</div>
+                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency.symbol)}{data.on_sale ? Number(data.sale_price).toFixed(2) : Number(data.price).toFixed(2)}</div>
                                     {data.on_sale && percentSale > 0 && (
                                         <>
-                                            <div className="product-origin-price caption1 text-secondary2"><del>${Number(data.regular_price).toFixed(2)}</del></div>
+                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency.symbol)}{Number(data.regular_price).toFixed(2)}</del></div>
                                             <div className="product-sale caption1 font-medium bg-green px-3 py-0.5 inline-block rounded-full">
                                                 -{percentSale}%
                                             </div>
@@ -717,7 +759,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                                         }}
                                                                     >
                                                                         <Image
-                                                                            src={findMatchingVariation(item)?.image.src || ""}
+                                                                            src={findMatchingVariation(item)?.image.src || "/images/product/1000x1000.png"}
                                                                             width={100}
                                                                             height={100}
                                                                             alt='color'

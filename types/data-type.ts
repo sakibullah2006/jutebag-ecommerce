@@ -1,15 +1,15 @@
-export interface CountryData {
+export interface CountryDataType {
     code: string;
     name: string;
-    states: StateData[]
+    states: StateDataType[]
 }
 
-export interface StateData { 
+export interface StateDataType { 
     code: string 
     name: string 
 }
 
-export interface TaxtData {
+export interface TaxtDataType {
     id: number;
     country: string;
     state: string;
@@ -26,7 +26,7 @@ export interface TaxtData {
     cities: string[];
 }
 
-export interface ShippingMethodData {
+export interface ShippingMethodDataType {
     id: number;
     instance_id: number;
     title: string;
@@ -75,25 +75,20 @@ export interface ShippingMethodData {
     };
 }
 
-export interface ShippingZoneData {
+export interface ShippingZoneDataType {
     id: number;
     name: string;
     order: number;
-    methods: ShippingMethodData[];
-    locations: ShippingLocationData[];
+    methods: ShippingMethodDataType[];
+    locations: ShippingLocationDataType[];
 }
-export interface ShippingLocationData {
+export interface ShippingLocationDataType {
     code: string;
     type: string;
 }
 
-export interface CurrencyData {
-    code: string;
-    name: string;
-    symbol: string;
-}
 
-export interface CouponData {
+export interface CouponDataType {
     id: number;
     code: string;
     amount: string;
@@ -122,4 +117,82 @@ export interface CouponData {
     used_by: string[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     meta_data: any[];
+}
+
+
+
+export interface CategorieType {
+    id: number;
+    name: string;
+    slug: string;
+    parent: number;
+    description: string;
+    display: 'default' | 'products' | 'subcategories' | 'both';
+    image: {
+        id: number;
+        date_created: string;
+        date_created_gmt: string;
+        date_modified: string;
+        date_modified_gmt: string;
+        src: string;
+        name: string;
+        alt: string;
+    };
+    menu_order: number;
+    count: number;
+}
+
+export interface ProductAttributeType {
+    id: number; // Unique identifier for the resource (read-only)
+    name: string; // Attribute name (mandatory)
+    slug: string; // An alphanumeric identifier for the resource unique to its type
+    type: string; // Type of attribute. By default only select is supported
+    order_by: 'menu_order' | 'name' | 'name_num' | 'id'; // Default sort order
+    has_archives: boolean; // Enable/Disable attribute archives. Default is false
+}
+
+export interface AttributeTermType {
+    id: number; // Unique identifier for the resource (read-only)
+    name: string; // Term name (mandatory)
+    slug: string; // An alphanumeric identifier for the resource unique to its type
+    description: string; // HTML description of the resource
+    menu_order: number; // Menu order, used to custom sort the resource
+    count: number; // Number of published products for the resource
+}
+
+export interface AttributesWithTermsType {
+    attribute: ProductAttributeType; // The attribute details
+    terms: AttributeTermType[]; // List of terms for the attribute
+}
+
+export interface TagType {
+    id: number; // Unique identifier for the resource (read-only)
+    name: string; // Tag name (mandatory)
+    slug: string; // An alphanumeric identifier unique to its type
+    description: string; // HTML description of the resource
+    count: number; // Number of published products for the resource
+}
+
+export interface CurrencyType {
+    code: string; // ISO4217 currency code (read-only)
+    name: string; // Full name of currency (read-only)
+    symbol: string; // Currency symbol
+}
+
+export interface ProductBrandType {
+    id: number; // Unique identifier for the brand
+    name: string; // Brand name
+    slug: string; // An alphanumeric identifier unique to its type
+    parent: number; // Parent brand ID
+    description: string; // Description of the brand
+    display: 'default' | 'products' | 'subcategories' | 'both'; // Display type
+    image?: {
+        id: number | null; // Image ID or null if no image
+        src: string; // Image source URL
+        name: string; // Image name
+        alt: string; // Image alt text
+    } | null; // Image object or null
+    menu_order: number; // Menu order for sorting
+    count: number; // Number of published products for the brand
+   
 }

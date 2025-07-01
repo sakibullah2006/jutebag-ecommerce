@@ -1,11 +1,20 @@
+import { off } from "process";
+
 export const COLORS: { [key: string]: string } = {
   black: '#333333',
+  gery: '#808080',
+  lightgray: '#DCDCDC',
+  lightblue: '#ADD8E6',
+  lightyellow: '#FFFFE0',
+  lightred: '#FFB6C1',
   green: '#90EE90',
-  white: '#FFFFFF',
+  white: '#ecf0f1', // a less white
+  offwhite: '#F8F8FF',
   yellow: '#FFFACD',
   red: '#FF9999',
   blue: '#87CEFA',
-  gray: '#D3D3D3',
+  grey: '#D3D3D3',
+  ash: '#BEBEBE',
   purple: '#DDA0DD',
   orange: '#FFB6A0',
   pink: '#FFD1DC',
@@ -27,7 +36,6 @@ export const COLORS: { [key: string]: string } = {
   indigo: '#6A5ACD',
   skyblue: '#B0E0E6',
   royalblue: '#6495ED',
-  lightblue: '#ADD8E6',
   jetblack: '#4A4A4A',
   charcoal: '#5C6B73',
   onyx: '#5F6A6A',

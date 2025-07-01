@@ -1,7 +1,8 @@
 "use server"
 
-import { CountryData, ShippingLocationData, ShippingMethodData, ShippingZoneData, TaxtData } from "@/types/woocommerce";
+import { AttributesWithTermsType, AttributeTermType, CategorieType, CountryDataType, CurrencyType, ProductAttributeType, ProductBrandType, ShippingLocationDataType, ShippingMethodDataType, ShippingZoneDataType, TagType, TaxtDataType } from "@/types/data-type";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
+import { error } from "console";
 
 const WooCommerce = new WooCommerceRestApi({
     url: process.env.WORDPRESS_SITE_URL || "https://axessories.store/headless",
@@ -10,7 +11,7 @@ const WooCommerce = new WooCommerceRestApi({
     version: "wc/v3",
 });
 
-export const getCountries = async (): Promise<CountryData[]> => {
+export const getCountries = async (): Promise<CountryDataType[]> => {
     try {
         const response = await WooCommerce.get("data/countries", {caches: true});
         return response.data;
@@ -20,7 +21,7 @@ export const getCountries = async (): Promise<CountryData[]> => {
     }
 }
 
-export const getTaxes = async (): Promise<TaxtData[]> => {
+export const getTaxes = async (): Promise<TaxtDataType[]> => {
     try {
         const response = await WooCommerce.get("taxes", {caches: true});
         return response.data;
@@ -30,15 +31,15 @@ export const getTaxes = async (): Promise<TaxtData[]> => {
     }
 }
 
-export async function getShippingZones(): Promise<ShippingZoneData[]> {
+export async function getShippingZones(): Promise<ShippingZoneDataType[]> {
   try {
     const zonesResponse = await WooCommerce.get('shipping/zones', {caches: true});
-    const zones: ShippingZoneData[] = zonesResponse.data.filter((zone: ShippingZoneData) => zone.id !== 0); // Exclude "Locations not covered"
+    const zones: ShippingZoneDataType[] = zonesResponse.data.filter((zone: ShippingZoneDataType) => zone.id !== 0); // Exclude "Locations not covered"
 
     const zonesWithMethods = await Promise.all(
       zones.map(async (zone) => {
         const methodsResponse = await WooCommerce.get(`shipping/zones/${zone.id}/methods`, {caches: true});
-        const methods: ShippingMethodData[] = methodsResponse.data.filter((method: ShippingMethodData) => method.enabled);
+        const methods: ShippingMethodDataType[] = methodsResponse.data.filter((method: ShippingMethodDataType) => method.enabled);
         return {
           ...zone,
           methods,
@@ -52,7 +53,7 @@ export async function getShippingZones(): Promise<ShippingZoneData[]> {
     zonesWithMethods.push({
           id: 0,
           name: 'Locations not covered',
-          methods: defaultZoneMethods.data.filter((method: ShippingMethodData) => method.enabled),
+          methods: defaultZoneMethods.data.filter((method: ShippingMethodDataType) => method.enabled),
           locations: [],
           order: 0, // Add the missing 'order' property
         });
@@ -67,13 +68,13 @@ export async function getShippingZones(): Promise<ShippingZoneData[]> {
 export const getShippingData = async (
     country: string,
     state: string
-  ): Promise<ShippingMethodData> => {
+  ): Promise<ShippingMethodDataType> => {
     try {
       // Fetch all shipping zones
       const response = await WooCommerce.get('shipping/zones', { caches: true });
-      const shippingZones: ShippingZoneData[] = response.data;
+      const shippingZones: ShippingZoneDataType[] = response.data;
   
-      let matchingZone: ShippingZoneData | null = null;
+      let matchingZone: ShippingZoneDataType | null = null;
   
       // Iterate over zones to find a match
       for (const zone of shippingZones) {
@@ -81,7 +82,7 @@ export const getShippingData = async (
   
         // Fetch locations for the current zone
         const zoneLocationsResponse = await WooCommerce.get(`shipping/zones/${zone.id}/locations`, { caches: true });
-        const zoneLocations: ShippingLocationData[] = zoneLocationsResponse.data;
+        const zoneLocations: ShippingLocationDataType[] = zoneLocationsResponse.data;
   
         // Check if any location in the zone matches the provided country and state
         const isMatch = zoneLocations.some((location) => {
@@ -108,7 +109,7 @@ export const getShippingData = async (
   
       // Fetch shipping methods for the selected zone
       const shippingMethodsResponse = await WooCommerce.get(`shipping/zones/${targetZoneId}/methods`, {caches: true});
-      const shippingMethods: ShippingMethodData[] = shippingMethodsResponse.data;
+      const shippingMethods: ShippingMethodDataType[] = shippingMethodsResponse.data;
   
       // Filter enabled methods and return the first one
       const enabledMethods = shippingMethods.filter((method) => method.enabled);
@@ -123,3 +124,67 @@ export const getShippingData = async (
       throw new Error(`Failed to fetch shipping data: ${error}`);
     }
   };
+
+  export const getAttributesWithTerms = async (): Promise<AttributesWithTermsType[]> => {
+    try {
+        const response = await WooCommerce.get('products/attributes', {caches: true});
+        const attributes : ProductAttributeType[] = response.data;
+
+        // Fetch terms for each attribute
+        const attributesWithTerms: AttributesWithTermsType[] = await Promise.all(attributes.map(async (attribute) => {
+            const terms: AttributeTermType[] = await WooCommerce.get(`products/attributes/${attribute.id}/terms`, {caches: true}).then(res => res.data);
+            return {
+                attribute: attribute,
+                terms: terms,
+            };
+        }));
+
+        return attributesWithTerms;
+    } catch (error) {
+        console.error("Error fetching attributes with terms:", error);
+        return [];
+    }
+  }
+
+  export const getProductCategories = async (): Promise<CategorieType[]> => {
+    try {
+        const response = await WooCommerce.get('products/categories', {caches: true});
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        return [];
+    }
+  }
+
+  export const getProductTags = async (): Promise<TagType[]> => {
+    try {
+        const response = await WooCommerce.get('products/tags', {caches: true});
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching tags:", error);
+        return [];
+    }
+  }
+
+
+  export const getCurrentCurrency = async (): Promise<CurrencyType> => {
+    try {
+        const response = await WooCommerce.get('data/currencies/current', {caches: true});
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching current currency:", error);
+        throw new Error("Failed to fetch current currency");
+    }
+  }
+
+export const getBrands =  async () : Promise<ProductBrandType[]> => {
+  try {
+    const brands =  await WooCommerce.get('products/brands', {caches: true})
+    .then(response => response.data)
+    
+    return brands
+  } catch (e) {
+    console.error("Error fetching brands:", e);
+    return [];    
+  }  
+}
