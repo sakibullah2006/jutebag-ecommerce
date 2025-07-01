@@ -56,8 +56,8 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                     // Set active color and size based on the first variation
                     const firstVariation = variations[0];
                     setSelectedVariation(variations[0] || null);
-                    setActiveColor(firstVariation.find((attr: { name: string, option: string }) => attr.name.toLowerCase() === 'color')?.option || '');
-                    setActiveSize(firstVariation.attributes.find((attr: { name: string, option: string }) => attr.name.toLowerCase() === 'size')?.option || '');
+                    // setActiveColor(firstVariation.find((attr: { name: string, option: string }) => attr.name.toLowerCase() === 'color')?.option || '');
+                    // setActiveSize(firstVariation.attributes.find((attr: { name: string, option: string }) => attr.name.toLowerCase() === 'size')?.option || '');
                 }
             } catch (error) {
                 if (isMounted) console.error(error);
@@ -69,6 +69,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                 setCurrentCurrency(currency);
             }
         }
+        loadCurrency()
         loadVariations();
         setIsLoading(false);
         return () => { isMounted = false; };
@@ -267,24 +268,24 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     ) : <></>}
                                 </div>
                             ) : <></>}
-                            {/* <div className="product-img w-full h-full aspect-[3/4]">
+                            <div className="product-img w-full h-full aspect-[3/4]">
                                 {activeColor ? (
                                     <>
-                                        {
+                                        {selectedVariation?.image?.src && (
                                             <Image
-                                                src={selectedVariation?.image.src ?? (data.images[0].src)}
+                                                src={selectedVariation.image.src}
                                                 width={500}
                                                 height={500}
                                                 alt={data.name}
                                                 priority={true}
-                                                className='w-full h-full object-cover duration-700'
+                                                className="w-full h-full object-cover duration-700"
                                             />
-                                        }
+                                        )}
                                     </>
                                 ) : (
                                     <>
-                                        {
-                                            data.images.map((img, index) => (
+                                        {data.images.map((img, index) => (
+                                            img.src && (
                                                 <Image
                                                     key={index}
                                                     src={img.src}
@@ -292,44 +293,11 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                     height={500}
                                                     priority={true}
                                                     alt={data.name}
-                                                    className='w-full h-full object-cover duration-700'
+                                                    className="w-full h-full object-cover duration-700"
                                                 />
-                                            ))
-                                        }
+                                            )
+                                        ))}
                                     </>
-                                )}
-                            </div> */}
-                            <div className="product-img w-full h-full aspect-[3/4]">
-                                {activeColor && selectedVariation?.image.src ? (
-                                    <Image
-                                        src={selectedVariation.image.src}
-                                        width={500}
-                                        height={500}
-                                        alt={data.name}
-                                        priority={true}
-                                        className="w-full h-full object-cover duration-700"
-                                    />
-                                ) : data.images[0]?.src ? (
-                                    data.images.map((img, index) => (
-                                        <Image
-                                            key={index}
-                                            src={img.src}
-                                            width={500}
-                                            height={500}
-                                            priority={true}
-                                            alt={data.name}
-                                            className="w-full h-full object-cover duration-700"
-                                        />
-                                    ))
-                                ) : (
-                                    <Image
-                                        src="/images/placeholder.png" // Fallback placeholder image
-                                        width={500}
-                                        height={500}
-                                        alt={data.name}
-                                        priority={true}
-                                        className="w-full h-full object-cover duration-700"
-                                    />
                                 )}
                             </div>
                             {data.on_sale && Number(data.regular_price) !== Number(data.sale_price) && (

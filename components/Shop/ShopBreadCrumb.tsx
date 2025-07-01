@@ -55,22 +55,6 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
         }
     }, [pageCount]);
 
-    // const fetchProductOptions = useCallback(async () => {
-    //     setIsLoading(true)
-
-
-    //     console.log('attributes', attributes);
-    //     console.log('categories', categories);
-    //     console.log('tags', tags);
-    //     console.log('brands', brands);
-
-    //     setAttributesData(attributes);
-    //     setCategories(categories);
-    //     setTags(tags);
-    //     setBrands(brands)
-    //     setIsLoading(false)
-    // }, [])
-
     const handleShowOnlySale = () => {
         setShowOnlySale(toggleSelect => !toggleSelect)
     }
