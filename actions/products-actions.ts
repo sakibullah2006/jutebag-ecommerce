@@ -1,6 +1,6 @@
 "use server"
 
-import { Product, ProductReview, VariationProduct } from "@/types/product-type copy";
+import { Product, ProductReview, VariationProduct } from "@/types/product-type";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 
 const WooCommerce = new WooCommerceRestApi({
@@ -10,9 +10,9 @@ const WooCommerce = new WooCommerceRestApi({
     version: "wc/v3",
 });
 
-export const getProductById = async ({ id }: { id: string }): Promise<{ product?: Product | null, status: "OK" | "ERROR" }> => {
+export const getProductById = async ({ id }: { id: string }): Promise<{ product: Product , status: "OK" | "ERROR" }> => {
     try {
-        const product = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products/${id}`, { cache: 'no-store' }).then(async product => await product.json())
+        const product: Product = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products/${id}`, { cache: 'no-store' }).then(async product => await product.json())
         // console.log(product ?? "No product found")
         return {
             product: product,
@@ -21,7 +21,7 @@ export const getProductById = async ({ id }: { id: string }): Promise<{ product?
     } catch (error) {
         console.log(`Error fetching products ${error}`)
         return {
-            product: null,
+            product: {} as Product,
             status: "ERROR"
         }
     }
@@ -45,9 +45,11 @@ export const getProductVariationsById = async ({ id }: { id: string }): Promise<
 }
 
 export const getProducts = async ({
+    params,
     perPage = 50,
     page = 1,
 }: {
+    params?: { category?: string; search?: string; tag?: string, include?: Array<number> };
     perPage?: number;
     page?: number;
 } = {}): Promise<{
@@ -56,7 +58,7 @@ export const getProducts = async ({
 }> => {
     try {
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products?per_page=${perPage}&page=${page}`,
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products?per_page=${perPage}&page=${page}&include=${params?.include}`,
             {cache: 'force-cache',next: { revalidate: 30 }}
         );
 
@@ -80,6 +82,63 @@ export const getProducts = async ({
             status: 'ERROR',
         };
     }
+};
+
+
+export const getAllProductsPaginated = async ({
+  params,
+}: {
+  params?: { category?: string; search?: string; tag?: string; include?: Array<number> };
+} = {}): Promise<{
+  products: Product[];
+  status: 'OK' | 'ERROR';
+}> => {
+  let allProducts: Product[] = [];
+  let page = 1;
+  const perPage = 50;
+
+  try {
+    while (true) {
+      const queryParams = new URLSearchParams({
+        per_page: perPage.toString(),
+        page: page.toString(),
+        ...(params?.category ? { category: params.category } : {}),
+        ...(params?.search ? { search: params.search } : {}),
+        ...(params?.tag ? { tag: params.tag } : {}),
+        ...(params?.include ? { include: params.include.join(',') } : {}),
+      });
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products?${queryParams.toString()}`,
+        { cache: 'force-cache', next: { revalidate: 30 } }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch products');
+      }
+
+      const products: Product[] = await response.json();
+      allProducts = [...allProducts, ...products];
+
+      if (products.length < perPage) {
+        break; // Exit loop if fewer products are fetched than perPage
+      }
+
+      page++; // Increment page for the next fetch
+    }
+
+    return {
+      products: allProducts,
+      status: 'OK',
+    };
+  } catch (error) {
+    console.error(`Error fetching all paginated products:`, error);
+    return {
+      products: [],
+      status: 'ERROR',
+    };
+  }
 };
 
 export async function getProductReviews(productId: number) {

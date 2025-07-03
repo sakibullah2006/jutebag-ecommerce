@@ -1,4 +1,5 @@
-import { getProducts } from '@/actions/products-actions'
+import { getProductTags } from '@/actions/data-actions'
+import { getAllProductsPaginated } from '@/actions/products-actions'
 import Footer from '@/components/Footer/Footer'
 import MenuTwo from '@/components/Header/Menu/MenuTwo'
 import TopNavOne from '@/components/Header/TopNav/TopNavOne'
@@ -661,8 +662,12 @@ import React from 'react'
 
 export default async function HomeTwo() {
 
-  const { products } = await getProducts({});
-  // console.log(products.length);
+  // const { products } = await getAllProductsPaginated();
+  const [{ products }, tags] = await Promise.all([
+    getAllProductsPaginated(),
+    getProductTags()
+  ])
+  console.log("Fetch Products:", products.length);
 
   return (
     <>
@@ -672,7 +677,7 @@ export default async function HomeTwo() {
         <SliderTwo />
       </div>
       <Collection props="pt-5" />
-      <WhatNewOne data={products} start={0} limit={8} />
+      <WhatNewOne data={products} tags={tags} start={0} limit={8} />
       <Banner />
       <TabFeatures data={products} start={0} limit={8} />
       <Benefit props="md:mt-20 mt-10 py-10 px-2.5 bg-surface rounded-3xl" />

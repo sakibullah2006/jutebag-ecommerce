@@ -36,7 +36,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
     const [size, setSize] = useState<string | null>()
     const [color, setColor] = useState<string | null>()
     const [brand, setBrand] = useState<string | null>()
-    const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 100 });
+    const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 1000 });
     const [currentPage, setCurrentPage] = useState(0);
     const productsPerPage = productPerPage;
     const offset = currentPage * productsPerPage;
@@ -111,28 +111,28 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
 
         let isDataTypeMatched = true;
         if (dataType) {
-            isDataTypeMatched = product.tags.some(tag => tag.name.toLowerCase() === dataType?.toLowerCase())
+            isDataTypeMatched = product.tags.some((tag) => tag.name.toLowerCase() === dataType!.toLowerCase())
         }
 
         let isTypeMatched = true;
         if (type) {
             dataType = type
-            isTypeMatched = product.type === type;
+            isTypeMatched = product.tags.some((tag) => tag.name.toLowerCase() === dataType!.toLowerCase())
         }
 
         let isSizeMatched = true;
         if (size) {
-            isSizeMatched = product.attributes.some((att => att.name.toLowerCase() === size.toLowerCase()))
+            isSizeMatched = !!product.attributes.find((attr) => attr.name.toLowerCase() === "size")?.options.some((s) => s.toLowerCase() === size.toLowerCase());
         }
 
         let isPriceRangeMatched = true;
-        if (priceRange.min !== 0 || priceRange.max !== 100) {
+        if (priceRange.min !== 0 || priceRange.max !== 1000) {
             isPriceRangeMatched = Number(product.price) >= priceRange.min && Number(product.price) <= priceRange.max;
         }
 
         let isColorMatched = true;
         if (color) {
-            isColorMatched = product.attributes.some(attr => attr.name.toLowerCase() === color.toLowerCase())
+            isColorMatched = !!product.attributes.find((attr) => attr.name.toLowerCase() === "color")?.options.some((c) => c.toLowerCase() === color.toLowerCase());
         }
 
         let isBrandMatched = true;
@@ -205,7 +205,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
         setSize(null);
         setColor(null);
         setBrand(null);
-        setPriceRange({ min: 0, max: 100 });
+        setPriceRange({ min: 0, max: 1000 });
         setCurrentPage(0);
         handleType(null)
     };
@@ -297,9 +297,9 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                 <div className="heading6">Price Range</div>
                                 <Slider
                                     range
-                                    defaultValue={[0, 100]}
+                                    defaultValue={[0, priceRange.max]}
                                     min={0}
-                                    max={100}
+                                    max={1000}
                                     onChange={handlePriceChange}
                                     className='mt-5'
                                 />
@@ -477,10 +477,14 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                             <div className="list-product hide-product-sold grid lg:grid-cols-3 grid-cols-2 sm:gap-[30px] gap-[20px] mt-7">
                                 {currentProducts.length !== 0 ? (
                                     currentProducts.map((item) => <Product key={item.id} data={item} type='grid' style='style-1' />)
-                                ) : (<div className="no-data-product">No products match the selected criteria.</div>)}
+                                ) : (
+                                    <div className="no-data-product">
+                                        {/* <Icon.Empty */}
+                                    </div>
+                                )}
                             </div>
 
-                            {((filteredPageCount && filteredPageCount > 1) || (pageCount && pageCount > 1)) && (
+                            {((filteredPageCount && filteredPageCount > 1) || (pageCount && pageCount > 1)) && (filteredData.length > 0) && (
                                 <div className="list-pagination flex items-center md:mt-10 mt-7">
                                     <HandlePagination pageCount={filteredPageCount} onPageChange={handlePageChange} />
                                 </div>

@@ -1,8 +1,8 @@
-import { getProducts } from '@/actions/products-actions';
+import { getAllProductsPaginated } from '@/actions/products-actions';
 import SearchResult from '@/components/search-result/searchResult';
 
 const SearchResultServerComponent = async () => {
-    const { products: productData } = await getProducts();
+    const { products: productData } = await getAllProductsPaginated();
 
     return <SearchResult productData={productData} />
 };

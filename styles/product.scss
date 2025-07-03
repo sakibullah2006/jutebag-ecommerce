@@ -776,3 +776,164 @@ body {
     transform: scale(1);
   }
 }
+
+/* ==========================================================================
+   Elegant & Clean CMS Content Style
+   ========================================================================== */
+
+.parsed-html {
+  /* Use a highly readable, modern sans-serif font for body text. */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  color: #34495e; /* A soft, dark slate color instead of pure black. */
+  line-height: 1.7; /* Generous line height for readability. */
+  font-size: 1.1rem; /* A slightly larger base font size for comfort. */
+}
+
+/*
+ * Headings: A classic serif font adds a touch of elegance and contrasts
+ * nicely with the sans-serif body text.
+ */
+.parsed-html h1,
+.parsed-html h2,
+.parsed-html h3,
+.parsed-html h4,
+.parsed-html h5,
+.parsed-html h6 {
+  font-family: "Georgia", "Times New Roman", serif;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #2c3e50; /* A slightly darker, richer color for headings. */
+  margin-top: 2.5em;
+  margin-bottom: 1em;
+}
+
+.parsed-html h1 { font-size: 2.8em; letter-spacing: -1px; }
+.parsed-html h2 { font-size: 2.2em; letter-spacing: -0.5px; }
+.parsed-html h3 { font-size: 1.8em; }
+.parsed-html h4 { font-size: 1.5em; }
+
+/* Remove top margin from the very first element to avoid extra space */
+.parsed-html > *:first-child {
+  margin-top: 0;
+}
+
+/*
+ * Paragraphs & Lists
+ */
+.parsed-html p,
+.parsed-html ul,
+.parsed-html ol {
+  margin-bottom: 1.5em;
+}
+
+.parsed-html ul,
+.parsed-html ol {
+  padding-left: 1.5em;
+}
+
+.parsed-html li {
+  margin-bottom: 0.6em;
+}
+
+/*
+ * Links: A subtle, sophisticated color that doesn't scream for attention.
+ * The underline appears only on hover.
+ */
+.parsed-html a {
+  color: #3498db; /* A soft, elegant blue. */
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.parsed-html a:hover {
+  color: #2980b9;
+  border-bottom-color: #2980b9;
+}
+
+/*
+ * Blockquotes: A minimalist and modern take.
+ */
+.parsed-html blockquote {
+  margin: 2em 0;
+  padding-left: 1.5em;
+  border-left: 3px solid #bdc3c7; /* A thinner, softer border. */
+  color: #7f8c8d; /* Muted text color. */
+  font-style: italic;
+}
+
+/*
+ * Images: A subtle shadow adds depth and makes images pop cleanly.
+ */
+.parsed-html img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 2.5em auto; /* Center images and give them vertical space. */
+  border-radius: 8px; /* Slightly larger radius for a modern feel. */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05), 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+/*
+ * Tables: Clean, spacious, and minimal. No background colors.
+ */
+.parsed-html table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2.5em 0;
+  font-size: 1rem;
+}
+
+.parsed-html th,
+.parsed-html td {
+  border-bottom: 1px solid #ecf0f1; /* Only horizontal lines for a clean look. */
+  padding: 1em;
+  text-align: left;
+}
+
+.parsed-html th {
+  font-weight: 600;
+  color: #2c3e50;
+  border-bottom-width: 2px;
+  border-bottom-color: #bdc3c7;
+}
+
+/*
+ * Code: Understated and clean.
+ */
+.parsed-html code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  background-color: #f2f4f6;
+  color: #c0392b; /* A muted red for code text. */
+  padding: 0.2em 0.4em;
+  font-size: 0.9em;
+  border-radius: 4px;
+}
+
+.parsed-html pre {
+  background-color: #f8f9f9;
+  border: 1px solid #ecf0f1;
+  padding: 1.5em;
+  margin: 2em 0;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+.parsed-html pre code {
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+/*
+ * Horizontal Rule: A very subtle separator.
+ */
+.parsed-html hr {
+  border: 0;
+  height: 1px;
+  background-color: #ecf0f1;
+  margin: 3em 0;
+}

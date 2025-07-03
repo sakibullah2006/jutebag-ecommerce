@@ -48,7 +48,7 @@
 
 
 import { getAttributesWithTerms, getBrands, getCurrentCurrency, getProductCategories, getProductTags } from '@/actions/data-actions';
-import { getProducts } from '@/actions/products-actions';
+import { getAllProductsPaginated } from '@/actions/products-actions';
 import Footer from '@/components/Footer/Footer';
 import MenuOne from '@/components/Header/Menu/MenuOne';
 import TopNavOne from '@/components/Header/TopNav/TopNavOne';
@@ -70,7 +70,7 @@ export default async function BreadCrumb1({ searchParams }: BreadCrumb1Props) {
     const { type, gender, category } = await searchParams;
 
     // Fetch products server-side
-    const { products, status } = await getProducts({ perPage: 99 });
+    const { products, status } = await getAllProductsPaginated();
     const [attributes, categories, tags, brands, currency] = await Promise.all([
         getAttributesWithTerms(),
         getProductCategories(),

@@ -3,27 +3,38 @@
 import { MotionDiv } from '@/types/montion-types'
 import { Product as ProductType } from '@/types/product-type'
 // import { ProductType } from '@/types/ProductType'
-import React, { useState } from 'react'
+import { TagType } from '@/types/data-type'
+import React, { useEffect, useState } from 'react'
 import Product from '../Product/Product'
 
 interface Props {
-    data: Array<ProductType>;
+    tags: TagType[]
+    data: ProductType[];
     start: number;
     limit: number;
 }
 
-const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
-    const [activeTab, setActiveTab] = useState<string>('t-shirt');
+const WhatNewOne: React.FC<Props> = ({ data, start, limit, tags }) => {
+    const [activeTab, setActiveTab] = useState<string>(tags[0].name.trim() || 'All');
 
     const handleTabClick = (type: string) => {
         setActiveTab(type);
     };
 
     const filteredProducts: ProductType[] = data.filter(
-        (product) => 1 === 1
-        // product.type === activeTab &&
-        // product.categories.some((category) => category.name.toLocaleLowerCase() === "fashion")
+        (product) => {
+            if (activeTab === 'All') return true;
+            return product.tags.some((tag) => tag.name.toLowerCase() === activeTab.toLowerCase())
+            // product.categories.some((category) => category.name.toLowerCase() === "fashion")
+        }
     );
+    console.log('Filtered Products:', filteredProducts);
+    console.log("Tags:", tags);
+    console.log("Product tag", data[0].tags)
+
+    useEffect(() => {
+        console.log('Active Tab:', activeTab);
+    }, [activeTab])
 
     return (
         <>
@@ -32,20 +43,20 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
                     <div className="heading flex flex-col items-center text-center">
                         <div className="heading3">What{String.raw`'s`} new</div>
                         <div className="menu-tab flex items-center gap-2 p-1 bg-surface rounded-2xl mt-6">
-                            {['top', 't-shirt', 'dress', 'sets', 'shirt'].map((type) => (
+                            {tags.sort((a, b) => b.count - a.count).slice(0, 4).map((type) => (
                                 <div
-                                    key={type}
-                                    className={`tab-item relative text-secondary text-button-uppercase py-2 px-5 cursor-pointer duration-500 hover:text-black ${activeTab === type ? 'active' : ''}`}
-                                    onClick={() => handleTabClick(type)}
+                                    key={type.id}
+                                    className={`tab-item relative text-secondary text-button-uppercase py-2 px-5 cursor-pointer duration-500 hover:text-black ${activeTab === type.name ? 'active' : ''}`}
+                                    onClick={() => handleTabClick(type.name.trim())}
                                 >
-                                    {activeTab === type && (
+                                    {activeTab === type.name && (
                                         <MotionDiv
                                             layoutId='active-pill'
                                             className='absolute inset-0 rounded-2xl bg-white'
                                         ></MotionDiv>
                                     )}
                                     <span className='relative text-button-uppercase z-[1]'>
-                                        {type}
+                                        {type.name.charAt(0).toUpperCase() + type.name.slice(1)}
                                     </span>
                                 </div>
                             ))}
