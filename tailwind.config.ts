@@ -1,13 +1,14 @@
+// tailwind.config.ts
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
   content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './pages/**/*.{js,ts,jsx,tsx,mdx,scss}',
+    './components/**/*.{js,ts,jsx,tsx,mdx,scss}',
+    './app/**/*.{js,ts,jsx,tsx,mdx,scss}',
   ],
-  mode: 'jit',
-  jit: true,
+  // 'jit: true' is deprecated in Tailwind v3+ as JIT is now the default engine.
+  // You can safely remove it.
   theme: {
     extend: {
       backgroundImage: {
@@ -40,6 +41,7 @@ const config: Config = {
       'surface1': 'rgba(255, 255, 255, 0.1)',
     },
   },
-  plugins: [],
+  plugins: [
+  ],
 }
 export default config

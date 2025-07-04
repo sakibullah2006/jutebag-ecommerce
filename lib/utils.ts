@@ -16,8 +16,10 @@ export function formatDate(dateString: string): string {
 }
 
 export function decodeHtmlEntities(html: string) {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  return doc.documentElement.textContent;
+  if (typeof window !== 'undefined') {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.documentElement.textContent;
+  }
 }
 
 export function getRelativeTime(dateString: string): string {
