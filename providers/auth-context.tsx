@@ -67,7 +67,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             Cookies.remove("user");
             setUser(null);
             setIsAuthenticated(false);
-            router.push("/auth");
         }
         return data;
     };

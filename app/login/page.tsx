@@ -3,15 +3,69 @@ import Breadcrumb from '@/components/Breadcrumb/Breadcrumb'
 import Footer from '@/components/Footer/Footer'
 import MenuOne from '@/components/Header/Menu/MenuOne'
 import TopNavOne from '@/components/Header/TopNav/TopNavOne'
+import { useAuth } from '@/hooks/use-auth'
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as Icon from "@phosphor-icons/react/dist/ssr"
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import z from 'zod'
+
+const loginSchema = z.object({
+    username: z.string().min(1, "Username is required"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    remember: z.boolean().optional(),
+});
+
+type LoginFormInputs = z.infer<typeof loginSchema>;
 
 const Login = () => {
+    const [error, setError] = useState<string | null>(null);
+    const {login, loading, isAuthenticated} = useAuth()
+    const router = useRouter()
+
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<LoginFormInputs>({
+        resolver: zodResolver(loginSchema),
+    });
+
+    const onSubmit = async (data: LoginFormInputs) => {
+        // setLoading(true);
+        setError(null);
+        try {
+            // --- TODO: Replace this with your actual API call ---
+            console.log("Form Data:", data);
+            const response = await login(data.username, data.password);
+            if (response.success) {
+                console.log("Login successful, user id: ", response.user_id);
+                // Redirect to the homepage or dashboard after successful login
+                router.push('/dashboard');
+            } else {
+                // Handle login failure
+                setError(response.message || "Login failed. Please try again.");
+            }
+        } catch (err) {
+            setError("Invalid username or password. Please try again.");
+            console.error(err);
+        } finally {
+            // setLoading(false);
+        }
+    };
+
+    if (isAuthenticated) {
+        // If the user is already authenticated, redirect them to the dashboard
+        router.push('/dashboard');
+        return null; // Prevent rendering the login form
+    }
 
     return (
         <>
-            <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" />
+            {/* <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" /> */}
             <div id="header" className='relative w-full'>
                 <MenuOne props="bg-transparent" />
                 <Breadcrumb heading='Login' subHeading='Login' />
@@ -21,29 +75,71 @@ const Login = () => {
                     <div className="content-main flex gap-y-8 max-md:flex-col">
                         <div className="left md:w-1/2 w-full lg:pr-[60px] md:pr-[40px] md:border-r border-line">
                             <div className="heading4">Login</div>
-                            <form className="md:mt-7 mt-4">
-                                <div className="email ">
-                                    <input className="border-line px-4 pt-3 pb-3 w-full rounded-lg" id="username" type={"text"} placeholder="Username or email address *" required />
+                            <form onSubmit={handleSubmit(onSubmit)} className="md:mt-7 mt-4">
+                                <div className="email">
+                                    <input
+                                        className={`border-line px-4 pt-3 pb-3 w-full rounded-lg ${errors.username ? "border-red" : ""
+                                            }`}
+                                        id="username"
+                                        type="text"
+                                        placeholder="Username or email address *"
+                                        {...register("username")}
+                                    />
+                                    {errors.username && (
+                                        <p className="text-red text-sm mt-1">{errors.username.message}</p>
+                                    )}
                                 </div>
+
                                 <div className="pass mt-5">
-                                    <input className="border-line px-4 pt-3 pb-3 w-full rounded-lg" id="password" type="password" placeholder="Password *" required />
+                                    <input
+                                        className={`border-line px-4 pt-3 pb-3 w-full rounded-lg ${errors.password ? "border-red" : ""
+                                            }`}
+                                        id="password"
+                                        type="password"
+                                        placeholder="Password *"
+                                        {...register("password")}
+                                    />
+                                    {errors.password && (
+                                        <p className="text-red text-sm mt-1">{errors.password.message}</p>
+                                    )}
                                 </div>
+
                                 <div className="flex items-center justify-between mt-5">
-                                    <div className='flex items-center'>
-                                        <div className="block-input">
+                                    <div className="flex items-center">
+                                        <div className="block-input relative w-5 h-5">
                                             <input
                                                 type="checkbox"
-                                                name='remember'
-                                                id='remember'
+                                                id="remember"
+                                                className="absolute w-full h-full opacity-0 cursor-pointer"
+                                                {...register("remember")}
                                             />
-                                            <Icon.CheckSquare size={20} weight='fill' className='icon-checkbox' />
+                                            {/* This is a common pattern for custom checkboxes */}
+                                            <Icon.CheckSquareIcon
+                                                size={20}
+                                                weight="fill"
+                                                className="icon-checkbox text-gray-300 peer-checked:text-green"
+                                            />
                                         </div>
-                                        <label htmlFor='remember' className="pl-2 cursor-pointer">Remember me</label>
+                                        <label htmlFor="remember" className="pl-2 cursor-pointer select-none">
+                                            Remember me
+                                        </label>
                                     </div>
-                                    <Link href={'/forgot-password'} className='font-semibold hover:underline'>Forgot Your Password?</Link>
+                                    <Link href={"/forgot-password"} className="font-semibold hover:underline">
+                                        Forgot Your Password?
+                                    </Link>
                                 </div>
+
+                                {/* Display general form errors here */}
+                                {error && <p className="text-red text-center mt-4">{error}</p>}
+
                                 <div className="block-button md:mt-7 mt-4">
-                                    <button className="button-main">Login</button>
+                                    <button
+                                        type="submit"
+                                        className="button-main w-full"
+                                        disabled={loading}
+                                    >
+                                        {loading ? "Logging in..." : "Login"}
+                                    </button>
                                 </div>
                             </form>
                         </div>

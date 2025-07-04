@@ -1,36 +1,3 @@
-// 'use client'
-// import BreadcrumbProduct from '@/components/Breadcrumb/BreadcrumbProduct';
-// import Footer from '@/components/Footer/Footer';
-// import MenuOne from '@/components/Header/Menu/MenuOne';
-// import TopNavOne from '@/components/Header/TopNav/TopNavOne';
-// import Default from '@/components/Product/Detail/Default';
-// import productData from '@/data/Product.json';
-// import { useSearchParams } from 'next/navigation';
-
-// const ProductDefault = () => {
-//     const searchParams = useSearchParams()
-//     let productId = searchParams.get('id')
-
-//     if (productId === null) {
-//         productId = '1'
-//     }
-
-//     return (
-//         <>
-//             <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" />
-//             <div id="header" className='relative w-full'>
-//                 <MenuOne props="bg-white" />
-//                 <BreadcrumbProduct data={productData} productPage='default' productId={productId} />
-//             </div>
-//             <Default data={productData} productId={productId} />
-//             <Footer />
-//         </>
-//     )
-// }
-
-// export default ProductDefault
-
-
 import { getAllProductsPaginated, getProductById, getProductReviews, getProductVariationsById } from '@/actions/products-actions';
 import BreadcrumbProduct from '@/components/Breadcrumb/BreadcrumbProduct';
 import Footer from '@/components/Footer/Footer';
@@ -52,7 +19,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     }
 
     return {
-        title: product.name,
+        title: product.name +" | WooNex Store"  ,
         description: product.short_description || "View details about this product.",
         openGraph: {
             title: product.name,
@@ -98,7 +65,7 @@ const ProductDefault = async ({ params }: ProductDefaultProps) => {
                 <MenuOne props="bg-white" />
                 <BreadcrumbProduct productName={product.name} productId={productId} />
             </div>
-            <Default data={product} productId={productId} varations={variations} relatedProducts={relatedProducts} reviews={reviews || []} />
+            <Default key={productId} data={product} productId={productId} varations={variations} relatedProducts={relatedProducts} reviews={reviews || []} />
             <Footer />
         </>
     );

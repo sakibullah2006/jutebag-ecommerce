@@ -21,6 +21,7 @@ import 'swiper/css/bundle'
 import { Navigation, Scrollbar, Thumbs } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import Product from '../Product'
+import ReviewForm from '../ReviewForm'
 
 
 SwiperCore.use([Navigation, Thumbs]);
@@ -33,7 +34,8 @@ interface Props {
     productId: string | number | null
 }
 
-const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts, reviews }) => {
+const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts, reviews: reviewData }) => {
+    const [reviews, setReviews] = useState<ProductReview[]>(reviewData || [])
     const swiperRef: any = useRef(null);
     const [photoIndex, setPhotoIndex] = useState(0)
     const [openPopupImg, setOpenPopupImg] = useState(false)
@@ -99,6 +101,10 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
             ...star_count,
         };
     };
+
+    const onReviewSubmitted = (review: ProductReview) => {
+        setReviews((prevReviews) => [...prevReviews, review]);
+    }
 
     const reviewsInfo = calculateReviews();
     // const percentSale = Math.floor(100 - ((data.price / data?.originPrice) * 100))
@@ -683,7 +689,7 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                         {data.attributes.some(att => att.name.toLowerCase() === "size") &&
                                             <div className="item flex items-center gap-8 py-3 px-10">
                                                 <div className="text-title sm:w-1/4 w-1/3">Size</div>
-                                                <p>{data.attributes.find(att => att.name.toLowerCase() === "size")?.options.map(s => s)}</p>
+                                                <p>{data.attributes.find(att => att.name.toLowerCase() === "size")?.options.map(s => s).join(", ")}</p>
                                             </div>
                                         }
 
@@ -764,7 +770,7 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                                     style={{ width: `${(reviewsInfo.five / reviewsInfo.rating_count) * 100}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="caption1 w-2">{(reviewsInfo.five / reviewsInfo.rating_count) * 100}%</div>
+                                            <div className="caption1 w-2">{((reviewsInfo.five / reviewsInfo.rating_count) * 100)}%</div>
                                         </div>
                                         <div className="item flex items-center justify-end gap-1.5 mt-1">
                                             <div className="flex items-center gap-1">
@@ -777,7 +783,7 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                                     style={{ width: `${(reviewsInfo.four / reviewsInfo.rating_count) * 100}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="caption1 w-2">{(reviewsInfo.four / reviewsInfo.rating_count) * 100}%</div>
+                                            <div className="caption1 w-2">{((reviewsInfo.four / reviewsInfo.rating_count) * 100).toFixed(0)}%</div>
                                         </div>
                                         <div className="item flex items-center justify-end gap-1.5 mt-1">
                                             <div className="flex items-center gap-1">
@@ -790,7 +796,7 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                                     style={{ width: `${(reviewsInfo.three / reviewsInfo.rating_count) * 100}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="caption1 w-2">{(reviewsInfo.three / reviewsInfo.rating_count) * 100}%</div>
+                                            <div className="caption1 w-2">{((reviewsInfo.three / reviewsInfo.rating_count) * 100).toFixed(0)}%</div>
                                         </div>
                                         <div className="item flex items-center justify-end gap-1.5 mt-1">
                                             <div className="flex items-center gap-1">
@@ -803,7 +809,7 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                                     style={{ width: `${(reviewsInfo.two / reviewsInfo.rating_count) * 100}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="caption1 w-2">{(reviewsInfo.two / reviewsInfo.rating_count) * 100}%</div>
+                                            <div className="caption1 w-2">{((reviewsInfo.two / reviewsInfo.rating_count) * 100).toFixed(0)}%</div>
                                         </div>
                                         <div className="item flex items-center justify-end gap-1.5 mt-1">
                                             <div className="flex items-center gap-2">
@@ -816,7 +822,7 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                                     style={{ width: `${(reviewsInfo.one / reviewsInfo.rating_count) * 100}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="caption1 w-2">{(reviewsInfo.one / reviewsInfo.rating_count) * 100}%</div>
+                                            <div className="caption1 w-2">{((reviewsInfo.one / reviewsInfo.rating_count) * 100).toFixed(0)}%</div>
                                         </div>
                                     </div>
                                 </div>
@@ -852,7 +858,7 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                     {reviews.length > 0 ? (
                                         <>
                                             {reviews.map((review, index) => (
-                                                <div className="item">
+                                                <div className="item mb-10" key={index}>
                                                     <div className="heading flex items-center justify-between">
                                                         <div className="user-infor flex gap-4">
                                                             <div className="avatar">
@@ -875,11 +881,11 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="more-action cursor-pointer">
+                                                        {/* <div className="more-action cursor-pointer">
                                                             <Icon.DotsThreeIcon size={24} weight='bold' />
-                                                        </div>
+                                                        </div> */}
                                                     </div>
-                                                    <div className="mt-3">{parse(review.review)}</div>
+                                                    <div className="mt-3 text-lg font-medium">{parse(review.review)}</div>
                                                     {/* <div className="action mt-3">
                                                 <div className="flex items-center gap-4">
                                                     <div className="like-btn flex items-center gap-1 cursor-pointer">
@@ -985,7 +991,7 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                         </div>
                                     </div> */}
                                 </div>
-                                <div id="form-review" className='form-review pt-6'>
+                                {/* <div id="form-review" className='form-review pt-6'>
                                     <div className="heading4">Leave A comment</div>
                                     <form className="grid sm:grid-cols-2 gap-4 gap-y-5 md:mt-6 mt-3">
                                         <div className="name ">
@@ -1005,7 +1011,8 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                             <button className='button-main bg-white text-black border border-black'>Submit Reviews</button>
                                         </div>
                                     </form>
-                                </div>
+                                </div> */}
+                                <ReviewForm productId={productId as string} onReviewSubmitted={onReviewSubmitted} />
                             </div>
                         </div>
 

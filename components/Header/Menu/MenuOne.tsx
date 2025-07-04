@@ -14,6 +14,7 @@ import { useModalWishlistContext } from '@/context/ModalWishlistContext';
 import { useModalSearchContext } from '@/context/ModalSearchContext';
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
 
 interface Props {
     props: string;
@@ -26,10 +27,12 @@ const MenuOne: React.FC<Props> = ({ props }) => {
     const { openLoginPopup, handleLoginPopup } = useLoginPopup()
     const { openMenuMobile, handleMenuMobile } = useMenuMobile()
     const [openSubNavMobile, setOpenSubNavMobile] = useState<number | null>(null)
+    const [mobilesearch, setMobileSearch] = useState<string>("")
     const { openModalCart } = useModalCartContext()
     const { cartState } = useCart()
     const { openModalWishlist } = useModalWishlistContext()
     const { openModalSearch } = useModalSearchContext()
+    const { user, isAuthenticated, logout, loading } = useAuth()
 
     const handleOpenSubNavMobile = (index: number) => {
         setOpenSubNavMobile(openSubNavMobile === index ? null : index)
@@ -45,26 +48,26 @@ const MenuOne: React.FC<Props> = ({ props }) => {
             setLastScrollPosition(scrollPosition);
         };
 
-        // Gắn sự kiện cuộn khi component được mount
+        // Attach scroll event when component is mounted
         window.addEventListener('scroll', handleScroll);
 
-        // Hủy sự kiện khi component bị unmount
+        // Remove the event listener when the component is unmounted
         return () => {
             window.removeEventListener('scroll', handleScroll);
         };
     }, [lastScrollPosition]);
 
     const handleGenderClick = (gender: string) => {
-        router.push(`/shop/breadcrumb1?gender=${gender}`);
+        router.push(`/shop?gender=${gender}`);
     };
 
     const handleCategoryClick = (category: string) => {
-        router.push(`/shop/breadcrumb1?category=${category}`);
+        router.push(`/shop?category=${category}`);
     };
 
     const handleTypeClick = (type: string) => {
         setSelectedType(type)
-        router.push(`/shop/breadcrumb1?type=${type}`);
+        router.push(`/shop?type=${type}`);
     };
 
     return (
@@ -77,11 +80,11 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                         </div>
                         <div className="left flex items-center gap-16">
                             <Link href={'/'} className='flex items-center max-lg:absolute max-lg:left-1/2 max-lg:-translate-x-1/2'>
-                                <div className="heading4">Anvogue</div>
+                                <div className="heading4">SakibBaba</div>
                             </Link>
                             <div className="menu-main h-full max-lg:hidden">
                                 <ul className='flex items-center gap-8 h-full'>
-                                    <li className='h-full relative'>
+                                    {/* <li className='h-full relative'>
                                         <Link
                                             href="#!"
                                             className={`text-button-uppercase duration-300 h-full flex items-center justify-center gap-1 ${pathname === '/' ? 'active' : ''}`}
@@ -213,8 +216,8 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                 </li>
                                             </ul>
                                         </div>
-                                    </li>
-                                    <li className='h-full'>
+                                    </li> */}
+                                    {/* <li className='h-full'>
                                         <Link href="#!" className='text-button-uppercase duration-300 h-full flex items-center justify-center'>
                                             Features
                                         </Link>
@@ -576,15 +579,15 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                 </div>
                                             </div>
                                         </div>
-                                    </li>
+                                    </li> */}
                                     <li className='h-full'>
                                         <Link
-                                            href="#!"
+                                            href="/shop"
                                             className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/shop/') ? 'active' : ''}`}
                                         >
                                             Shop
                                         </Link>
-                                        <div className="mega-menu absolute top-[74px] left-0 bg-white w-screen">
+                                        {/* <div className="mega-menu absolute top-[74px] left-0 bg-white w-screen">
                                             <div className="container">
                                                 <div className="flex justify-between py-8">
                                                     <div className="nav-link basis-2/3 flex justify-between pr-12">
@@ -795,16 +798,16 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </li>
                                     <li className='h-full'>
                                         <Link
                                             href="#!"
                                             className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/product/') ? 'active' : ''}`}
                                         >
-                                            Product
+                                            Categories
                                         </Link>
-                                        <div className="mega-menu absolute top-[74px] left-0 bg-white w-screen">
+                                        {/* <div className="mega-menu absolute top-[74px] left-0 bg-white w-screen">
                                             <div className="container">
                                                 <div className="nav-link w-full flex justify-between py-8">
                                                     <div className="nav-item">
@@ -1013,9 +1016,9 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </li>
-                                    <li className='h-full relative'>
+                                    {/* <li className='h-full relative'>
                                         <Link href="#!" className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/blog') ? 'active' : ''}`}>
                                             Blog
                                         </Link>
@@ -1048,8 +1051,8 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                 </li>
                                             </ul>
                                         </div>
-                                    </li>
-                                    <li className='h-full relative'>
+                                    </li> */}
+                                    {/* <li className='h-full relative'>
                                         <Link href="#!" className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/pages') ? 'active' : ''}`}>
                                             Pages
                                         </Link>
@@ -1092,36 +1095,52 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                 </li>
                                             </ul>
                                         </div>
-                                    </li>
+                                    </li> */}
                                 </ul>
                             </div>
                         </div>
                         <div className="right flex gap-12">
                             <div className="max-md:hidden search-icon flex items-center cursor-pointer relative">
-                                <Icon.MagnifyingGlass size={24} color='black' onClick={openModalSearch} />
+                                <Icon.MagnifyingGlassIcon size={24} color='black' onClick={openModalSearch} />
                                 <div className="line absolute bg-line w-px h-6 -right-6"></div>
                             </div>
                             <div className="list-action flex items-center gap-4">
                                 <div className="user-icon flex items-center justify-center cursor-pointer">
-                                    <Icon.User size={24} color='black' onClick={handleLoginPopup} />
+                                    <Icon.UserIcon size={24} color='black' onClick={handleLoginPopup} />
                                     <div
                                         className={`login-popup absolute top-[74px] w-[320px] p-7 rounded-xl bg-white box-shadow-sm 
                                             ${openLoginPopup ? 'open' : ''}`}
                                     >
-                                        <Link href={'/login'} className="button-main w-full text-center">Login</Link>
-                                        <div className="text-secondary text-center mt-3 pb-4">Don’t have an account?
-                                            <Link href={'/register'} className='text-black pl-1 hover:underline'>Register</Link>
-                                        </div>
-                                        <Link href={'/my-account'} className="button-main bg-white text-black border border-black w-full text-center">Dashboard</Link>
-                                        <div className="bottom mt-4 pt-4 border-t border-line"></div>
-                                        <Link href={'#!'} className='body1 hover:underline'>Support</Link>
+                                        {!isAuthenticated ? (
+                                            <>
+                                                <Link href={'/login'} className="button-main w-full text-center">Login</Link>
+                                                <div className="text-secondary text-center mt-3 pb-4">Don’t have an account?
+                                                    <Link href={'/register'} className='text-black pl-1 hover:underline'>Register</Link>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="text-secondary text-center mt-3 pb-4">Hello, <span className='text-black'>{user?.user_display_name}</span></div>
+                                                <Link href={'/dashboard'} className="button-main bg-white text-black border border-black w-full text-center">Dashboard</Link>
+                                                <div
+                                                    className={`button-main w-full text-center mt-3 ${loading ? 'disabled' : ''} disabled:bg-gray-300`}
+                                                    onClick={() => {
+                                                        logout();
+                                                        router.push('/login');
+                                                    }}
+                                                    style={{ cursor: loading ? 'not-allowed' : 'pointer' }}
+                                                >{loading ? "LOGING OUT" : "LOG OUT"}</div>
+                                                <div className="bottom mt-4 pt-4 border-t border-line"></div>
+                                                <Link href={'#!'} className='body1 hover:underline'>Support</Link>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
-                                <div className="max-md:hidden wishlist-icon flex items-center cursor-pointer" onClick={openModalWishlist}>
-                                    <Icon.Heart size={24} color='black' />
+                                <div className=" wishlist-icon flex items-center cursor-pointer" onClick={openModalWishlist}>
+                                    <Icon.HeartIcon size={24} color='black' />
                                 </div>
                                 <div className="cart-icon flex items-center relative cursor-pointer" onClick={openModalCart}>
-                                    <Icon.Handbag size={24} color='black' />
+                                    <Icon.HandbagIcon size={24} color='black' />
                                     <span className="quantity cart-quantity absolute -right-1.5 -top-1.5 text-xs text-white bg-black w-4 h-4 flex items-center justify-center rounded-full">{cartState.cartArray.length}</span>
                                 </div>
                             </div>
@@ -1141,11 +1160,17 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                 >
                                     <Icon.X size={14} />
                                 </div>
-                                <Link href={'/'} className='logo text-3xl font-semibold text-center'>Anvogue</Link>
+                                <Link href={'/'} className='logo text-3xl font-semibold text-center'>SakibBaba</Link>
                             </div>
-                            <div className="form-search relative mt-2">
-                                <Icon.MagnifyingGlass size={20} className='absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer' />
-                                <input type="text" placeholder='What are you looking for?' className=' h-12 rounded-lg border border-line text-sm w-full pl-10 pr-4' />
+                            <div className="form-search relative mt-2 flex items-center justify-between">
+                                <Icon.MagnifyingGlassIcon size={20} className='absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer' />
+                                <input type="text" placeholder='What are you looking for?' onChange={(e) => setMobileSearch(e.target.value)} className=' h-12 rounded-lg rounded-r-none border border-line text-sm w-full pl-10 pr-4' />
+                                <div
+                                    className='bg-black flex items-center px-3 rounded-r-lg justify-center h-12 text-white cursor-pointer'
+                                    onClick={() => router.push(`/shop?search=${mobilesearch}`)}
+                                >
+                                    <Icon.ArrowRightIcon size={20} className='' weight='bold' />
+                                </div>
                             </div>
                             <div className="list-nav mt-6">
                                 <ul>
@@ -1153,147 +1178,18 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                         className={`${openSubNavMobile === 1 ? 'open' : ''}`}
                                         onClick={() => handleOpenSubNavMobile(1)}
                                     >
-                                        <a href={'#!'} className={`text-xl font-semibold flex items-center justify-between`}>Demo
-                                            <span className='text-right'>
-                                                <Icon.CaretRight size={20} />
-                                            </span>
-                                        </a>
-                                        <div className="sub-nav-mobile">
-                                            <div
-                                                className="back-btn flex items-center gap-3"
-                                                onClick={() => handleOpenSubNavMobile(1)}
-                                            >
-                                                <Icon.CaretLeft />
-                                                Back
-                                            </div>
-                                            <div className="list-nav-item w-full grid grid-cols-2 pt-2 pb-6">
-                                                <ul>
-                                                    <li>
-                                                        <Link href="/" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/' ? 'active' : ''}`}>
-                                                            Home Fashion 1
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/fashion2" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/fashion2' ? 'active' : ''}`}>
-                                                            Home Fashion 2
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/fashion3" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/fashion3' ? 'active' : ''}`}>
-                                                            Home Fashion 3
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/fashion4" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/fashion4' ? 'active' : ''}`}>
-                                                            Home Fashion 4
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/fashion5" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/fashion5' ? 'active' : ''}`}>
-                                                            Home Fashion 5
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/fashion6" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/fashion6' ? 'active' : ''}`}>
-                                                            Home Fashion 6
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/fashion7" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/fashion7' ? 'active' : ''}`}>
-                                                            Home Fashion 7
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/fashion8" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/fashion8' ? 'active' : ''}`}>
-                                                            Home Fashion 8
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/fashion9" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/fashion9' ? 'active' : ''}`}>
-                                                            Home Fashion 9
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/fashion10" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/fashion10' ? 'active' : ''}`}>
-                                                            Home Fashion 10
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/fashion11" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/fashion11' ? 'active' : ''}`}>
-                                                            Home Fashion 11
-                                                        </Link>
-                                                    </li>
-                                                </ul>
-                                                <ul>
-                                                    <li>
-                                                        <Link href="/homepages/underwear" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/underwear' ? 'active' : ''}`}>
-                                                            Home Underwear
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/cosmetic1" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/cosmetic1' ? 'active' : ''}`}>
-                                                            Home Cosmetic 1
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/cosmetic2" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/cosmetic2' ? 'active' : ''}`}>
-                                                            Home Cosmetic 2
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/cosmetic3" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/cosmetic3' ? 'active' : ''}`}>
-                                                            Home Cosmetic 3
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/pet" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/pet' ? 'active' : ''}`}>
-                                                            Home Pet Store
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/jewelry" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/jewelry' ? 'active' : ''}`}>
-                                                            Home Jewelry
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/furniture" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/furniture' ? 'active' : ''}`}>
-                                                            Home Furniture
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/watch" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/watch' ? 'active' : ''}`}>
-                                                            Home Watch
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/toys" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/toys' ? 'active' : ''}`}>
-                                                            Home Toys Kid
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/yoga" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/yoga' ? 'active' : ''}`}>
-                                                            Home Yoga
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/organic" className={`nav-item-mobile link text-secondary duration-300 ${pathname === '/homepages/organic' ? 'active' : ''}`}>
-                                                            Home Organic
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <Link href="/homepages/marketplace" className={`nav-item-mobile text-secondary duration-300 ${pathname === '/homepages/marketplace' ? 'active' : ''}`}>
-                                                            Home Marketplace
-                                                        </Link>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
+                                        <Link href={'/shop'} className={`text-xl font-semibold flex items-center justify-between`}>Shop
+                                            {/* <span className='text-right'>
+                                                <Icon.CaretRightIcon size={20} />
+                                            </span> */}
+                                        </Link>
+
                                     </li>
                                     <li
                                         className={`${openSubNavMobile === 2 ? 'open' : ''}`}
                                         onClick={() => handleOpenSubNavMobile(2)}
                                     >
-                                        <a href={'#!'} className='text-xl font-semibold flex items-center justify-between mt-5'>Features
+                                        <a href={'#!'} className='text-xl font-semibold flex items-center justify-between mt-5'>Categories
                                             <span className='text-right'>
                                                 <Icon.CaretRight size={20} />
                                             </span>
@@ -1303,7 +1199,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                 className="back-btn flex items-center gap-3"
                                                 onClick={() => handleOpenSubNavMobile(2)}
                                             >
-                                                <Icon.CaretLeft />
+                                                <Icon.CaretLeftIcon />
                                                 Back
                                             </div>
                                             <div className="list-nav-item w-full pt-3 pb-12">
@@ -1836,9 +1732,9 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                     <div className="recent-product pt-3">
                                                         <div className="text-button-uppercase pb-1">Recent Products</div>
                                                         <div className="list-product hide-product-sold  grid grid-cols-2 gap-5 mt-3">
-                                                            {productData.slice(0, 2).map((prd, index) => (
+                                                            {/* {productData.slice(0, 2).map((prd, index) => (
                                                                 <Product key={index} data={prd} type='grid' style='style-1' />
-                                                            ))}
+                                                            ))} */}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2028,9 +1924,9 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                     <div className="recent-product pt-4">
                                                         <div className="text-button-uppercase pb-1">Recent Products</div>
                                                         <div className="list-product hide-product-sold  grid grid-cols-2 gap-5 mt-3">
-                                                            {productData.slice(0, 2).map((prd, index) => (
+                                                            {/* {productData.slice(0, 2).map((prd, index) => (
                                                                 <Product key={index} data={prd} type='grid' style='style-1' />
-                                                            ))}
+                                                            ))} */}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2153,20 +2049,20 @@ const MenuOne: React.FC<Props> = ({ props }) => {
             <div className="menu_bar fixed bg-white bottom-0 left-0 w-full h-[70px] sm:hidden z-[101]">
                 <div className="menu_bar-inner grid grid-cols-4 items-center h-full">
                     <Link href={'/'} className='menu_bar-link flex flex-col items-center gap-1'>
-                        <Icon.House weight='bold' className='text-2xl' />
+                        <Icon.HouseIcon weight='bold' className='text-2xl' />
                         <span className="menu_bar-title caption2 font-semibold">Home</span>
                     </Link>
                     <Link href={'/shop/filter-canvas'} className='menu_bar-link flex flex-col items-center gap-1'>
-                        <Icon.List weight='bold' className='text-2xl' />
+                        <Icon.ListIcon weight='bold' className='text-2xl' />
                         <span className="menu_bar-title caption2 font-semibold">Category</span>
                     </Link>
                     <Link href={'/search-result'} className='menu_bar-link flex flex-col items-center gap-1'>
-                        <Icon.MagnifyingGlass weight='bold' className='text-2xl' />
+                        <Icon.MagnifyingGlassIcon weight='bold' className='text-2xl' />
                         <span className="menu_bar-title caption2 font-semibold">Search</span>
                     </Link>
                     <Link href={'/cart'} className='menu_bar-link flex flex-col items-center gap-1'>
                         <div className="icon relative">
-                            <Icon.Handbag weight='bold' className='text-2xl' />
+                            <Icon.HandbagIcon weight='bold' className='text-2xl' />
                             <span className="quantity cart-quantity absolute -right-1.5 -top-1.5 text-xs text-white bg-black w-4 h-4 flex items-center justify-center rounded-full">{cartState.cartArray.length}</span>
                         </div>
                         <span className="menu_bar-title caption2 font-semibold">Cart</span>
