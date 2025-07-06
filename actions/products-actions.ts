@@ -4,84 +4,84 @@ import { Product, ProductReview, VariationProduct } from "@/types/product-type";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 
 const WooCommerce = new WooCommerceRestApi({
-    url: process.env.WORDPRESS_SITE_URL as string,
-    consumerKey: process.env.WC_CONSUMER_KEY! as string,
-    consumerSecret: process.env.WC_CONSUMER_SECRET! as string,
-    version: "wc/v3",
+  url: process.env.WORDPRESS_SITE_URL as string,
+  consumerKey: process.env.WC_CONSUMER_KEY! as string,
+  consumerSecret: process.env.WC_CONSUMER_SECRET! as string,
+  version: "wc/v3",
 });
 
-export const getProductById = async ({ id }: { id: string }): Promise<{ product: Product , status: "OK" | "ERROR" }> => {
-    try {
-        const product: Product = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products/${id}`, { cache: 'no-store' }).then(async product => await product.json())
-        // console.log(product ?? "No product found")
-        return {
-            product: product,
-            status: "OK"
-        }
-    } catch (error) {
-        console.log(`Error fetching products ${error}`)
-        return {
-            product: {} as Product,
-            status: "ERROR"
-        }
+export const getProductById = async ({ id }: { id: string }): Promise<{ product: Product, status: "OK" | "ERROR" }> => {
+  try {
+    const product: Product = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products/${id}`, { cache: 'no-store' }).then(async product => await product.json())
+    // console.log(product ?? "No product found")
+    return {
+      product: product,
+      status: "OK"
     }
+  } catch (error) {
+    console.log(`Error fetching products ${error}`)
+    return {
+      product: {} as Product,
+      status: "ERROR"
+    }
+  }
 }
 
 export const getProductVariationsById = async ({ id }: { id: string }): Promise<{ variations?: VariationProduct[], status: "OK" | "ERROR" }> => {
-    try {
-        const variations = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products/${id}/variations`, { cache: "force-cache", next: {revalidate: 100} }).then(async variations => await variations.json())
-        // console.log(product ?? "No product found")
-        return {
-            variations,
-            status: "OK"
-        }
-    } catch (error) {
-        console.log(`Error fetching products ${error}`)
-        return {
-            variations: [],
-            status: "ERROR"
-        }
+  try {
+    const variations = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products/${id}/variations`, { cache: "force-cache", next: { revalidate: 100 } }).then(async variations => await variations.json())
+    // console.log(product ?? "No product found")
+    return {
+      variations,
+      status: "OK"
     }
+  } catch (error) {
+    console.log(`Error fetching products ${error}`)
+    return {
+      variations: [],
+      status: "ERROR"
+    }
+  }
 }
 
 export const getProducts = async ({
-    params,
-    perPage = 50,
-    page = 1,
+  params,
+  perPage = 50,
+  page = 1,
 }: {
-    params?: { category?: string; search?: string; tag?: string, include?: Array<number> };
-    perPage?: number;
-    page?: number;
+  params?: { category?: string; search?: string; tag?: string, include?: Array<number> };
+  perPage?: number;
+  page?: number;
 } = {}): Promise<{
-    products: Product[];
-    status: 'OK' | 'ERROR';
+  products: Product[];
+  status: 'OK' | 'ERROR';
 }> => {
-    try {
-        const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products?per_page=${perPage}&page=${page}&include=${params?.include}`,
-            {cache: 'force-cache',next: { revalidate: 30 }}
-        );
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products?per_page=${perPage}&page=${page}&include=${params?.include}`,
+      { cache: 'force-cache', next: { revalidate: 30 } }
+    );
 
-        // console.log(response)
+    // console.log(response)
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to fetch products');
-        }
-
-        const products = await response.json();
-
-        return {
-            products,
-            status: 'OK',
-        };
-    } catch (error) {
-        console.error(`Error fetching products:`, error);
-        return {
-            products: [],
-            status: 'ERROR',
-        };
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to fetch products');
     }
+
+    const products = await response.json();
+
+    return {
+      products,
+      status: 'OK',
+    };
+  } catch (error) {
+    console.error(`Error fetching products:`, error);
+    return {
+      products: [],
+      status: 'ERROR',
+    };
+  }
 };
 
 
@@ -233,11 +233,11 @@ export async function createProductReview(reviewData: {
       success: true,
       review: createdReview,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating product review:", error);
     return {
       success: false,
-      message: error.message || "Failed to create product review",
+      message: error instanceof Error ? error.message : "Failed to create product review",
     };
   }
 }
