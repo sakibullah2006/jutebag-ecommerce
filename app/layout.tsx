@@ -3,14 +3,10 @@ import ModalCompare from '@/components/Modal/ModalCompare'
 import ModalQuickview from '@/components/Modal/ModalQuickview'
 import ModalSearch from '@/components/Modal/ModalSearch'
 import ModalWishlist from '@/components/Modal/ModalWishlist'
-import { countdownTime } from '@/store/countdownTime'
 import '@/styles/styles.scss'
-import CountdownTimeType from '@/types/CountdownType'
 import type { Metadata } from 'next'
 import { Instrument_Sans } from 'next/font/google'
 import GlobalProvider from './GlobalProvider'
-
-const serverTimeLeft: CountdownTimeType = countdownTime();
 
 const instrument = Instrument_Sans({ subsets: ['latin'] })
 
@@ -25,17 +21,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <GlobalProvider>
-      <html lang="en">
-        <body className={instrument.className}>
+    <html lang="en">
+      <body className={instrument.className}>
+        <GlobalProvider>
           {children}
-          <ModalCart />
-          <ModalWishlist />
-          <ModalSearch />
           <ModalQuickview />
+          <ModalSearch />
           <ModalCompare />
-        </body>
-      </html>
-    </GlobalProvider>
+          <ModalWishlist />
+          <ModalCart />
+        </GlobalProvider>
+      </body>
+    </html>
   )
 }

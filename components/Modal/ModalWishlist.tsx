@@ -6,10 +6,14 @@ import Image from 'next/image'
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import { useModalWishlistContext } from '@/context/ModalWishlistContext'
 import { useWishlist } from '@/context/WishlistContext'
+import { decodeHtmlEntities } from '@/lib/utils';
+import { useAppData } from '@/context/AppDataContext';
 
 const ModalWishlist = () => {
     const { isModalOpen, closeModalWishlist } = useModalWishlistContext();
     const { wishlistState, removeFromWishlist } = useWishlist()
+    const { currentCurrency } = useAppData()
+    // const currentCurrency = { name: 'Doller', symbol: '$', code: 'USD' };
 
     return (
         <>
@@ -33,7 +37,7 @@ const ModalWishlist = () => {
                                 <div className="infor flex items-center gap-5">
                                     <div className="bg-img">
                                         <Image
-                                            src={product.images[0]}
+                                            src={product.images[0].src}
                                             width={300}
                                             height={300}
                                             alt={product.name}
@@ -43,12 +47,21 @@ const ModalWishlist = () => {
                                     <div className=''>
                                         <div className="name text-button">{product.name}</div>
                                         <div className="flex items-center gap-2 mt-2">
-                                            <div className="product-price text-title">${product.price}.00</div>
-                                            <div className="product-origin-price text-title text-secondary2"><del>${product.originPrice}.00</del></div>
+                                            {product.on_sale && product.sale_price ? (
+                                                <>
+                                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency!.symbol)}{Number(product.sale_price).toFixed(2)}</div>
+                                                    <div className="product-origin-price text-title text-secondary2"><del>{decodeHtmlEntities(currentCurrency!.symbol)}{Number(product.price).toFixed(2)}</del></div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency!.symbol)}{Number(product.price).toFixed(2)}</div>
+                                                </>
+                                            )
+                                            }
                                         </div>
                                     </div>
                                 </div>
-                                <div className="remove-wishlist-btn caption1 font-semibold text-red underline cursor-pointer" onClick={() => removeFromWishlist(product.id)}>
+                                <div className="remove-wishlist-btn caption1 font-semibold text-red underline cursor-pointer" onClick={() => removeFromWishlist(product.id.toString())}>
                                     Remove
                                 </div>
                             </div>

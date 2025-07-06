@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable prefer-const */
 'use client'
 
-import { getAttributesWithTerms, getBrands, getProductCategories, getProductTags } from "@/actions/data-actions";
 import { COLORS } from "@/data/color-codes";
 import { decodeHtmlEntities } from "@/lib/utils";
 import { AttributesWithTermsType, CategorieType, CurrencyType, ProductBrandType, TagType } from "@/types/data-type";
@@ -12,6 +13,7 @@ import 'rc-slider/assets/index.css';
 import { useCallback, useEffect, useState } from 'react';
 import HandlePagination from '../Other/HandlePagination';
 import Product from '../Product/Product';
+import { useAppData } from "@/context/AppDataContext";
 
 interface Props {
     data: Array<ProductType>
@@ -19,16 +21,9 @@ interface Props {
     dataType: string | null | undefined
     gender: string | null
     category: string | null
-    productOptions?: {
-        categories: CategorieType[]
-        attributes: AttributesWithTermsType[]
-        tags: TagType[]
-        brands: ProductBrandType[]
-        currentCurrency: CurrencyType
-    }
 }
 
-const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gender, category, productOptions }) => {
+const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gender, category }) => {
     const [showOnlySale, setShowOnlySale] = useState(false)
     const [sortOption, setSortOption] = useState('');
     const [pageCount, setPageCount] = useState<number | null>(null);
@@ -41,7 +36,8 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
     const productsPerPage = productPerPage;
     const offset = currentPage * productsPerPage;
 
-    const { tags, attributes: attributesData, categories, brands, currentCurrency } = productOptions || {};
+    // const { tags, attributes: attributesData } = productOptions || {};
+    const { currentCurrency, brands, categories, attributes: attributesData, tags } = useAppData()
 
     useEffect(() => {
         // fetchProductOptions()
@@ -307,13 +303,13 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                     <div className="min flex items-center gap-1">
                                         <div>Min price:</div>
                                         <div className='price-min'>
-                                            <span>{decodeHtmlEntities(currentCurrency?.symbol!)}{priceRange.min}</span>
+                                            <span>{decodeHtmlEntities(currentCurrency?.symbol ?? '')}{priceRange.min}</span>
                                         </div>
                                     </div>
                                     <div className="min flex items-center gap-1">
                                         <div>Max price:</div>
                                         <div className='price-max'>
-                                            <span>{decodeHtmlEntities(currentCurrency?.symbol!)}{priceRange.max}</span>
+                                            <span>{decodeHtmlEntities(currentCurrency?.symbol ?? '')}{priceRange.max}</span>
                                         </div>
                                     </div>
                                 </div>

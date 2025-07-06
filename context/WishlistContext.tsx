@@ -1,9 +1,10 @@
 'use client'
 
 // WishlistContext.tsx
-import { ProductType } from '@/types/ProductType';
+import { Product as ProductType } from '@/types/product-type';
 import React, { createContext, useContext, useEffect, useReducer, useState } from 'react';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface WishlistItem extends ProductType {
 }
 
@@ -35,7 +36,7 @@ const WishlistReducer = (state: WishlistState, action: WishlistAction): Wishlist
         case 'REMOVE_FROM_WISHLIST':
             return {
                 ...state,
-                wishlistArray: state.wishlistArray.filter((item) => item.id !== action.payload),
+                wishlistArray: state.wishlistArray.filter((item) => item.id.toString() !== action.payload),
             };
         case 'LOAD_WISHLIST':
             return {

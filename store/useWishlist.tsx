@@ -1,9 +1,9 @@
 // useWishlist.ts
-import { ProductType } from '@/types/ProductType';
+import { Product as ProductType } from '@/types/product-type';
 import { useState } from 'react';
 
 interface WishlistItem {
-    product: Array<ProductType>
+    product: Array<ProductType>;
 }
 
 const useWishlist = () => {
@@ -19,7 +19,7 @@ const useWishlist = () => {
     const removeFromWishlist = (productId: string) => {
         setWishlist((prevWishlist) =>
             prevWishlist.map(item => ({
-                product: item.product.filter(prd => prd.id !== productId)
+                product: item.product.filter(prd => prd.id.toString() !== productId)
             }))
         );
     };

@@ -3,7 +3,7 @@ import Breadcrumb from '@/components/Breadcrumb/Breadcrumb'
 import Footer from '@/components/Footer/Footer'
 import MenuOne from '@/components/Header/Menu/MenuOne'
 import TopNavOne from '@/components/Header/TopNav/TopNavOne'
-import { useAuth } from '@/hooks/use-auth'
+import { useAuth } from '@/context/AuthContext'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as Icon from "@phosphor-icons/react/dist/ssr"
 import Link from 'next/link'
@@ -22,7 +22,8 @@ type LoginFormInputs = z.infer<typeof loginSchema>;
 
 const Login = () => {
     const [error, setError] = useState<string | null>(null);
-    const {login, loading, isAuthenticated} = useAuth()
+    const { login, loading, isAuthenticated } = useAuth()
+    const [isLoading, setIsLoading] = useState<boolean>(loading);
     const router = useRouter()
 
 
@@ -35,7 +36,7 @@ const Login = () => {
     });
 
     const onSubmit = async (data: LoginFormInputs) => {
-        // setLoading(true);
+        setIsLoading(true);
         setError(null);
         try {
             // --- TODO: Replace this with your actual API call ---
@@ -53,7 +54,7 @@ const Login = () => {
             setError("Invalid username or password. Please try again.");
             console.error(err);
         } finally {
-            // setLoading(false);
+            setIsLoading(false);
         }
     };
 
@@ -65,7 +66,7 @@ const Login = () => {
 
     return (
         <>
-            {/* <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" /> */}
+            <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" />
             <div id="header" className='relative w-full'>
                 <MenuOne props="bg-transparent" />
                 <Breadcrumb heading='Login' subHeading='Login' />
@@ -135,10 +136,13 @@ const Login = () => {
                                 <div className="block-button md:mt-7 mt-4">
                                     <button
                                         type="submit"
-                                        className="button-main w-full"
-                                        disabled={loading}
+                                        className={`button-main w-full disabled:opacity-100 disabled:pointer-events-none ${isLoading ?
+                                            "bg-surface text-secondary2 border cursor-not-allowed disabled hover:normal-case"
+                                            : "bg-black text-white hover:bg-green-300"
+                                            }`}
+                                        disabled={isLoading}
                                     >
-                                        {loading ? "Logging in..." : "Login"}
+                                        {isLoading ? "Logging in..." : "Login"}
                                     </button>
                                 </div>
                             </form>
@@ -161,3 +165,4 @@ const Login = () => {
 }
 
 export default Login
+

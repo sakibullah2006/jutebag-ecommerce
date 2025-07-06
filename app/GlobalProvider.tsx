@@ -7,28 +7,31 @@ import { CompareProvider } from '@/context/CompareContext'
 import { ModalCompareProvider } from '@/context/ModalCompareContext'
 import { ModalSearchProvider } from '@/context/ModalSearchContext'
 import { ModalQuickviewProvider } from '@/context/ModalQuickviewContext'
-import { AuthProvider } from '@/providers/auth-context'
+import { AuthProvider } from '@/context/AuthContext'
+import { AppDataProvider } from '@/context/AppDataContext'
 
 const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
         <AuthProvider>
-            <CartProvider>
-                <ModalCartProvider>
-                    <WishlistProvider>
-                        <ModalWishlistProvider>
-                            <CompareProvider>
-                                <ModalCompareProvider>
-                                    <ModalSearchProvider>
-                                        <ModalQuickviewProvider>
-                                            {children}
-                                        </ModalQuickviewProvider>
-                                    </ModalSearchProvider>
-                                </ModalCompareProvider>
-                            </CompareProvider>
-                        </ModalWishlistProvider>
-                    </WishlistProvider>
-                </ModalCartProvider>
-            </CartProvider>
+            <AppDataProvider>
+                <CartProvider>
+                    <ModalCartProvider>
+                        <WishlistProvider>
+                            <ModalWishlistProvider>
+                                <CompareProvider>
+                                    <ModalCompareProvider>
+                                        <ModalSearchProvider>
+                                            <ModalQuickviewProvider>
+                                                {children}
+                                            </ModalQuickviewProvider>
+                                        </ModalSearchProvider>
+                                    </ModalCompareProvider>
+                                </CompareProvider>
+                            </ModalWishlistProvider>
+                        </WishlistProvider>
+                    </ModalCartProvider>
+                </CartProvider>
+            </AppDataProvider>
         </AuthProvider>
     )
 }

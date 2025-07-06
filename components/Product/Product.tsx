@@ -141,12 +141,12 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
 
     const handleAddToWishlist = () => {
         // if product existed in wishlit, remove from wishlist and set state to false
-        // if (wishlistState.wishlistArray.some(item => item.id === data.id)) {
-        //     removeFromWishlist(data.id);
-        // } else {
-        //     // else, add to wishlist and set state to true
-        //     addToWishlist(data);
-        // }
+        if (wishlistState.wishlistArray.some(item => item.id === data.id)) {
+            removeFromWishlist(data.id.toString());
+        } else {
+            // else, add to wishlist and set state to true
+            addToWishlist(data);
+        }
         openModalWishlist();
     };
 
@@ -163,7 +163,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
         //     alert('Compare up to 3 products')
         // }
 
-        openModalCompare();
+        // openModalCompare();
     };
 
     const handleQuickviewOpen = () => {
@@ -175,8 +175,8 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
         router.push(`/product/${productId}`);
     };
 
-    let percentSale = Math.floor(100 - ((Number(data.sale_price || selectedVariation?.sale_price) / Number(data.regular_price || selectedVariation?.regular_price)) * 100))
-    let percentSold = Math.floor((data.total_sales / data.stock_quantity!) * 100)
+    const percentSale = Math.floor(100 - ((Number(data.sale_price || selectedVariation?.sale_price) / Number(data.regular_price || selectedVariation?.regular_price)) * 100))
+    const percentSold = Math.floor((data.total_sales / data.stock_quantity!) * 100)
 
     if (isloading) {
         return (

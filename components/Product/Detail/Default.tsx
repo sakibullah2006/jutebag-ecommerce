@@ -24,7 +24,6 @@ import Product from '../Product'
 import ReviewForm from '../ReviewForm'
 
 
-SwiperCore.use([Navigation, Thumbs]);
 
 interface Props {
     data: ProductType
@@ -36,7 +35,7 @@ interface Props {
 
 const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts, reviews: reviewData }) => {
     const [reviews, setReviews] = useState<ProductReview[]>(reviewData || [])
-    const swiperRef: any = useRef(null);
+    const swiperRef = useRef<SwiperCore | null>(null);
     const [photoIndex, setPhotoIndex] = useState(0)
     const [openPopupImg, setOpenPopupImg] = useState(false)
     const [openSizeGuide, setOpenSizeGuide] = useState<boolean>(false)
@@ -1017,7 +1016,7 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                         </div>
 
                     </div>
-                    {data.related_ids.length > 0 && relatedProducts?.length! > 0 &&
+                    {data.related_ids.length > 0 && (relatedProducts?.length ?? 0) > 0 &&
                         <div className="related-product md:py-20 py-10">
                             <div className="container">
                                 <div className="heading3 text-center">Related Products</div>

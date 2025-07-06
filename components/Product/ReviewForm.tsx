@@ -24,7 +24,7 @@ type ReviewFormInputs = z.infer<typeof reviewSchema>;
 
 interface ReviewFormProps {
   productId: string;
-  onReviewSubmitted?: (review: ProductReview) => void; 
+  onReviewSubmitted?: (review: ProductReview) => void;
 }
 
 const ReviewForm = ({ productId, onReviewSubmitted }: ReviewFormProps) => {
@@ -181,9 +181,9 @@ const ReviewForm = ({ productId, onReviewSubmitted }: ReviewFormProps) => {
           <button
             type="submit"
             className={`${isSubmitting ? "opacity-50 cursor-not-allowed disabled" : ""} bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors flex gap-2 items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed`}
-            style={{ }}
+            style={{}}
           >
-            {isSubmitting ? <><span>"Submitting " </span> <Icon.DotsThreeIcon className="animate-pulse" size={25} />  </> : "Submit Review"}
+            {isSubmitting ? <><span>Submitting</span> <Icon.DotsThreeIcon className="animate-pulse" size={25} />  </> : "Submit Review"}
           </button>
         </div>
       </form>

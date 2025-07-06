@@ -15,7 +15,7 @@ interface Props {
 }
 
 const WhatNewOne: React.FC<Props> = ({ data, start, limit, tags }) => {
-    const [activeTab, setActiveTab] = useState<string>(tags[0].name.trim() || 'All');
+    const [activeTab, setActiveTab] = useState<string>(tags[0]?.name.trim() || 'All');
 
     const handleTabClick = (type: string) => {
         setActiveTab(type);
@@ -28,13 +28,11 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit, tags }) => {
             // product.categories.some((category) => category.name.toLowerCase() === "fashion")
         }
     );
-    console.log('Filtered Products:', filteredProducts);
-    console.log("Tags:", tags);
-    console.log("Product tag", data[0].tags)
 
-    useEffect(() => {
-        console.log('Active Tab:', activeTab);
-    }, [activeTab])
+
+    // useEffect(() => {
+    //     console.log('Active Tab:', activeTab);
+    // }, [activeTab])
 
     return (
         <>

@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 'use client'
 import Breadcrumb from '@/components/Breadcrumb/Breadcrumb'
 import Footer from '@/components/Footer/Footer'
@@ -5,117 +6,83 @@ import MenuOne from '@/components/Header/Menu/MenuOne'
 import TopNavOne from '@/components/Header/TopNav/TopNavOne'
 import HandlePagination from '@/components/Other/HandlePagination'
 import Product from '@/components/Product/Product'
+import { useAppData } from '@/context/AppDataContext'
 import { useWishlist } from '@/context/WishlistContext'
-import { ProductType } from '@/types/ProductType'
+import { Product as ProductType } from '@/types/product-type'
 import * as Icon from "@phosphor-icons/react/dist/ssr"
-import React, { useState } from 'react'
-
+import React, { useState, useEffect, useMemo } from 'react'
 
 const Wishlist = () => {
     const { wishlistState } = useWishlist();
     const [sortOption, setSortOption] = useState('');
-    const [layoutCol, setLayoutCol] = useState<number | null>(4)
-    const [type, setType] = useState<string | undefined>()
+    const [layoutCol, setLayoutCol] = useState<number | null>(4);
+    const [type, setType] = useState<string | undefined>();
     const [currentPage, setCurrentPage] = useState(0);
     const productsPerPage = 12;
-    const offset = currentPage * productsPerPage;
+    const { tags } = useAppData()
 
     const handleLayoutCol = (col: number) => {
-        setLayoutCol(col)
-    }
+        setLayoutCol(col);
+    };
 
     const handleType = (type: string) => {
-        setType((prevType) => (prevType === type ? undefined : type))
-    }
+        setType((prevType) => (prevType === type ? undefined : type));
+    };
 
     const handleSortChange = (option: string) => {
         setSortOption(option);
     };
 
-    // Filter product data by type
-    let filteredData = wishlistState.wishlistArray.filter(product => {
-        let isTypeMatched = true;
+    const filteredData = useMemo(() => {
+        let data = [...wishlistState.wishlistArray];
+
+        // Filter by type
         if (type) {
-            isTypeMatched = product.type === type;
+            data = data.filter(product => product.tags.some(tag => tag.name.toLowerCase() === type.toLowerCase()));
         }
 
-        return isTypeMatched
-    })
+        // Sort the data
+        if (sortOption === 'soldQuantityHighToLow') {
+            data.sort((a, b) => b.total_sales - a.total_sales);
+        } else if (sortOption === 'discountHighToLow') {
+            data.sort((a, b) =>
+                (Math.floor(100 - ((Number(b.sale_price) / Number(b.price)) * 100))) -
+                (Math.floor(100 - ((Number(a.sale_price) / Number(a.price)) * 100)))
+            );
+        } else if (sortOption === 'priceHighToLow') {
+            data.sort((a, b) => Number(b.price) - Number(a.price));
+        } else if (sortOption === 'priceLowToHigh') {
+            data.sort((a, b) => Number(a.price) - Number(b.price));
+        }
 
-    const totalProducts = filteredData.length
-    const selectedType = type
+        return data;
+    }, [wishlistState.wishlistArray, type, sortOption]);
 
-    if (filteredData.length === 0) {
-        filteredData = [{
-            id: 'no-data',
-            category: 'no-data',
-            type: 'no-data',
-            name: 'no-data',
-            gender: 'no-data',
-            new: false,
-            sale: false,
-            rate: 0,
-            price: 0,
-            originPrice: 0,
-            brand: 'no-data',
-            sold: 0,
-            quantity: 0,
-            quantityPurchase: 0,
-            sizes: [],
-            variation: [],
-            thumbImage: [],
-            images: [],
-            description: 'no-data',
-            action: 'no-data',
-            slug: 'no-data'
-        }];
-    }
+    const totalProducts = filteredData.length;
+    const selectedType = type;
+    const pageCount = Math.ceil(totalProducts / productsPerPage);
 
-    // Tạo một bản sao của mảng đã lọc để sắp xếp
-    let sortedData = [...filteredData];
-
-    if (sortOption === 'soldQuantityHighToLow') {
-        filteredData = sortedData.sort((a, b) => b.sold - a.sold)
-    }
-
-    if (sortOption === 'discountHighToLow') {
-        filteredData = sortedData
-            .sort((a, b) => (
-                (Math.floor(100 - ((b.price / b.originPrice) * 100))) - (Math.floor(100 - ((a.price / a.originPrice) * 100)))
-            ))
-    }
-
-    if (sortOption === 'priceHighToLow') {
-        filteredData = sortedData.sort((a, b) => b.price - a.price)
-    }
-
-    if (sortOption === 'priceLowToHigh') {
-        filteredData = sortedData.sort((a, b) => a.price - b.price)
-    }
+    useEffect(() => {
+        if (pageCount > 0 && currentPage >= pageCount) {
+            setCurrentPage(pageCount - 1);
+        } else if (pageCount === 0) {
+            setCurrentPage(0);
+        }
+    }, [pageCount, currentPage]);
 
 
-    // Find page number base on filteredData
-    const pageCount = Math.ceil(filteredData.length / productsPerPage);
+    // Get product data for the current page
+    const currentProducts = useMemo(() => {
+        const offset = currentPage * productsPerPage;
+        return filteredData.slice(offset, offset + productsPerPage);
+    }, [filteredData, currentPage, productsPerPage]);
 
-    // If page number 0, set current page = 0
-    if (pageCount === 0) {
-        setCurrentPage(0);
-    }
-
-    // Get product data for current page
-    let currentProducts: ProductType[];
-
-    if (filteredData.length > 0) {
-        currentProducts = filteredData.slice(offset, offset + productsPerPage);
-    } else {
-        currentProducts = []
-    }
 
     const handlePageChange = (selected: number) => {
         setCurrentPage(selected);
     };
 
-
+    // ... your JSX remains the same
     return (
         <>
             <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" />
@@ -174,16 +141,16 @@ const Wishlist = () => {
                                         value={type === undefined ? 'Type' : type}
                                     >
                                         <option value="Type" disabled>Type</option>
-                                        {['t-shirt', 'dress', 'top', 'swimwear', 'shirt', 'underwear', 'sets', 'accessories'].map((item, index) => (
+                                        {tags.map((item, index) => (
                                             <option
                                                 key={index}
-                                                className={`item cursor-pointer ${type === item ? 'active' : ''}`}
+                                                className={`item cursor-pointer ${type?.toLowerCase() === item.name.toLowerCase() ? 'active' : ''}`}
                                             >
-                                                {item}
+                                                {item.name.toUpperCase()}
                                             </option>
                                         ))}
                                     </select>
-                                    <Icon.CaretDown size={12} className='absolute top-1/2 -translate-y-1/2 md:right-4 right-2' />
+                                    <Icon.CaretDownIcon size={12} className='absolute top-1/2 -translate-y-1/2 md:right-4 right-2' />
                                 </div>
                                 <div className="select-block relative">
                                     <select
@@ -199,7 +166,7 @@ const Wishlist = () => {
                                         <option value="priceHighToLow">Price High To Low</option>
                                         <option value="priceLowToHigh">Price Low To High</option>
                                     </select>
-                                    <Icon.CaretDown size={12} className='absolute top-1/2 -translate-y-1/2 md:right-4 right-2' />
+                                    <Icon.CaretDownIcon size={12} className='absolute top-1/2 -translate-y-1/2 md:right-4 right-2' />
                                 </div>
                             </div>
                         </div>
@@ -236,14 +203,13 @@ const Wishlist = () => {
                         </div>
 
                         <div className={`list-product hide-product-sold grid lg:grid-cols-${layoutCol} sm:grid-cols-3 grid-cols-2 sm:gap-[30px] gap-[20px] mt-7`}>
-                            {currentProducts.map((item) => (
-                                item.id === 'no-data' ? (
-                                    <div key={item.id} className="no-data-product">No products match the selected criteria.</div>
-                                ) : (
-                                    // <Product key={item.id} data={item} type='grid' />
-                                    <>Product</>
-                                )
-                            ))}
+                            {currentProducts.length === 0 ? (
+                                <div className="no-data-product">No products match the selected criteria.</div>
+                            ) : (
+                                currentProducts.map((item: ProductType) => (
+                                    <Product key={item.id} data={item} type='grid' style='style-1' />
+                                ))
+                            )}
                         </div>
 
                         {pageCount > 1 && (

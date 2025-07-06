@@ -2,7 +2,7 @@
 import { AuthResponse, User, userLogin, userLogout, userResetPassword, userSignup } from "@/actions/auth-actions";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import { ReactNode, createContext, useEffect, useState } from "react";
+import { ReactNode, createContext, useContext, useEffect, useState } from "react";
 
 
 interface AuthContextType {
@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
-    const router = useRouter();
+    // const router = useRouter();
 
     useEffect(() => {
         const token = Cookies.get("jwt_token");
@@ -81,4 +81,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             {children}
         </AuthContext.Provider>
     );
+};
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
 };
