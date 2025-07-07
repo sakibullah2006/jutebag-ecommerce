@@ -44,46 +44,6 @@ export const getProductVariationsById = async ({ id }: { id: string }): Promise<
   }
 }
 
-export const getProducts = async ({
-  params,
-  perPage = 50,
-  page = 1,
-}: {
-  params?: { category?: string; search?: string; tag?: string, include?: Array<number> };
-  perPage?: number;
-  page?: number;
-} = {}): Promise<{
-  products: Product[];
-  status: 'OK' | 'ERROR';
-}> => {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products?per_page=${perPage}&page=${page}&include=${params?.include}`,
-      { cache: 'force-cache', next: { revalidate: 30 } }
-    );
-
-    // console.log(response)
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to fetch products');
-    }
-
-    const products = await response.json();
-
-    return {
-      products,
-      status: 'OK',
-    };
-  } catch (error) {
-    console.error(`Error fetching products:`, error);
-    return {
-      products: [],
-      status: 'ERROR',
-    };
-  }
-};
-
 
 export const getAllProductsPaginated = async ({
   params,
