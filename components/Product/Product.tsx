@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client'
 
 import { getCurrentCurrency } from '@/actions/data-actions'
@@ -33,37 +34,36 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     const [variations, setVariations] = useState<VariationProduct[]>([])
     const [selectedVariation, setSelectedVariation] = useState<VariationProduct | null>(null);
     const [actionType, setActionType] = useState<string>("add to cart")
-    const [activeColor, setActiveColor] = useState<string>('')
-    const [activeSize, setActiveSize] = useState<string>('')
+    const [activeColor, setActiveColor] = useState<string>(() => {
+        const attr = data.attributes?.find(attr => attr.name === "color")
+        if (attr) {
+            return attr.options[0]
+        }
+        return ''
+    })
+    const [activeSize, setActiveSize] = useState<string>(() => {
+        const attr = data.attributes?.find(attr => attr.name === "size")
+        if (attr) {
+            return attr.options[0]
+        }
+        return ''
+    })
     const [openQuickShop, setOpenQuickShop] = useState<boolean>(false)
     const [currentCurrency, setCurrentCurrency] = useState<CurrencyType>({ name: 'doller', symbol: '$', code: 'USD' })
-    const { addToCart, updateCart, cartState } = useCart();
-    const { openModalCart } = useModalCartContext()
+    const { addToCart, cartState } = useCart();
+    const { openModalCart } = useModalCartContext();
     const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist();
     const { openModalWishlist } = useModalWishlistContext()
-    const { addToCompare, removeFromCompare, compareState } = useCompare();
+    // const { addToCompare, removeFromCompare, compareState } = useCompare();
     const { openModalCompare } = useModalCompareContext()
     const { openQuickview } = useModalQuickviewContext()
     const [isloading, setIsLoading] = useState<boolean>(false)
+    const isColorReq = data.attributes?.some(attr => attr.name.toLowerCase() === "color")
+    const isSizeReq = data.attributes?.some(attr => attr.name.toLowerCase() === "size")
     const router = useRouter()
 
     useEffect(() => {
         let isMounted = true;
-        // const loadVariations = async () => {
-        //     setIsLoading(true);
-        //     try {
-        //         const variations = await fetchVariations();
-        //         if (isMounted && variations) {
-        //             // Set active color and size based on the first variation
-        //             // const firstVariation = variations[0];
-        //             // setSelectedVariation(variations[0] || null);
-        //             // setActiveColor(firstVariation.attributes.find((attr: { name: string, option: string }) => attr.name.toLowerCase() === 'color')?.option || '');
-        //             // setActiveSize(firstVariation.attributes.find((attr: { name: string, option: string }) => attr.name.toLowerCase() === 'size')?.option || '');
-        //         }
-        //     } catch (error) {
-        //         if (isMounted) console.error(error);
-        //     }
-        // };
         const loadCurrency = async () => {
             const currency = await getCurrentCurrency();
             if (isMounted) {
@@ -71,7 +71,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
             }
         }
         loadCurrency()
-        fetchVariations().then()
+        fetchVariations()
         // loadVariations();
         setIsLoading(false);
         return () => { isMounted = false; };
@@ -100,43 +100,85 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     }, [])
 
     // Find matching variation based on activeColor or activeSize
-    const findMatchingVariation = (color?: string, size?: string) => {
+    const findMatchingVariation = () => {
+        // If there are no variations loaded, we can't find a match.
+        if (variations.length === 0) return null;
+
+        // Check if the product is supposed to have color and size variations
+        const hasColorAttribute = data.attributes.some(attr => attr.name.toLowerCase() === 'color' && attr.variation);
+        const hasSizeAttribute = data.attributes.some(attr => attr.name.toLowerCase() === 'size' && attr.variation);
+
+        // Find a variation where every required attribute matches the active state.
         const matchingVariant = variations.find((variation) => {
-            // Create a map of variation attributes for easier comparison
-            const variationAttrs = variation.attributes.reduce(
-                (acc, attr) => ({ ...acc, [attr.name.toLowerCase()]: attr.option }),
-                {} as Record<string, string>,
+            // A variation is a match if its color and size match the active selection.
+            // If an attribute doesn't exist for variations (e.g., only color, no size), it's considered a match.
+            const colorMatch = !hasColorAttribute || variation.attributes.some(
+                attr => attr.name.toLowerCase() === 'color' && attr.option === activeColor
             );
-
-            // Check if activeColor and/or activeSize matches the variation's attributes
-            const colorMatch = activeColor ? variationAttrs['color'] === (color ?? activeColor) : true;
-            const sizeMatch = activeSize ? variationAttrs['size'] === (size ?? activeSize) : true;
-
-            // Ensure the variation matches either color or size or both
+            const sizeMatch = !hasSizeAttribute || variation.attributes.some(
+                attr => attr.name.toLowerCase() === 'size' && attr.option === activeSize
+            );
             return colorMatch && sizeMatch;
         });
 
-        return matchingVariant ? matchingVariant : null;
+        return matchingVariant ?? null;
     };
 
     // console.log('Variations fetched:', variations);
 
-    const handleActiveColor = (item: string) => {
-        setActiveColor(item)
-    }
+    // This "smart" handler updates the color and ensures the selected size is still valid.
+    const handleActiveColor = (newColor: string) => {
+        setActiveColor(newColor);
 
-    const handleActiveSize = (item: string) => {
-        setActiveSize(item)
-    }
+        // Find all sizes that are available with the newly selected color
+        const availableSizes = new Set(
+            variations
+                .filter(v => v.attributes.some(a => a.name.toLowerCase() === 'color' && a.option === newColor))
+                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'size')?.option)
+                .filter((s): s is string => !!s)
+        );
+
+        // If the current size is not in the list of available sizes for the new color,
+        // automatically switch to the first available size.
+        if (availableSizes.size > 0 && !availableSizes.has(activeSize)) {
+            setActiveSize(Array.from(availableSizes)[0]);
+        }
+    };
+
+    // This "smart" handler updates the size and ensures the selected color is still valid.
+    const handleActiveSize = (newSize: string) => {
+        setActiveSize(newSize);
+
+        // Find all colors that are available with the newly selected size
+        const availableColors = new Set(
+            variations
+                .filter(v => v.attributes.some(a => a.name.toLowerCase() === 'size' && a.option === newSize))
+                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'color')?.option)
+                .filter((c): c is string => !!c)
+        );
+
+        // If the current color is not in the list of available colors for the new size,
+        // automatically switch to the first available color.
+        if (availableColors.size > 0 && !availableColors.has(activeColor)) {
+            setActiveColor(Array.from(availableColors)[0]);
+        }
+    };
 
     const handleAddToCart = () => {
-        // if (!cartState.cartArray.find(item => item.id === data.id)) {
-        //     addToCart({ ...data });
-        //     updateCart(data.id, data.quantityPurchase, activeSize, activeColor)
-        // } else {
-        //     updateCart(data.id, data.quantityPurchase, activeSize, activeColor)
-        // }
-        openModalCart()
+        const cartVariation = findMatchingVariation()
+
+        // Call the single, updated function from the context
+        addToCart(
+            data, // The base product data
+            1,    // The quantity to add
+            activeSize,
+            activeColor,
+            cartVariation?.id?.toString(),
+            cartVariation ?? undefined
+        );
+
+        // Open the modal
+        openModalCart();
     };
 
     const handleAddToWishlist = () => {
@@ -178,6 +220,19 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     const percentSale = Math.floor(100 - ((Number(data.sale_price || selectedVariation?.sale_price) / Number(data.regular_price || selectedVariation?.regular_price)) * 100))
     const percentSold = Math.floor((data.total_sales / data.stock_quantity!) * 100)
 
+    const isAddToCartDisabled =
+        data.stock_status === "outofstock" ||
+        !data.purchasable ||
+        (isColorReq && !activeColor) ||
+        (isSizeReq && !activeSize);
+
+    const addToCartButtonText = data.stock_status === "outofstock" ? "Out Of Stock" : "Add To Cart";
+
+    const addToCartButtonClasses = isAddToCartDisabled
+        ? "bg-surface text-secondary2 border"
+        : "bg-black text-white hover:bg-green-300";
+
+
     if (isloading) {
         return (
             <div className={`product-item grid-type ${style} animate-pulse`}>
@@ -215,7 +270,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                             )}
                             {style === 'style-1' || style === 'style-3' || style === 'style-4' ? (
                                 <div className="list-action-right absolute top-3 right-3 max-lg:hidden">
-                                    {style === 'style-4' && (
+                                    {/* {style === 'style-4' && (
                                         <div
                                             className={`add-cart-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative mb-2 ${compareState.compareArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
                                             onClick={e => {
@@ -226,7 +281,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                             <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">Add To Cart</div>
                                             <Icon.ShoppingBagOpenIcon size={20} />
                                         </div>
-                                    )}
+                                    )} */}
                                     <div
                                         className={`add-wishlist-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative ${wishlistState.wishlistArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
                                         onClick={(e) => {
@@ -245,8 +300,8 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                             </>
                                         )}
                                     </div>
-                                    <div
-                                        className={`compare-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative mt-2 ${compareState.compareArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
+                                    {/* <div
+                                        className={`compare-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative mt-2 ${compareState.compareArray?.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
                                         onClick={(e) => {
                                             e.stopPropagation()
                                             handleAddToCompare()
@@ -255,8 +310,8 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                         <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">Compare Product</div>
                                         <Icon.RepeatIcon size={18} className='compare-icon' />
                                         <Icon.CheckCircleIcon size={20} className='checked-icon' />
-                                    </div>
-                                    {style === 'style-3' || style === 'style-4' ? (
+                                    </div> */}
+                                    {/* {style === 'style-3' || style === 'style-4' ? (
                                         <div
                                             className={`quick-view-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative mt-2 ${compareState.compareArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
                                             onClick={(e) => {
@@ -267,7 +322,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                             <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">Quick View</div>
                                             <Icon.EyeIcon size={20} />
                                         </div>
-                                    ) : <></>}
+                                    ) : <></>} */}
                                 </div>
                             ) : <></>}
                             <div className="product-img w-full h-full aspect-[3/4]">
@@ -339,15 +394,18 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                         </div>
                                     )}
                                     {actionType === 'add to cart' ? (
-                                        <div
-                                            className="add-cart-btn w-full text-button-uppercase py-2 text-center rounded-full duration-500 bg-white hover:bg-black hover:text-white"
+                                        <button
+                                            className={`add-cart-btn w-full text-button-uppercase py-2 text-center rounded-full duration-500 
+                                                ${addToCartButtonClasses} disabled:opacity-100 disabled:pointer-events-none 
+                                                 `}
+                                            disabled={isAddToCartDisabled}
                                             onClick={e => {
                                                 e.stopPropagation();
                                                 handleAddToCart()
                                             }}
                                         >
                                             Add To Cart
-                                        </div>
+                                        </button>
                                     ) : (
                                         <>
                                             <div
@@ -393,15 +451,20 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                         ))}
                                                     </div>
                                                 }
-                                                <div
-                                                    className="button-main w-full text-center rounded-full py-3 mt-4"
-                                                    onClick={() => {
-                                                        handleAddToCart()
-                                                        setOpenQuickShop(false)
-                                                    }}
+                                                <button
+                                                    type="button"
+                                                    disabled={isAddToCartDisabled}
+                                                    onClick={handleAddToCart}
+                                                    className={`
+                                                        add-cart-btn w-full py-3 mt-2 items-center justify-center rounded-md 
+                                                        text-sm font-medium transition-colors focus-visible:outline-none 
+                                                        focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+                                                        disabled:opacity-100 disabled:pointer-events-none 
+                                                        ${addToCartButtonClasses}
+                                                    `}
                                                 >
-                                                    Add To cart
-                                                </div>
+                                                    {addToCartButtonText}
+                                                </button>
                                             </div>
                                         </>
                                     )}
@@ -411,7 +474,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                             {style === 'style-2' || style === 'style-5' ?
                                 <>
                                     <div className={`list-action flex items-center justify-center gap-3 px-5 absolute w-full ${style === 'style-2' ? 'bottom-12' : 'bottom-5'} max-lg:hidden`}>
-                                        {style === 'style-2' && (
+                                        {/* {style === 'style-2' && (
                                             <div
                                                 className={`add-cart-btn w-9 h-9 flex items-center justify-center rounded-full bg-white duration-300 relative ${compareState.compareArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
                                                 onClick={e => {
@@ -422,7 +485,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                 <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">Add To Cart</div>
                                                 <Icon.ShoppingBagOpenIcon size={20} />
                                             </div>
-                                        )}
+                                        )} */}
                                         <div
                                             className={`add-wishlist-btn w-9 h-9 flex items-center justify-center rounded-full bg-white duration-300 relative ${wishlistState.wishlistArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
                                             onClick={(e) => {
@@ -441,7 +504,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                 </>
                                             )}
                                         </div>
-                                        <div
+                                        {/* <div
                                             className={`compare-btn w-9 h-9 flex items-center justify-center rounded-full bg-white duration-300 relative ${compareState.compareArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
                                             onClick={(e) => {
                                                 e.stopPropagation()
@@ -461,7 +524,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                         >
                                             <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">Quick View</div>
                                             <Icon.EyeIcon size={20} />
-                                        </div>
+                                        </div> */}
                                         {style === 'style-5' && actionType !== 'add to cart' && (
                                             <div
                                                 className={`quick-shop-block absolute left-5 right-5 bg-white p-5 rounded-[20px] ${openQuickShop ? 'open' : ''}`}
@@ -480,15 +543,20 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                         </div>
                                                     ))}
                                                 </div>
-                                                <div
-                                                    className="button-main w-full text-center rounded-full py-3 mt-4"
-                                                    onClick={() => {
-                                                        handleAddToCart()
-                                                        setOpenQuickShop(false)
-                                                    }}
+                                                <button
+                                                    type="button"
+                                                    disabled={isAddToCartDisabled}
+                                                    onClick={handleAddToCart}
+                                                    className={`
+                                                        button-main w-full inline-flex items-center justify-center rounded-md 
+                                                        text-sm font-medium transition-colors focus-visible:outline-none 
+                                                        focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
+                                                        disabled:opacity-100 disabled:pointer-events-none 
+                                                        ${addToCartButtonClasses}
+                                                    `}
                                                 >
-                                                    Add To cart
-                                                </div>
+                                                    {addToCartButtonText}
+                                                </button>
                                             </div>
                                         )}
                                     </div>
@@ -611,15 +679,21 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                             {style === 'style-5' &&
                                 <>
                                     {actionType === 'add to cart' ? (
-                                        <div
-                                            className="add-cart-btn w-full text-button-uppercase py-2.5 text-center mt-2 rounded-full duration-300 bg-white border border-black hover:bg-black hover:text-white max-lg:hidden"
+                                        <button
+                                            type="button"
+                                            className={`add-cart-btn w-full text-button-uppercase py-2.5 text-center mt-2 rounded-full 
+                                                duration-300 bg-white border border-black hover:bg-black hover:text-white max-lg:hidden 
+                                                disabled:opacity-100 disabled:pointer-events-none 
+                                                ${addToCartButtonClasses}`
+                                            }
+                                            disabled={isAddToCartDisabled}
                                             onClick={e => {
                                                 e.stopPropagation()
                                                 handleAddToCart()
                                             }}
                                         >
                                             Add To Cart
-                                        </div>
+                                        </button>
                                     ) : (
                                         <div
                                             className="quick-shop-btn text-button-uppercase py-2.5 text-center mt-2 rounded-full duration-300 bg-white border border-black hover:bg-black hover:text-white max-lg:hidden"
@@ -735,7 +809,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                                         }}
                                                                     >
                                                                         <Image
-                                                                            src={findMatchingVariation(item)?.image.src || "/images/product/1000x1000.png"}
+                                                                            src={findMatchingVariation()?.image.src || "/images/product/1000x1000.png"}
                                                                             width={100}
                                                                             height={100}
                                                                             alt='color'
@@ -785,7 +859,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                         </>
                                                     )}
                                                 </div>
-                                                <div
+                                                {/* <div
                                                     className={`compare-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative ${compareState.compareArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation()
@@ -795,7 +869,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                     <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">Compare Product</div>
                                                     <Icon.ArrowsCounterClockwiseIcon size={18} className='compare-icon' />
                                                     <Icon.CheckCircleIcon size={20} className='checked-icon' />
-                                                </div>
+                                                </div> */}
                                                 <div
                                                     className="quick-view-btn-list w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative"
                                                     onClick={(e) => {
@@ -841,7 +915,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     </>
                                 )}
                             </span>
-                            <span
+                            {/* <span
                                 className={`compare-btn w-8 h-8 bg-white flex items-center justify-center rounded-full box-shadow-sm duration-300 ${compareState.compareArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
                                 onClick={(e) => {
                                     e.stopPropagation()
@@ -850,7 +924,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                             >
                                 <Icon.RepeatIcon size={18} className='compare-icon' />
                                 <Icon.CheckCircleIcon size={20} className='checked-icon' />
-                            </span>
+                            </span> */}
                             <span
                                 className="quick-view-btn w-8 h-8 bg-white flex items-center justify-center rounded-full box-shadow-sm duration-300"
                                 onClick={(e) => {
@@ -876,7 +950,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                         <div className="flex gap-0.5 mt-1">
                             <Rate currentRate={Number(data.average_rating)} size={16} />
                         </div>
-                        <span className="text-title inline-block mt-1">${data.price}.00</span>
+                        <span className="text-title inline-block mt-1">${Number(data.price).toFixed(2)}</span>
                     </div>
                 </div>
             ) : (

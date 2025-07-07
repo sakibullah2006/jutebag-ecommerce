@@ -22,26 +22,42 @@ import { Navigation, Scrollbar, Thumbs } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import Product from '../Product'
 import ReviewForm from '../ReviewForm'
+import { useCart } from '@/context/CartContext'
+import { useAppData } from '@/context/AppDataContext'
 
 
 
 interface Props {
     data: ProductType
     reviews: ProductReview[]
-    varations?: VariationProduct[]
+    variations?: VariationProduct[]
     relatedProducts?: ProductType[]
     productId: string | number | null
 }
 
-const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts, reviews: reviewData }) => {
+const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts, reviews: reviewData }) => {
     const [reviews, setReviews] = useState<ProductReview[]>(reviewData || [])
     const swiperRef = useRef<SwiperCore | null>(null);
     const [photoIndex, setPhotoIndex] = useState(0)
     const [openPopupImg, setOpenPopupImg] = useState(false)
     const [openSizeGuide, setOpenSizeGuide] = useState<boolean>(false)
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperCore | null>(null);
-    const [activeColor, setActiveColor] = useState<string>('')
-    const [activeSize, setActiveSize] = useState<string>('')
+    const [activeColor, setActiveColor] = useState<string>(() => {
+        const attr = data.attributes?.find(attr => attr.name === "color")
+        if (attr) {
+            return attr.options[0]
+        } else {
+            return ''
+        }
+    })
+    const [activeSize, setActiveSize] = useState<string>(() => {
+        const attr = data.attributes?.find(attr => attr.name === "size")
+        if (attr) {
+            return attr.options[0]
+        } else {
+            return ''
+        }
+    })
     const [activeTab, setActiveTab] = useState<string>('description')
     const [quantity, setQuantity] = useState(1)
     const [selectedVariation, setSelectedVariation] = useState<VariationProduct | null>(() => {
@@ -50,35 +66,43 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
             return null
         }
         // Find the first variation that matches the active color and size
-        const initialVariation = (varations ?? [])[0] || null;
-        const varationColor = initialVariation?.attributes.find(att => att.name.toLowerCase() === "color")?.name || '';
-        const varationSize = initialVariation?.attributes.find(att => att.name.toLowerCase() === "size")?.name || '';
-        setActiveColor(varationColor)
-        setActiveSize(varationSize)
-        return initialVariation;
+        // if (variations) {
+        //     const initialVariation = findMatchingVariation(activeColor, activeSize)
+
+        //     return initialVariation;
+        // }
+        return null
     })
-    const [currentCurrency, setCurrentCurrency] = useState<CurrencyType>({ name: 'doller', symbol: '$', code: 'USD' })
+    const { currentCurrency } = useAppData()
     const { openModalCart } = useModalCartContext()
+    const { addToCart, cartState } = useCart();
     const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist()
     const { openModalWishlist } = useModalWishlistContext()
     const { addToCompare, removeFromCompare, compareState } = useCompare();
     const { openModalCompare } = useModalCompareContext()
+    const isColorReq = data.attributes.some(attr => attr.name.toLowerCase() === "color")
+    const isSizeReq = data.attributes.some(attr => attr.name.toLowerCase() === "size")
 
     // console.log('Raw HTML:', data.description);
     useEffect(() => {
         let isMounted = true;
-        const loadCurrency = async () => {
-            const currency = await getCurrentCurrency();
-            if (isMounted) {
-                setCurrentCurrency(currency);
-            }
-        }
-        loadCurrency()
+
 
         return () => { isMounted = false; };
     }, [])
 
+    useEffect(() => {
+        // Find the variation that matches the active color and size
+        const matchingVariation = findMatchingVariation();
+        if (matchingVariation) {
+            setSelectedVariation(matchingVariation);
+        } else {
+            setSelectedVariation(null);
+        }
+    }, [activeColor, activeSize])
+
     const calculateReviews = () => {
+        let calculatedAverage_rating = 0;
         const star_count = {
             one: 0,
             two: 0,
@@ -93,13 +117,42 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
             else if (review.rating === 3) star_count.three++;
             else if (review.rating === 4) star_count.four++;
             else if (review.rating === 5) star_count.five++;
+            calculatedAverage_rating += review.rating
         });
+        calculatedAverage_rating = calculatedAverage_rating / reviews.length
 
         return {
             rating_count: reviews.length,
             ...star_count,
+            calculatedAverage_rating
         };
     };
+
+    // Find matching variation based on activeColor or activeSize
+    const findMatchingVariation = () => {
+        // If there are no variations loaded, we can't find a match.
+        if (variations?.length === 0) return null;
+
+        // Check if the product is supposed to have color and size variations
+        const hasColorAttribute = data.attributes.some(attr => attr.name.toLowerCase() === 'color' && attr.variation);
+        const hasSizeAttribute = data.attributes.some(attr => attr.name.toLowerCase() === 'size' && attr.variation);
+
+        // Find a variation where every required attribute matches the active state.
+        const matchingVariant = variations?.find((variation) => {
+            // A variation is a match if its color and size match the active selection.
+            // If an attribute doesn't exist for variations (e.g., only color, no size), it's considered a match.
+            const colorMatch = !hasColorAttribute || variation.attributes.some(
+                attr => attr.name.toLowerCase() === 'color' && attr.option === activeColor
+            );
+            const sizeMatch = !hasSizeAttribute || variation.attributes.some(
+                attr => attr.name.toLowerCase() === 'size' && attr.option === activeSize
+            );
+            return colorMatch && sizeMatch;
+        });
+
+        return matchingVariant ?? null;
+    };
+
 
     const onReviewSubmitted = (review: ProductReview) => {
         setReviews((prevReviews) => [...prevReviews, review]);
@@ -107,7 +160,7 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
 
     const reviewsInfo = calculateReviews();
     // const percentSale = Math.floor(100 - ((data.price / data?.originPrice) * 100))
-    const percentSale = Math.floor(100 - ((Number(data.sale_price || selectedVariation?.sale_price) / Number(data.regular_price || selectedVariation?.regular_price)) * 100))
+    const percentSale = Math.floor(100 - ((Number(data.sale_price || findMatchingVariation()?.sale_price) / Number(data.regular_price || findMatchingVariation()?.regular_price)) * 100))
 
 
     const handleOpenSizeGuide = () => {
@@ -123,24 +176,42 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
         setThumbsSwiper(swiper);
     };
 
-    const handleActiveColor = (item: string) => {
-        setActiveColor(item)
+    // This "smart" handler updates the color and ensures the selected size is still valid.
+    const handleActiveColor = (newColor: string) => {
+        setActiveColor(newColor);
 
-        // // Find variation with selected color
-        // const foundColor = data.variation.find((variation) => variation.color === item);
-        // // If found, slide next to img
-        // if (foundColor) {
-        //     const index = data.images.indexOf(foundColor.image);
+        // Find all sizes that are available with the newly selected color
+        const availableSizes = new Set(
+            variations?.filter(v => v.attributes.some(a => a.name.toLowerCase() === 'color' && a.option === newColor))
+                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'size')?.option)
+                .filter((s): s is string => !!s)
+        );
 
-        //     if (index !== -1) {
-        //         swiperRef.current?.slideTo(index);
-        //     }
-        // }
-    }
+        // If the current size is not in the list of available sizes for the new color,
+        // automatically switch to the first available size.
+        if (availableSizes.size > 0 && !availableSizes.has(activeSize)) {
+            setActiveSize(Array.from(availableSizes)[0]);
+        }
+    };
 
-    const handleActiveSize = (item: string) => {
-        setActiveSize(item)
-    }
+    // This "smart" handler updates the size and ensures the selected color is still valid.
+    const handleActiveSize = (newSize: string) => {
+        setActiveSize(newSize);
+
+        // Find all colors that are available with the newly selected size
+        const availableColors = new Set(
+            variations?.filter(v => v.attributes.some(a => a.name.toLowerCase() === 'size' && a.option === newSize))
+                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'color')?.option)
+                .filter((c): c is string => !!c)
+        );
+
+        // If the current color is not in the list of available colors for the new size,
+        // automatically switch to the first available color.
+        if (availableColors.size > 0 && !availableColors.has(activeColor)) {
+            setActiveColor(Array.from(availableColors)[0]);
+        }
+    };
+
 
     const handleIncreaseQuantity = () => {
         setQuantity(quantity + 1);
@@ -155,23 +226,29 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
     };
 
     const handleAddToCart = () => {
-        // if (!cartState.cartArray.find(item => item.id === data.id)) {
-        //     addToCart({ ...data });
-        //     updateCart(data.id, data.quantityPurchase, activeSize, activeColor)
-        // } else {
-        //     updateCart(data.id, data.quantityPurchase, activeSize, activeColor)
-        // }
+        const cartVariation = findMatchingVariation()
+
+        if (data.attributes.length > 0 && activeColor)
+
+            addToCart(
+                data, // The base product data
+                quantity,
+                activeSize,
+                activeColor,
+                cartVariation?.id?.toString(),
+                cartVariation ?? undefined
+            );
         openModalCart()
     };
 
     const handleAddToWishlist = () => {
         // if product existed in wishlit, remove from wishlist and set state to false
-        // if (wishlistState.wishlistArray.some(item => item.id === data.id)) {
-        //     removeFromWishlist(data.id);
-        // } else {
-        //     // else, add to wishlist and set state to true
-        //     addToWishlist(data);
-        // }
+        if (wishlistState.wishlistArray.some(item => item.id === data.id)) {
+            removeFromWishlist(data.id.toString());
+        } else {
+            // else, add to wishlist and set state to true
+            addToWishlist(data);
+        }
         openModalWishlist();
     };
 
@@ -316,35 +393,59 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                 </div>
                             </div>
                             <div className="flex items-center mt-3">
-                                <Rate currentRate={Number(data.average_rating) === 0 ? 0 : Number(data.average_rating)} size={16} />
-                                <span className='caption1 text-secondary'>({data.rating_count} reviews)</span>
+                                <Rate currentRate={Number(reviewsInfo.calculatedAverage_rating)} size={16} />
+                                <span className='caption1 text-secondary'>({reviews.length} review{reviews.length > 1 ? "s" : ""})</span>
                             </div>
                             <div className="flex items-center gap-3 flex-wrap mt-5 pb-6 border-b border-line">
-                                {selectedVariation != null ? (
+                                {selectedVariation === null && data.attributes.length === 0 ? (
                                     <>
-                                        <div className="product-price heading5">{decodeHtmlEntities(currentCurrency.symbol)}{selectedVariation.on_sale ? Number(selectedVariation.sale_price).toFixed(2) : Number(selectedVariation.price).toFixed(2)}</div>
-                                        {selectedVariation.on_sale && percentSale > 0 && (
-                                            <>
-                                                <div className='w-px h-4 bg-line'></div>
-                                                <div className="product-origin-price font-normal text-secondary2"><del>{decodeHtmlEntities(currentCurrency.symbol)}{Number(selectedVariation.regular_price).toFixed(2)}</del></div>
-                                                <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
-                                                    -{percentSale}%
-                                                </div>
-                                            </>
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="product-price heading5">{decodeHtmlEntities(currentCurrency.symbol)}{data.on_sale ? Number(data.sale_price).toFixed(2) : Number(data.price).toFixed(2)}</div>
+                                        <div className="product-price heading5">{decodeHtmlEntities(currentCurrency!.symbol)}{Number(data.sale_price ?? data.price).toFixed(2)}</div>
                                         {data.on_sale && percentSale > 0 && (
                                             <>
                                                 <div className='w-px h-4 bg-line'></div>
-                                                <div className="product-origin-price font-normal text-secondary2"><del>{decodeHtmlEntities(currentCurrency.symbol)}{Number(data.regular_price).toFixed(2)}</del></div>
+                                                <div className="product-origin-price font-normal text-secondary2"><del>{decodeHtmlEntities(currentCurrency!.symbol)}{Number(data.price).toFixed(2)}</del></div>
                                                 <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
                                                     -{percentSale}%
                                                 </div>
                                             </>
                                         )}
+
+                                    </>
+                                ) : (
+                                    <>
+                                        {variations && variations?.length > 0 && selectedVariation === null ? (
+                                            <>
+                                                <div className="product-price heading5">{decodeHtmlEntities(currentCurrency!.symbol)}{Number(findMatchingVariation()?.sale_price ?? findMatchingVariation()?.price).toFixed(2)}</div>
+                                                {findMatchingVariation()?.on_sale && percentSale > 0 && (
+                                                    <>
+                                                        <div className='w-px h-4 bg-line'></div>
+                                                        <div className="product-origin-price font-normal text-secondary2"><del>{decodeHtmlEntities(currentCurrency!.symbol)}{Number(findMatchingVariation()?.regular_price).toFixed(2)}</del></div>
+                                                        <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
+                                                            -{percentSale}%
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </>
+                                        ) :
+                                            (
+                                                <>
+                                                    {selectedVariation && (
+                                                        <>
+                                                            <div className="product-price heading5">{decodeHtmlEntities(currentCurrency!.symbol)}{selectedVariation.on_sale ? Number(selectedVariation.sale_price).toFixed(2) : Number(selectedVariation.price).toFixed(2)}</div>
+                                                            {selectedVariation?.on_sale && percentSale > 0 && (
+                                                                <>
+                                                                    <div className='w-px h-4 bg-line'></div>
+                                                                    <div className="product-origin-price font-normal text-secondary2"><del>{decodeHtmlEntities(currentCurrency!.symbol)}{Number(selectedVariation.regular_price).toFixed(2)}</del></div>
+                                                                    <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
+                                                                        -{percentSale}%
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </>
+                                            )}
+
                                     </>
                                 )}
 
@@ -414,9 +515,9 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
 
                                     <button
                                         type="button"
-                                        disabled={data.stock_status === "outofstock"}
+                                        disabled={data.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)}
                                         onClick={handleAddToCart}
-                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable
+                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)
                                             ? "bg-surface text-secondary2 border"
                                             : "bg-black text-white hover:bg-green-300"
                                             }`}
@@ -674,7 +775,7 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                                             <div className="text-title sm:w-1/4 w-1/3">Rating</div>
                                             <div className="flex items-center gap-1">
                                                 <Rate currentRate={Number(data.average_rating)} size={12} />
-                                                <p>({data.rating_count})</p>
+                                                <p>({reviews.length})</p>
                                             </div>
                                         </div>
                                         <div className="item flex items-center gap-8 py-3 px-10">
@@ -753,9 +854,9 @@ const Default: React.FC<Props> = ({ data, productId, varations, relatedProducts,
                             <div className="top-overview flex max-sm:flex-col items-center justify-between gap-12 gap-y-4">
                                 <div className="left flex max-sm:flex-col gap-y-4 items-center justify-between lg:w-1/2 sm:w-2/3 w-full sm:pr-5">
                                     <div className='rating  flex flex-col items-center'>
-                                        <div className="text-display">{data.average_rating}</div>
-                                        <Rate currentRate={Number(data.average_rating)} size={18} />
-                                        <div className='text-center whitespace-nowrap mt-1'>({data.rating_count} Ratings)</div>
+                                        <div className="text-display">{(reviewsInfo.calculatedAverage_rating).toFixed(2)}</div>
+                                        <Rate currentRate={Number(reviewsInfo.calculatedAverage_rating)} size={18} />
+                                        <div className='text-center whitespace-nowrap mt-1'>({reviews.length} Ratings)</div>
                                     </div>
                                     <div className="list-rating w-2/3">
                                         <div className="item flex items-center justify-end gap-1.5">

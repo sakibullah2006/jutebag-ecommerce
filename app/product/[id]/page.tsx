@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     }
 
     return {
-        title: product.name +" | WooNex Store"  ,
+        title: product.name + " | WooNex Store",
         description: product.short_description || "View details about this product.",
         openGraph: {
             title: product.name,
@@ -38,7 +38,6 @@ interface ProductDefaultProps {
 
 const ProductDefault = async ({ params }: ProductDefaultProps) => {
     const { id: productId } = await params || "1";
-    console.log("Product ID:", productId)
 
     const [{ product, status }, { variations }, { reviews }] = await Promise.all([
         getProductById({ id: productId }),
@@ -49,10 +48,8 @@ const ProductDefault = async ({ params }: ProductDefaultProps) => {
     const include = product.related_ids.map((item) => Number(item))
 
     const { products: relatedProducts } = await getAllProductsPaginated({ params: { include } });
-    console.log("Related Products: \n", relatedProducts)
 
     // console.log(variations)
-    console.log("Reviews: \n", reviews)
 
     if (status === "ERROR" || !product) {
         notFound()
@@ -65,7 +62,7 @@ const ProductDefault = async ({ params }: ProductDefaultProps) => {
                 <MenuOne props="bg-white" />
                 <BreadcrumbProduct productName={product.name} productId={productId} />
             </div>
-            <Default key={productId} data={product} productId={productId} varations={variations} relatedProducts={relatedProducts} reviews={reviews || []} />
+            <Default key={productId} data={product} productId={productId} variations={variations} relatedProducts={relatedProducts} reviews={reviews || []} />
             <Footer />
         </>
     );

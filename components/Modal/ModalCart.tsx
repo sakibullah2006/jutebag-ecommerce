@@ -1,8 +1,11 @@
+/* eslint-disable prefer-const */
 'use client'
 
+import { useAppData } from '@/context/AppDataContext';
 import { useCart } from '@/context/CartContext';
 import { useModalCartContext } from '@/context/ModalCartContext';
-import { ProductType } from '@/types/ProductType';
+import { decodeHtmlEntities } from '@/lib/utils';
+import { Product as ProductType } from '@/types/product-type';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import Image from 'next/image';
 import Link from 'next/link';
@@ -20,27 +23,30 @@ const ModalCart = () => {
     // }, []);
 
     const [activeTab, setActiveTab] = useState<string | undefined>('')
+    const [couponCode, setCouponCode] = useState<string>('')
     const { isModalOpen, closeModalCart } = useModalCartContext();
-    const { cartState, addToCart, removeFromCart, updateCart } = useCart()
+    const { cartState, removeFromCart } = useCart()
+    const { currentCurrency } = useAppData()
 
-    const handleAddToCart = (productItem: ProductType) => {
-        if (!cartState.cartArray.find(item => item.id === productItem.id)) {
-            addToCart({ ...productItem });
-            updateCart(productItem.id, productItem.quantityPurchase, '', '')
-        } else {
-            updateCart(productItem.id, productItem.quantityPurchase, '', '')
-        }
-    };
+
+    // const handleAddToCart = (productItem: ProductType, quantity: number) => {
+    //     if (!cartState.cartArray.find(item => item.id === productItem.id)) {
+    //         addToCart({ ...productItem });
+    //         updateCart(productItem.id.toString(), quantity, '', '')
+    //     } else {
+    //         updateCart(productItem.id.toString(), quantity, '', '')
+    //     }
+    // };
 
     const handleActiveTab = (tab: string) => {
         setActiveTab(tab)
     }
 
-    let moneyForFreeship = 150;
+    // let moneyForFreeship = 150;
     let [totalCart, setTotalCart] = useState<number>(0)
     let [discountCart, setDiscountCart] = useState<number>(0)
 
-    cartState.cartArray.map(item => totalCart += item.price * item.quantity)
+    cartState.cartArray.map(item => totalCart += Number(item.price) * item.quantity)
 
     return (
         <>
@@ -103,7 +109,7 @@ const ModalCart = () => {
                                     Please checkout now before your items sell out!</div>
                             </div>
                         </div> */}
-                        <div className="heading banner mt-3 px-6">
+                        {/* <div className="heading banner mt-3 px-6">
                             <div className="text">Buy <span className="text-button"> $<span className="more-price">{moneyForFreeship - totalCart > 0 ? (<>{moneyForFreeship - totalCart}</>) : (0)}</span>.00 </span>
                                 <span>more to get </span>
                                 <span className="text-button">freeship</span></div>
@@ -113,14 +119,14 @@ const ModalCart = () => {
                                     style={{ width: totalCart <= moneyForFreeship ? `${(totalCart / moneyForFreeship) * 100}%` : `100%` }}
                                 ></div>
                             </div>
-                        </div>
+                        </div> */}
                         <div className="list-product px-6 overflow-y-auto ">
                             {cartState.cartArray.map((product) => (
                                 <div key={product.id} className='item py-5 flex items-center justify-between gap-3 border-b border-line'>
                                     <div className="infor flex items-center gap-3 w-full">
                                         <div className="bg-img w-[100px] aspect-square flex-shrink-0 rounded-lg overflow-hidden">
                                             <Image
-                                                src={product.images[0]}
+                                                src={product.images[0].src}
                                                 width={300}
                                                 height={300}
                                                 alt={product.name}
@@ -132,16 +138,28 @@ const ModalCart = () => {
                                                 <div className="name text-button">{product.name}</div>
                                                 <div
                                                     className="remove-cart-btn caption1 font-semibold text-red underline cursor-pointer"
-                                                    onClick={() => removeFromCart(product.id)}
+                                                    onClick={() => removeFromCart(product.id.toString())}
                                                 >
                                                     Remove
                                                 </div>
                                             </div>
                                             <div className="flex items-center justify-between gap-2 mt-3 w-full">
                                                 <div className="flex items-center text-secondary2 capitalize">
-                                                    {product.selectedSize || product.sizes[0]}/{product.selectedColor || product.variation[0].color}
+                                                    {product.selectedColor ?? ''}{product.attributes.length > 1 ? "/" : ""}{(product.selectedSize ?? '')}
+                                                    {product.variation_id}
+                                                    {/* {product.selectedSize || product.default_attributes.map(attr => attr.name.toLowerCase() === "size" ? attr.option : "")}/{product.selectedSize || product.default_attributes.map(attr => attr.name.toLowerCase() === "color" ? attr.option : "")} */}
                                                 </div>
-                                                <div className="product-price text-title">${product.price}.00</div>
+                                                <div className="product-price text-title">
+                                                    {product.variation_id ? (
+                                                        <>
+                                                            {decodeHtmlEntities(currentCurrency!.symbol)}{Number((product.selectedVariation?.on_sale ? product.selectedVariation?.sale_price : product.price)).toFixed(2)}
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            {decodeHtmlEntities(currentCurrency!.symbol)}{product.on_sale ? Number(product.sale_price) : Number(product.price).toFixed(2)}
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -174,7 +192,7 @@ const ModalCart = () => {
                             </div> */}
                             <div className="flex items-center justify-between pt-6 px-6">
                                 <div className="heading5">Subtotal</div>
-                                <div className="heading5">${totalCart}.00</div>
+                                <div className="heading5">{decodeHtmlEntities(currentCurrency?.symbol || '')}{Number(totalCart).toFixed(2)}</div>
                             </div>
                             <div className="block-button text-center p-6">
                                 <div className="flex items-center gap-4">
@@ -190,7 +208,7 @@ const ModalCart = () => {
                                         className='button-main basis-1/2 text-center uppercase'
                                         onClick={closeModalCart}
                                     >
-                                        Check Out
+                                        CheckOut
                                     </Link>
                                 </div>
                                 <div onClick={closeModalCart} className="text-button-uppercase mt-4 text-center has-line-before cursor-pointer inline-block">Or continue shopping</div>
@@ -198,7 +216,7 @@ const ModalCart = () => {
                             <div className={`tab-item note-block ${activeTab === 'note' ? 'active' : ''}`}>
                                 <div className="px-6 py-4 border-b border-line">
                                     <div className="item flex items-center gap-3 cursor-pointer">
-                                        <Icon.NotePencil className='text-xl' />
+                                        <Icon.NotePencilIcon className='text-xl' />
                                         <div className="caption1">Note</div>
                                     </div>
                                 </div>
@@ -210,7 +228,7 @@ const ModalCart = () => {
                                     <div onClick={() => setActiveTab('')} className="text-button-uppercase mt-4 text-center has-line-before cursor-pointer inline-block">Cancel</div>
                                 </div>
                             </div>
-                            <div className={`tab-item note-block ${activeTab === 'shipping' ? 'active' : ''}`}>
+                            {/* <div className={`tab-item note-block ${activeTab === 'shipping' ? 'active' : ''}`}>
                                 <div className="px-6 py-4 border-b border-line">
                                     <div className="item flex items-center gap-3 cursor-pointer">
                                         <Icon.Truck className='text-xl' />
@@ -233,7 +251,7 @@ const ModalCart = () => {
                                                 <option value="UK">UK</option>
                                                 <option value="USA">USA</option>
                                             </select>
-                                            <Icon.CaretDown size={12} className='absolute top-1/2 -translate-y-1/2 md:right-5 right-2' />
+                                            <Icon.CaretDownIcon size={12} className='absolute top-1/2 -translate-y-1/2 md:right-5 right-2' />
                                         </div>
                                     </div>
                                     <div className="mt-3">
@@ -251,7 +269,7 @@ const ModalCart = () => {
                                                 <option value="London">London</option>
                                                 <option value="New York">New York</option>
                                             </select>
-                                            <Icon.CaretDown size={12} className='absolute top-1/2 -translate-y-1/2 md:right-5 right-2' />
+                                            <Icon.CaretDownIcon size={12} className='absolute top-1/2 -translate-y-1/2 md:right-5 right-2' />
                                         </div>
                                     </div>
                                     <div className="mt-3">
@@ -263,18 +281,18 @@ const ModalCart = () => {
                                     <div className='button-main w-full text-center' onClick={() => setActiveTab('')}>Calculator</div>
                                     <div onClick={() => setActiveTab('')} className="text-button-uppercase mt-4 text-center has-line-before cursor-pointer inline-block">Cancel</div>
                                 </div>
-                            </div>
+                            </div> */}
                             <div className={`tab-item note-block ${activeTab === 'coupon' ? 'active' : ''}`}>
                                 <div className="px-6 py-4 border-b border-line">
                                     <div className="item flex items-center gap-3 cursor-pointer">
-                                        <Icon.Tag className='text-xl' />
+                                        <Icon.TagIcon className='text-xl' />
                                         <div className="caption1">Add A Coupon Code</div>
                                     </div>
                                 </div>
                                 <div className="form pt-4 px-6">
                                     <div className="">
                                         <label htmlFor='select-discount' className="caption1 text-secondary">Enter Code</label>
-                                        <input className="border-line px-5 py-3 w-full rounded-xl mt-3" id="select-discount" type="text" placeholder="Discount code" />
+                                        <input className="border-line px-5 py-3 w-full rounded-xl mt-3" id="select-discount" type="text" placeholder="Discount code" onChange={e => setCouponCode(e.target.value)} />
                                     </div>
                                 </div>
                                 <div className="block-button text-center pt-4 px-6 pb-6">

@@ -1,70 +1,123 @@
 'use client'
 
-// CartContext.tsx
-import { ProductType } from '@/types/ProductType';
-import React, { createContext, useContext, useEffect, useReducer, useState } from 'react';
+import { Product as ProductType, VariationProduct } from '@/types/product-type';
+import React, { createContext, useContext, useEffect, useReducer } from 'react';
 
-interface CartItem extends ProductType {
-    quantity: number
-    selectedSize: string
-    selectedColor: string
+// --- Interfaces ---
+export interface CartItem extends ProductType {
+    quantity: number;
+    selectedSize: string;
+    selectedColor: string;
+    variation_id?: string;
+    selectedVariation?: VariationProduct;
 }
 
 interface CartState {
-    cartArray: CartItem[]
+    cartArray: CartItem[];
 }
 
+// 1. Add the new UPDATE_QUANTITY action type
 type CartAction =
-    | { type: 'ADD_TO_CART'; payload: ProductType }
-    | { type: 'REMOVE_FROM_CART'; payload: string }
     | {
-        type: 'UPDATE_CART'; payload: {
-            itemId: string; quantity: number, selectedSize: string, selectedColor: string
+        type: 'ADD_OR_UPDATE_CART';
+        payload: {
+            product: ProductType;
+            quantity: number;
+            selectedSize: string;
+            selectedColor: string;
+            variation_id?: string;
+            selectedVariation?: VariationProduct;
         }
     }
-    | { type: 'LOAD_CART'; payload: CartItem[] }
+    | { type: 'UPDATE_QUANTITY'; payload: { itemId: string; quantity: number } }
+    | { type: 'REMOVE_FROM_CART'; payload: string }
+    | { type: 'LOAD_CART'; payload: CartItem[] };
 
+// 2. Add the updateCart function to the context's props
 interface CartContextProps {
     cartState: CartState;
-    addToCart: (item: ProductType) => void;
+    addToCart: (
+        product: ProductType,
+        quantity: number,
+        selectedSize: string,
+        selectedColor: string,
+        variation_id?: string,
+        selectedVariation?: VariationProduct
+    ) => void;
     removeFromCart: (itemId: string) => void;
-    updateCart: (itemId: string, quantity: number, selectedSize: string, selectedColor: string) => void;
+    updateCart: (itemId: string, quantity: number) => void;
 }
 
 const CartContext = createContext<CartContextProps | undefined>(undefined);
 
 const cartReducer = (state: CartState, action: CartAction): CartState => {
     switch (action.type) {
-        case 'ADD_TO_CART':
-            const newItem: CartItem = { ...action.payload, quantity: 1, selectedSize: '', selectedColor: '' };
+        case 'ADD_OR_UPDATE_CART': {
+            const { product, quantity, selectedSize, selectedColor, variation_id, selectedVariation } = action.payload;
+            const existingItem = state.cartArray.find(item => item.id === product.id);
+
+            if (existingItem) {
+                // If item exists, increment its quantity
+                return {
+                    ...state,
+                    cartArray: state.cartArray.map(item =>
+                        item.id === product.id
+                            ? { ...item, quantity: item.quantity + quantity }
+                            : item
+                    ),
+                };
+            } else {
+                // If item doesn't exist, add it as a new item
+                const newItem: CartItem = {
+                    ...product,
+                    quantity,
+                    selectedSize,
+                    selectedColor,
+                    variation_id,
+                    selectedVariation,
+                };
+                return {
+                    ...state,
+                    cartArray: [...state.cartArray, newItem],
+                };
+            }
+        }
+
+        // 3. Implement the logic for the new action
+        case 'UPDATE_QUANTITY': {
+            const { itemId, quantity } = action.payload;
+
+            // If quantity is 0 or less, remove the item
+            if (quantity <= 0) {
+                return {
+                    ...state,
+                    cartArray: state.cartArray.filter(item => item.id.toString() !== itemId),
+                };
+            }
+
+            // Otherwise, update the quantity of the specific item
             return {
                 ...state,
-                cartArray: [...state.cartArray, newItem],
-            };
-        case 'REMOVE_FROM_CART':
-            return {
-                ...state,
-                cartArray: state.cartArray.filter((item) => item.id !== action.payload),
-            };
-        case 'UPDATE_CART':
-            return {
-                ...state,
-                cartArray: state.cartArray.map((item) =>
-                    item.id === action.payload.itemId
-                        ? {
-                            ...item,
-                            quantity: action.payload.quantity,
-                            selectedSize: action.payload.selectedSize,
-                            selectedColor: action.payload.selectedColor
-                        }
+                cartArray: state.cartArray.map(item =>
+                    item.id.toString() === itemId
+                        ? { ...item, quantity: quantity }
                         : item
                 ),
             };
+        }
+
+        case 'REMOVE_FROM_CART':
+            return {
+                ...state,
+                cartArray: state.cartArray.filter((item) => item.id.toString() !== action.payload),
+            };
+
         case 'LOAD_CART':
             return {
                 ...state,
                 cartArray: action.payload,
             };
+
         default:
             return state;
     }
@@ -73,19 +126,31 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [cartState, dispatch] = useReducer(cartReducer, { cartArray: [] });
 
-    const addToCart = (item: ProductType) => {
-        dispatch({ type: 'ADD_TO_CART', payload: item });
+    const addToCart = (
+        product: ProductType,
+        quantity: number,
+        selectedSize: string,
+        selectedColor: string,
+        variation_id?: string,
+        selectedVariation?: VariationProduct
+    ) => {
+        dispatch({
+            type: 'ADD_OR_UPDATE_CART',
+            payload: { product, quantity, selectedSize, selectedColor, variation_id, selectedVariation }
+        });
     };
 
     const removeFromCart = (itemId: string) => {
         dispatch({ type: 'REMOVE_FROM_CART', payload: itemId });
     };
 
-    const updateCart = (itemId: string, quantity: number, selectedSize: string, selectedColor: string) => {
-        dispatch({ type: 'UPDATE_CART', payload: { itemId, quantity, selectedSize, selectedColor } });
+    // 4. Create the updateCart function that dispatches the new action
+    const updateCart = (itemId: string, quantity: number) => {
+        dispatch({ type: 'UPDATE_QUANTITY', payload: { itemId, quantity } });
     };
 
     return (
+        // 5. Expose the new function in the provider's value
         <CartContext.Provider value={{ cartState, addToCart, removeFromCart, updateCart }}>
             {children}
         </CartContext.Provider>
