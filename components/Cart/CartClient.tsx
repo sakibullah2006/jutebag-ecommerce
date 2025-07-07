@@ -150,7 +150,10 @@ const CartClient: React.FC<CartClientProps> = ({ coupons }) => {
                                 </div>
                                 <div className="list-product-main w-full mt-3">
                                     {cartState.cartArray.length < 1 ? (
-                                        <p className='text-button pt-3'>No product in cart</p>
+                                        <div className='flex flex-col items-center justify-center h-[400px]'>
+                                            <Image src="/images/cart/empty_cart.svg" height={400} width={400} alt="Empty_Cart" />
+                                            <p className='text-lg font-bold text-slate-700'>Your Cart is Empty</p>
+                                        </div>
                                     ) : (
                                         cartState.cartArray.map((product) => (
                                             <div className="item flex md:mt-7 md:pb-7 mt-5 pb-5 border-b border-line w-full" key={product.id}>

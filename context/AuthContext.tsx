@@ -2,7 +2,7 @@
 import { AuthResponse, User, userLogin, userLogout, userResetPassword, userSignup } from "@/actions/auth-actions";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import { ReactNode, createContext, useContext, useEffect, useState } from "react";
+import React, { ReactNode, createContext, useContext, useEffect, useState } from "react";
 
 
 interface AuthContextType {
