@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import { CartItem, useCart } from '@/context/CartContext'
 import { useAppData } from '@/context/AppDataContext'
-import { cn, decodeHtmlEntities } from '@/lib/utils'
+import { calculatePrice, cn, decodeHtmlEntities } from '@/lib/utils'
 import { validateCoupon } from '@/actions/coupon'
 
 interface CouponData {
@@ -18,11 +18,11 @@ interface CouponData {
     description: string
 }
 
-interface CartClientProps {
-    coupons: CouponData[]
-}
+// interface CartClientProps {
+//     // coupons: CouponData[]
+// }
 
-const CartClient: React.FC<CartClientProps> = ({ coupons }) => {
+const CartClient = () => {
     const router = useRouter()
     const { cartState, addToCart, removeFromCart, updateCart } = useCart();
     const [discountCode, setDiscountCode] = useState<string>('');
@@ -70,20 +70,6 @@ const CartClient: React.FC<CartClientProps> = ({ coupons }) => {
         }
     };
 
-    const calculatePrice = (product: CartItem) => {
-        if (product.selectedVariation) {
-            if (product.selectedVariation?.on_sale) {
-                return product.selectedVariation.sale_price;
-            } else {
-                return product.selectedVariation?.regular_price ?? product.selectedVariation?.price;
-            }
-        } else {
-            if (product.on_sale) {
-                return product.sale_price;
-            }
-            return product.regular_price ?? product.price;
-        }
-    }
 
     cartState.cartArray.map(item => {
         totalCart += Number(calculatePrice(item)) * item.quantity

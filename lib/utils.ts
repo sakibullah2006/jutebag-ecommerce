@@ -54,16 +54,25 @@ export function formatPrice(price: number | string): string {
 }
 
 export const calculatePrice = (product: CartItem) => {
-  if (product.selectedVariation) {
+  let price: string | number | undefined;
+
+  if (product.selectedColor || product.selectedSize) {
     if (product.selectedVariation?.on_sale) {
-      return product.selectedVariation.sale_price;
+      price = product.selectedVariation.sale_price;
+    } else if ((product.selectedColor || product.selectedSize) && !product.selectedVariation) {
+      price = product.price
     } else {
-      return product.selectedVariation?.regular_price ?? product.selectedVariation?.price;
+      price = product.selectedVariation?.regular_price ?? product.selectedVariation?.price;
     }
   } else {
     if (product.on_sale) {
-      return product.sale_price;
+      price = product.sale_price;
+    } else {
+      price = product.regular_price ?? product.price;
     }
-    return product.regular_price ?? product.price;
   }
+
+  // Convert to number and ensure we have a valid price
+  const numericPrice = typeof price === "string" ? Number.parseFloat(price) : price;
+  return numericPrice && numericPrice > 0 ? numericPrice : 0;
 }

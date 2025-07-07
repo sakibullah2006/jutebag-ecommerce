@@ -4,7 +4,7 @@
 import { useAppData } from '@/context/AppDataContext';
 import { useCart } from '@/context/CartContext';
 import { useModalCartContext } from '@/context/ModalCartContext';
-import { decodeHtmlEntities } from '@/lib/utils';
+import { calculatePrice, decodeHtmlEntities } from '@/lib/utils';
 import { Product as ProductType } from '@/types/product-type';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import Image from 'next/image';
@@ -149,15 +149,7 @@ const ModalCart = () => {
                                                     {/* {product.selectedSize || product.default_attributes.map(attr => attr.name.toLowerCase() === "size" ? attr.option : "")}/{product.selectedSize || product.default_attributes.map(attr => attr.name.toLowerCase() === "color" ? attr.option : "")} */}
                                                 </div>
                                                 <div className="product-price text-title">
-                                                    {product.variation_id ? (
-                                                        <>
-                                                            {decodeHtmlEntities(currentCurrency!.symbol)}{Number((product.selectedVariation?.on_sale ? product.selectedVariation?.sale_price : product.price)).toFixed(2)}
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            {decodeHtmlEntities(currentCurrency!.symbol)}{product.on_sale ? Number(product.sale_price) : Number(product.price).toFixed(2)}
-                                                        </>
-                                                    )}
+                                                    {decodeHtmlEntities(currentCurrency!.symbol)}{calculatePrice(product).toFixed(2)}
                                                 </div>
                                             </div>
                                         </div>

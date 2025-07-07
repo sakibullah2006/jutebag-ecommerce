@@ -61,16 +61,6 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     const [activeTab, setActiveTab] = useState<string>('description')
     const [quantity, setQuantity] = useState(1)
     const [selectedVariation, setSelectedVariation] = useState<VariationProduct | null>(() => {
-
-        if (data.variations.length === 0) {
-            return null
-        }
-        // Find the first variation that matches the active color and size
-        // if (variations) {
-        //     const initialVariation = findMatchingVariation(activeColor, activeSize)
-
-        //     return initialVariation;
-        // }
         return null
     })
     const { currentCurrency } = useAppData()
@@ -87,7 +77,16 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     useEffect(() => {
         let isMounted = true;
 
-
+        if (data.variations.length === 0) {
+            return;
+        }
+        // Find the first variation that matches the active color and size
+        if (variations) {
+            const initialVariation = findMatchingVariation();
+            if (initialVariation) {
+                setSelectedVariation(initialVariation);
+            }
+        }
         return () => { isMounted = false; };
     }, [])
 
@@ -230,14 +229,14 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
         // if ((isColorReq && activeColor) && (isSizeReq && activeSize))
 
-            addToCart(
-                data, // The base product data
-                quantity,
-                activeSize,
-                activeColor,
-                cartVariation?.id?.toString(),
-                cartVariation ?? undefined
-            );
+        addToCart(
+            data, // The base product data
+            quantity,
+            activeSize,
+            activeColor,
+            cartVariation?.id?.toString(),
+            cartVariation ?? undefined
+        );
         openModalCart()
     };
 
@@ -397,55 +396,22 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                 <span className='caption1 text-secondary'>({reviews.length} review{reviews.length > 1 ? "s" : ""})</span>
                             </div>
                             <div className="flex items-center gap-3 flex-wrap mt-5 pb-6 border-b border-line">
-                                {selectedVariation === null && data.attributes.length === 0 ? (
+                                <div className="product-price heading5">
+                                    {decodeHtmlEntities(currentCurrency!.symbol)}
+                                    {Number(selectedVariation?.sale_price || selectedVariation?.price || data.sale_price || data.price).toFixed(2)}
+                                </div>
+                                {((selectedVariation?.on_sale || data.on_sale) && percentSale > 0) && (
                                     <>
-                                        <div className="product-price heading5">{decodeHtmlEntities(currentCurrency!.symbol)}{Number(data.sale_price ?? data.price).toFixed(2)}</div>
-                                        {data.on_sale && percentSale > 0 && (
-                                            <>
-                                                <div className='w-px h-4 bg-line'></div>
-                                                <div className="product-origin-price font-normal text-secondary2"><del>{decodeHtmlEntities(currentCurrency!.symbol)}{Number(data.price).toFixed(2)}</del></div>
-                                                <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
-                                                    -{percentSale}%
-                                                </div>
-                                            </>
-                                        )}
-
-                                    </>
-                                ) : (
-                                    <>
-                                        {variations && variations?.length > 0 && selectedVariation === null ? (
-                                            <>
-                                                <div className="product-price heading5">{decodeHtmlEntities(currentCurrency!.symbol)}{Number(findMatchingVariation()?.sale_price ?? findMatchingVariation()?.price).toFixed(2)}</div>
-                                                {findMatchingVariation()?.on_sale && percentSale > 0 && (
-                                                    <>
-                                                        <div className='w-px h-4 bg-line'></div>
-                                                        <div className="product-origin-price font-normal text-secondary2"><del>{decodeHtmlEntities(currentCurrency!.symbol)}{Number(findMatchingVariation()?.regular_price).toFixed(2)}</del></div>
-                                                        <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
-                                                            -{percentSale}%
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </>
-                                        ) :
-                                            (
-                                                <>
-                                                    {selectedVariation && (
-                                                        <>
-                                                            <div className="product-price heading5">{decodeHtmlEntities(currentCurrency!.symbol)}{selectedVariation.on_sale ? Number(selectedVariation.sale_price).toFixed(2) : Number(selectedVariation.price).toFixed(2)}</div>
-                                                            {selectedVariation?.on_sale && percentSale > 0 && (
-                                                                <>
-                                                                    <div className='w-px h-4 bg-line'></div>
-                                                                    <div className="product-origin-price font-normal text-secondary2"><del>{decodeHtmlEntities(currentCurrency!.symbol)}{Number(selectedVariation.regular_price).toFixed(2)}</del></div>
-                                                                    <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
-                                                                        -{percentSale}%
-                                                                    </div>
-                                                                </>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </>
-                                            )}
-
+                                        <div className='w-px h-4 bg-line'></div>
+                                        <div className="product-origin-price font-normal text-secondary2">
+                                            <del>
+                                                {decodeHtmlEntities(currentCurrency!.symbol)}
+                                                {Number(selectedVariation?.regular_price || data.regular_price || data.price).toFixed(2)}
+                                            </del>
+                                        </div>
+                                        <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
+                                            -{percentSale}%
+                                        </div>
                                     </>
                                 )}
 

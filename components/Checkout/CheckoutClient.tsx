@@ -1,0 +1,616 @@
+'use client'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import Link from 'next/link'
+import * as Icon from "@phosphor-icons/react/dist/ssr";
+import { useCart } from '@/context/CartContext'
+import { useModalCartContext } from '@/context/ModalCartContext'
+import { calculatePrice, decodeHtmlEntities } from '@/lib/utils';
+import { useAppData } from '@/context/AppDataContext';
+import Image from "next/image"
+import { CountryDataType, TaxDataType, ShippingMethodDataType, CouponDataType, StateDataType, ShippingZoneDataType } from '@/types/data-type'
+import { validateCoupon } from '@/actions/coupon'
+
+interface CheckoutClientProps {
+    countriesData: CountryDataType[]
+    taxesData: TaxDataType[]
+    shippingData: ShippingMethodDataType[]
+    shippingZones?: ShippingZoneDataType[]
+    appliedCouponProp?: string
+}
+
+const CheckoutClient: React.FC<CheckoutClientProps> = ({
+    countriesData,
+    taxesData,
+    shippingData,
+    shippingZones = [],
+    appliedCouponProp
+}) => {
+    const { openModalCart } = useModalCartContext()
+    const { currentCurrency } = useAppData()
+    const { cartState } = useCart();
+    const [totalCart, setTotalCart] = useState<number>(0)
+    const [selectedCountry, setSelectedCountry] = useState<string>('')
+    const [selectedState, setSelectedState] = useState<string>('')
+    const [appliedCoupon, setAppliedCoupon] = useState<{
+        code: string
+        discount_type: string
+        amount: number
+        product_ids: number[]
+    } | null>(null)
+    const [couponCode, setCouponCode] = useState<string>('')
+    const [shippingCost, setShippingCost] = useState<number>(0)
+    const [taxAmount, setTaxAmount] = useState<number>(0)
+    const [selectedTaxs, setSelectedTaxs] = useState<TaxDataType[]>([])
+    const [couponError, setCouponError] = useState<string>('')
+    const [availableShippingMethods, setAvailableShippingMethods] = useState<ShippingMethodDataType[]>([])
+    const [selectedShippingMethod, setSelectedShippingMethod] = useState<string>('')
+
+    // Debounce hook for shipping calculation
+    const useDebounce = <T,>(value: T, delay: number): T => {
+        const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+        useEffect(() => {
+            const handler = setTimeout(() => {
+                setDebouncedValue(value);
+            }, delay);
+
+            return () => {
+                clearTimeout(handler);
+            };
+        }, [value, delay]);
+
+        return debouncedValue;
+    };
+
+    const debouncedCountry = useDebounce(selectedCountry, 500);
+    const debouncedState = useDebounce(selectedState, 500);
+
+    // Calculate available shipping methods based on selected location
+    const calculateShipping = useCallback((country: string, state: string) => {
+        if (!country) {
+            setAvailableShippingMethods([])
+            setShippingCost(0)
+            setSelectedShippingMethod('')
+            return
+        }
+
+        // Find matching shipping zone
+        let matchingZone = null
+        let matchingMethods: ShippingMethodDataType[] = []
+
+        // Check if we have shipping zones data, if not use the flat shipping data
+        if (shippingZones.length > 0) {
+            for (const zone of shippingZones) {
+                if (zone.id === 0) continue // Skip "Locations not covered" initially
+
+                const isMatch = zone.locations?.some((location) => {
+                    if (location.type === 'country' && location.code === country) {
+                        return true // Match country-only zones
+                    }
+                    if (location.type === 'state' && location.code === `${country}:${state}`) {
+                        return true // Match state zones
+                    }
+                    return false
+                })
+
+                if (isMatch) {
+                    matchingZone = zone
+                    matchingMethods = zone.methods || []
+                    break
+                }
+            }
+
+            // If no matching zone found, use zone 0 (locations not covered)
+            if (!matchingZone) {
+                const defaultZone = shippingZones.find(zone => zone.id === 0)
+                if (defaultZone) {
+                    matchingMethods = defaultZone.methods || []
+                }
+            }
+        } else {
+            // Fallback to flat shipping data if zones not available
+            matchingMethods = shippingData
+        }
+
+        // Filter enabled methods
+        const enabledMethods = matchingMethods.filter(method => method.enabled)
+        setAvailableShippingMethods(enabledMethods)
+
+        // Auto-select first method if available
+        if (enabledMethods.length > 0) {
+            const firstMethod = enabledMethods[0]
+            setSelectedShippingMethod(firstMethod.id.toString())
+            setShippingCost(Number(firstMethod.settings.cost?.value || 0))
+        } else {
+            setSelectedShippingMethod('')
+            setShippingCost(0)
+        }
+    }, [shippingZones, shippingData])
+
+    // Calculate applicable taxes based on selected location
+    const calculateTaxes = useCallback((country: string, state: string, subtotal: number) => {
+        if (!country || subtotal <= 0) {
+            setTaxAmount(0)
+            return
+        }
+
+        // Find applicable tax rates
+        const applicableTaxes = taxesData.filter(tax => {
+            // Check country match
+            if (tax.country && tax.country !== country) {
+                return false
+            }
+
+            // Check state match if specified
+            // if (tax.state && state && tax.state !== state) {
+            //     return false
+            // }
+
+            return true
+        })
+
+        // Sort by priority (lower number = higher priority)
+        applicableTaxes.sort((a, b) => a.priority - b.priority)
+        setSelectedTaxs(applicableTaxes)
+
+
+        let totalTax = 0
+        let taxableAmount = subtotal
+
+        // Calculate taxes based on priority and compound settings
+        for (const tax of applicableTaxes) {
+            const taxRate = parseFloat(tax.rate) / 100
+            const currentTax = taxableAmount * taxRate
+
+            totalTax += currentTax
+
+            // If compound tax, add to taxable amount for next calculations
+            if (tax.compound) {
+                taxableAmount += currentTax
+            }
+        }
+
+        setTaxAmount(totalTax)
+    }, [taxesData])
+
+    const calculateCartTotal = useCallback(() => {
+        return cartState.cartArray.reduce((total, item) => {
+            return total + Number(calculatePrice(item)) * item.quantity
+        }, 0)
+    }, [cartState.cartArray])
+
+    // Effect for initial coupon validation
+    useEffect(() => {
+        if (appliedCouponProp && appliedCouponProp?.length > 0) {
+            // Fetch the coupon details from the server
+            validateCoupon(appliedCouponProp, cartState.cartArray)
+                .then(result => {
+                    if (result.isValid && result.coupon) {
+                        setAppliedCoupon(result.coupon)
+                    } else {
+                        setCouponError(result.error || 'Invalid coupon code')
+                    }
+                })
+                .catch(error => {
+                    console.error('Error validating coupon:', error)
+                    setCouponError('Error validating coupon')
+                })
+        }
+    }, [appliedCouponProp, cartState.cartArray])
+
+    // Effect for cart total calculation
+    useEffect(() => {
+        setTotalCart(calculateCartTotal())
+    }, [calculateCartTotal])
+
+    // Effect for debounced shipping calculation
+    useEffect(() => {
+        calculateShipping(debouncedCountry, debouncedState)
+    }, [debouncedCountry, debouncedState, calculateShipping])
+
+    const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedCountry(e.target.value)
+        setSelectedState('') // Reset state when country changes
+    }
+
+    const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedState(e.target.value)
+    }
+
+    const handleShippingMethodChange = (methodId: string, cost: number) => {
+        setSelectedShippingMethod(methodId)
+        setShippingCost(cost)
+    }
+
+    const handleCouponApply = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!couponCode) return
+
+        try {
+            setCouponError('')
+            const result = await validateCoupon(couponCode, cartState.cartArray)
+
+            if (result.isValid && result.coupon) {
+                setAppliedCoupon(result.coupon)
+                setCouponCode('')
+            } else {
+                setCouponError(result.error || 'Invalid coupon code')
+            }
+        } catch (error) {
+            console.error('Error validating coupon:', error)
+            setCouponError('Error validating coupon')
+        }
+    }
+
+    const calculateDiscountAmount = useCallback(() => {
+        if (!appliedCoupon) return 0
+
+        // Handle different discount types from WooCommerce
+        if (appliedCoupon.discount_type === 'percent') {
+            return Math.floor((totalCart / 100) * appliedCoupon.amount)
+        } else if (appliedCoupon.discount_type === 'fixed_cart') {
+            return Math.min(appliedCoupon.amount, totalCart) // Don't exceed cart total
+        } else if (appliedCoupon.discount_type === 'fixed_product') {
+            // Calculate discount per applicable product
+            return cartState.cartArray.reduce((discount, item) => {
+                if (appliedCoupon.product_ids.length === 0 || appliedCoupon.product_ids.includes(item.id)) {
+                    return discount + (appliedCoupon.amount * item.quantity)
+                }
+                return discount
+            }, 0)
+        }
+
+        return 0
+    }, [appliedCoupon, totalCart, cartState.cartArray])
+
+    const calculateTotalWithDiscountShippingAndTax = useCallback(() => {
+        const discount = calculateDiscountAmount()
+        return totalCart - discount + shippingCost + taxAmount
+    }, [totalCart, calculateDiscountAmount, shippingCost, taxAmount])
+
+    // Effect for tax calculation when location or subtotal changes
+    useEffect(() => {
+        const discount = calculateDiscountAmount()
+        const subtotalAfterDiscount = totalCart - discount
+        calculateTaxes(selectedCountry, selectedState, subtotalAfterDiscount)
+    }, [selectedCountry, selectedState, totalCart, calculateDiscountAmount, calculateTaxes])
+
+    const getSelectedCountryStates = () => {
+        const country = countriesData.find(c => c.code === selectedCountry)
+        const states = country?.states || {} as StateDataType[]
+        return Object.entries(states).map(([index, state]) => ({
+            code: state.code,
+            name: state.name
+        }))
+    }
+
+    return (
+        <>
+            <div id="header" className='relative w-full'>
+                <div className={`header-menu style-one fixed top-0 left-0 right-0 w-full md:h-[74px] h-[56px]`}>
+                    <div className="container mx-auto h-full">
+                        <div className="header-main flex items-center justify-between h-full">
+                            <Link href={'/'} className='flex items-center'>
+                                <div className="heading4">Anvogue</div>
+                            </Link>
+                            <button className="max-md:hidden cart-icon flex items-center relative h-fit cursor-pointer" onClick={openModalCart}>
+                                <Icon.Handbag size={24} color='black' />
+                                <span className="quantity cart-quantity absolute -right-1.5 -top-1.5 text-xs text-white bg-black w-4 h-4 flex items-center justify-center rounded-full">{cartState.cartArray.length}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div className="checkout-block relative md:pt-[74px] pt-[56px]">
+                <div className="content-main flex max-lg:flex-col-reverse justify-between">
+                    <div className="left flex lg:justify-end w-full">
+                        <div className="lg:max-w-[716px] flex-shrink-0 w-full lg:pt-20 pt-12 lg:pr-[70px] pl-[16px] max-lg:pr-[16px]">
+                            <form>
+                                <div className="login flex justify-between gap-4">
+                                    <h4 className="heading4">Contact</h4>
+                                    <Link href={"/login"} className="text-button underline">Login here</Link>
+                                </div>
+                                <div>
+                                    <input type="text" className="border-line mt-5 px-4 py-3 w-full rounded-lg" placeholder="Email or mobile phone number" required />
+                                    <div className="flex items-center mt-5">
+                                        <div className="block-input">
+                                            <input type="checkbox" name="remember" id="remember" />
+                                            <Icon.CheckSquareIcon weight='fill' className="icon-checkbox text-2xl" />
+                                        </div>
+                                        <label htmlFor="remember" className="pl-2 cursor-pointer">Email me with news and offers</label>
+                                    </div>
+                                </div>
+                                <div className="information md:mt-10 mt-6">
+                                    <div className="heading5">Delivery</div>
+                                    <div className="deli_type mt-5">
+                                        <div className="item flex items-center gap-2 relative px-5 border border-line rounded-t-lg">
+                                            <input type="radio" name="deli_type" id="ship_type" className="cursor-pointer" defaultChecked />
+                                            <label htmlFor="ship_type" className="w-full py-4 cursor-pointer">Ship</label>
+                                            <Icon.Truck className="text-xl absolute top-1/2 right-5 -translate-y-1/2" />
+                                        </div>
+                                        <div className="item flex items-center gap-2 relative px-5 border border-line rounded-b-lg">
+                                            <input type="radio" name="deli_type" id="store_type" className="cursor-pointer" />
+                                            <label htmlFor="store_type" className="w-full py-4 cursor-pointer">Pickup in store</label>
+                                            <Icon.Storefront className="text-xl absolute top-1/2 right-5 -translate-y-1/2" />
+                                        </div>
+                                    </div>
+                                    <div className="form-checkout mt-5">
+                                        <div className="grid sm:grid-cols-2 gap-4 gap-y-5 flex-wrap">
+                                            <div className="col-span-full select-block">
+                                                <select
+                                                    className="border border-line px-4 py-3 w-full rounded-lg"
+                                                    id="region"
+                                                    name="region"
+                                                    value={selectedCountry}
+                                                    onChange={handleCountryChange}
+                                                >
+                                                    <option value="">Choose Country/Region</option>
+                                                    {countriesData.map((country) => (
+                                                        <option key={country.code} value={country.code}>
+                                                            {country.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <Icon.CaretDownIcon className="arrow-down" />
+                                            </div>
+                                            <div className="">
+                                                <input className="border-line px-4 py-3 w-full rounded-lg" id="firstName" type="text" placeholder="First Name (optional)" />
+                                            </div>
+                                            <div className="">
+                                                <input className="border-line px-4 py-3 w-full rounded-lg" id="lastName" type="text" placeholder="Last Name" required />
+                                            </div>
+                                            <div className="col-span-full relative">
+                                                <input className="border-line pl-4 pr-12 py-3 w-full rounded-lg" id="address" type="text" placeholder="Address" required />
+                                                <Icon.MagnifyingGlassIcon className="text-xl absolute top-1/2 -translate-y-1/2 right-5" />
+                                            </div>
+                                            <div className="">
+                                                <input className="border-line px-4 py-3 w-full rounded-lg" id="apartment" type="text" placeholder="Apartment, suite,etc.(optional)" />
+                                            </div>
+                                            <div className="">
+                                                <input className="border-line px-4 py-3 w-full rounded-lg" id="city" type="text" placeholder="City" required />
+                                            </div>
+                                            <div className="select-block">
+                                                <select
+                                                    className="border border-line px-4 py-3 w-full rounded-lg"
+                                                    id="state"
+                                                    name="state"
+                                                    value={selectedState}
+                                                    onChange={handleStateChange}
+                                                    disabled={!selectedCountry}
+                                                >
+                                                    <option value="">State</option>
+                                                    {getSelectedCountryStates().map((state) => (
+                                                        <option key={state.code} value={state.code}>
+                                                            {state.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <Icon.CaretDownIcon className="arrow-down" />
+                                            </div>
+                                            <div className="">
+                                                <input className="border-line px-4 py-3 w-full rounded-lg" id="zipcode" type="text" placeholder="Zip Code" required />
+                                            </div>
+                                        </div>
+                                        <h4 className="heading4 md:mt-10 mt-6">Shipping method</h4>
+                                        <div className="shipping-methods mt-5">
+                                            {selectedCountry ? (
+                                                availableShippingMethods.length > 0 ? (
+                                                    <div className="space-y-3">
+                                                        {availableShippingMethods.map((method) => (
+                                                            <div key={method.id} className="flex items-center justify-between p-4 border border-line rounded-lg">
+                                                                <div className="flex items-center gap-3">
+                                                                    <input
+                                                                        type="radio"
+                                                                        name="shipping_method"
+                                                                        id={`shipping_${method.id}`}
+                                                                        value={method.id}
+                                                                        checked={selectedShippingMethod === method.id.toString()}
+                                                                        onChange={() => handleShippingMethodChange(
+                                                                            method.id.toString(),
+                                                                            Number(method.settings.cost?.value || 0)
+                                                                        )}
+                                                                    />
+                                                                    <label htmlFor={`shipping_${method.id}`} className="cursor-pointer">
+                                                                        {method.title}
+                                                                        {/* {method.method_description && (
+                                                                            <p className="text-sm text-secondary mt-1">{method.method_description}</p>
+                                                                        )} */}
+                                                                    </label>
+                                                                </div>
+                                                                <span className="text-title">
+                                                                    {Number(method.settings.cost?.value || 0) === 0 ? (
+                                                                        'Free'
+                                                                    ) : (
+                                                                        <>
+                                                                            {decodeHtmlEntities(currentCurrency?.symbol || '$')}
+                                                                            {Number(method.settings.cost?.value || 0).toFixed(2)}
+                                                                        </>
+                                                                    )}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="body1 text-secondary2 py-6 px-5 border border-line rounded-lg bg-surface">
+                                                        No shipping methods available for this location
+                                                    </div>
+                                                )
+                                            ) : (
+                                                <div className="body1 text-secondary2 py-6 px-5 border border-line rounded-lg bg-surface">
+                                                    Enter your shipping address to view available shipping methods
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="payment-block md:mt-10 mt-6">
+                                            <h4 className="heading4">Payment</h4>
+                                            <p className="body1 text-secondary2 mt-3">All transactions are secure and encrypted.</p>
+                                            <div className="list-payment mt-5">
+                                                <div className="item">
+                                                    <div className="type flex items-center justify-between bg-linear p-5 border border-black rounded-t-lg">
+                                                        <strong className="text-title">Credit Card</strong>
+                                                        <Icon.CreditCardIcon className="text-2xl" />
+                                                    </div>
+                                                    <div className="form_payment grid grid-cols-2 gap-4 gap-y-5 p-5 rounded-b-lg bg-surface">
+                                                        <div className="col-span-full relative">
+                                                            <input className="border-line pl-4 pr-12 py-3 w-full rounded-lg" id="cardNumbers" type="text" placeholder="Card Numbers" required />
+                                                            <Icon.LockSimple className="text-xl text-secondary absolute top-1/2 -translate-y-1/2 right-5" />
+                                                        </div>
+                                                        <div className="relative">
+                                                            <input className="border-line px-4 py-3 w-full rounded-lg" id="expirationDate" type="text" placeholder="Expiration date (MM /YY)" required />
+                                                        </div>
+                                                        <div className="relative">
+                                                            <input className="border-line pl-4 pr-12 py-3 w-full rounded-lg" id="securityCode" type="text" placeholder="Security code" required />
+                                                            <Icon.Question className="text-xl text-secondary absolute top-1/2 -translate-y-1/2 right-5" />
+                                                        </div>
+                                                        <div className="col-span-full relative">
+                                                            <input className="border-line px-4 py-3 w-full rounded-lg" id="cardName" type="text" placeholder="Name On Card" required />
+                                                        </div>
+                                                        <div className="col-span-full flex items-center">
+                                                            <div className="block-input">
+                                                                <input type="checkbox" name="useAddress" id="useAddress" />
+                                                                <Icon.CheckSquare weight='fill' className="icon-checkbox text-2xl" />
+                                                            </div>
+                                                            <label htmlFor="useAddress" className="text-title pl-2 cursor-pointer">Use shipping address as billing address</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="block-button md:mt-10 mt-6">
+                                            <button className="button-main w-full tracking-widest">Pay now</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                            <div className="copyright caption1 md:mt-20 mt-12 py-3 border-t border-line">©2024 Anvogue. All Rights Reserved.</div>
+                        </div>
+                    </div>
+                    <div className="right justify-start flex-shrink-0 lg:w-[47%] bg-surface lg:py-20 py-12">
+                        <div className="lg:sticky lg:top-24 h-fit lg:max-w-[606px] w-full flex-shrink-0 lg:pl-[80px] pr-[16px] max-lg:pl-[16px]">
+                            <div className="list_prd flex flex-col gap-7">
+                                {cartState.cartArray.map((item) => (
+                                    <div key={item.id} className="item flex items-center justify-between gap-6">
+                                        <div className="flex items-center gap-6">
+                                            <div className="bg_img relative flex-shrink-0 w-[100px] h-[100px]">
+                                                <Image
+                                                    src={item.images[0]?.src || "/images/product/1000x1000.png"}
+                                                    fill={true}
+                                                    alt={item.name}
+                                                    className="w-full h-full object-cover rounded-lg"
+                                                />
+                                                <span className="quantity flex items-center justify-center absolute -top-3 -right-3 w-7 h-7 rounded-full bg-black text-white">
+                                                    {item.quantity}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <strong className="name text-title">{item.name}</strong>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <Icon.Tag className="text-secondary" />
+                                                    <span className="code text-secondary">
+                                                        {item.sku || 'N/A'}
+                                                        {appliedCoupon && (
+                                                            <span className="discount"> (-{decodeHtmlEntities(currentCurrency?.symbol || '$')}{calculateDiscountAmount().toFixed(2)})</span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            {item.on_sale && item.sale_price && (
+                                                <del className="caption1 text-secondary text-end org_price">
+                                                    {decodeHtmlEntities(currentCurrency?.symbol || '$')}{Number(item.regular_price || item.price).toFixed(2)}
+                                                </del>
+                                            )}
+                                            <strong className="text-title price">
+                                                {decodeHtmlEntities(currentCurrency?.symbol || '$')}{Number(calculatePrice(item) || item.price).toFixed(2)}
+                                            </strong>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <form className="form_discount flex gap-3 mt-8" onSubmit={handleCouponApply}>
+                                <input
+                                    type="text"
+                                    placeholder="Discount code"
+                                    className="w-full border border-line rounded-lg px-4"
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value)}
+                                />
+                                <button type="submit" className="flex-shrink-0 button-main bg-black">
+                                    {appliedCoupon ? 'Applied' : 'Apply'}
+                                </button>
+                            </form>
+                            {couponError && (
+                                <div className="coupon-error mt-4 p-3 bg-red/10 border border-red rounded-lg">
+                                    <span className="text-red">{couponError}</span>
+                                </div>
+                            )}
+                            {appliedCoupon && (
+                                <div className="applied-coupon flex items-center justify-between mt-4 p-3 bg-green-200 border border-green-600 rounded-lg">
+                                    <span className="text-green-700 font-semibold">Coupon &quot;{appliedCoupon.code}&quot; applied</span>
+                                    <button
+                                        onClick={() => {
+                                            setAppliedCoupon(null)
+                                            setCouponError('')
+                                        }}
+                                        className="text-red hover:underline"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            )}
+                            <div className="subtotal flex items-center justify-between mt-8">
+                                <strong className="heading6">Subtotal</strong>
+                                <strong className="heading6">{decodeHtmlEntities(currentCurrency?.symbol || '$')}{totalCart.toFixed(2)}</strong>
+                            </div>
+                            {appliedCoupon && (
+                                <div className="discount flex items-center justify-between mt-4">
+                                    <strong className="heading6">
+                                        Discount ({appliedCoupon.discount_type === 'percent' ? `${appliedCoupon.amount}%` : 'Fixed'})
+                                    </strong>
+                                    <strong className="heading6 text-green-700">{appliedCoupon && "-"}{decodeHtmlEntities(currentCurrency?.symbol || '$')}{calculateDiscountAmount().toFixed(2)}</strong>
+                                </div>
+                            )}
+                            <div className="ship-block flex items-center justify-between mt-4">
+                                <strong className="heading6">Shipping</strong>
+                                <span className="body1">
+                                    {shippingCost === 0 && !taxAmount ? (
+                                        <span className="text-secondary">Enter shipping address</span>
+                                    ) : (
+                                        <span className='heading6'>
+                                            {decodeHtmlEntities(currentCurrency?.symbol || '$')}{shippingCost?.toFixed(2)}
+                                        </span>
+                                    )}
+                                </span>
+                            </div>
+                            {taxAmount > 0 && selectedTaxs.map((tax) => (
+                                <div key={tax.id} className="tax-block flex items-center justify-between mt-4">
+                                    <strong className="heading6">{tax.name.toUpperCase()}</strong>
+                                    <strong className="heading6">{decodeHtmlEntities(currentCurrency?.symbol || '$')}{(Number(tax.rate) / 100 * totalCart).toFixed(2)}</strong>
+                                </div>
+                            ))}
+                            <div className="total-cart-block flex items-center justify-between mt-4">
+                                <strong className="heading4">Total</strong>
+                                <div className="flex items-end gap-2">
+                                    <span className="body1 text-secondary">{currentCurrency?.code || 'USD'}</span>
+                                    <strong className="heading4">
+                                        {decodeHtmlEntities(currentCurrency?.symbol || '$')}{calculateTotalWithDiscountShippingAndTax().toFixed(2)}
+                                    </strong>
+                                </div>
+                            </div>
+                            {appliedCoupon && (
+                                <div className="total-saving-block flex items-center gap-2 mt-4">
+                                    <Icon.TagIcon weight='bold' className="text-xl" />
+                                    <strong className="heading5">TOTAL SAVINGS</strong>
+                                    <strong className="heading5">{decodeHtmlEntities(currentCurrency?.symbol || '$')}{calculateDiscountAmount().toFixed(2)}</strong>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </>
+    )
+}
+
+export default CheckoutClient
