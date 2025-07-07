@@ -146,7 +146,6 @@ const ModalCart = () => {
                                             <div className="flex items-center justify-between gap-2 mt-3 w-full">
                                                 <div className="flex items-center text-secondary2 capitalize">
                                                     {product.selectedColor ?? ''}{product.attributes.length > 1 ? "/" : ""}{(product.selectedSize ?? '')}
-                                                    {product.variation_id}
                                                     {/* {product.selectedSize || product.default_attributes.map(attr => attr.name.toLowerCase() === "size" ? attr.option : "")}/{product.selectedSize || product.default_attributes.map(attr => attr.name.toLowerCase() === "color" ? attr.option : "")} */}
                                                 </div>
                                                 <div className="product-price text-title">

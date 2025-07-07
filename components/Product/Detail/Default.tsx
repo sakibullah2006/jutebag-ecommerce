@@ -228,7 +228,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     const handleAddToCart = () => {
         const cartVariation = findMatchingVariation()
 
-        if (data.attributes.length > 0 && activeColor)
+        // if ((isColorReq && activeColor) && (isSizeReq && activeSize))
 
             addToCart(
                 data, // The base product data

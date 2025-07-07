@@ -1,3 +1,4 @@
+import { CartItem } from "@/context/CartContext"
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -9,9 +10,9 @@ export function cn(...inputs: ClassValue[]) {
 export function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   })
 }
 
@@ -45,9 +46,24 @@ export function formatPrice(price: number | string): string {
       style: "currency",
       currency: "USD",
     }).format(numericPrice)
-  } catch(e) {
+  } catch (e) {
     console.log(`Error formating price: ${e}`)
-  } 
+  }
   return String(price)
 
+}
+
+export const calculatePrice = (product: CartItem) => {
+  if (product.selectedVariation) {
+    if (product.selectedVariation?.on_sale) {
+      return product.selectedVariation.sale_price;
+    } else {
+      return product.selectedVariation?.regular_price ?? product.selectedVariation?.price;
+    }
+  } else {
+    if (product.on_sale) {
+      return product.sale_price;
+    }
+    return product.regular_price ?? product.price;
+  }
 }

@@ -62,7 +62,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
                     ...state,
                     cartArray: state.cartArray.map(item =>
                         item.id === product.id
-                            ? { ...item, quantity: item.quantity + quantity }
+                            ? { ...item, quantity: item.quantity + quantity, selectedSize, selectedColor, variation_id, selectedVariation }
                             : item
                     ),
                 };

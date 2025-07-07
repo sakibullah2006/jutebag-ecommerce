@@ -4,26 +4,26 @@ export interface CountryDataType {
     states: StateDataType[]
 }
 
-export interface StateDataType { 
-    code: string 
-    name: string 
+export interface StateDataType {
+    code: string
+    name: string
 }
 
-export interface TaxtDataType {
-    id: number;
-    country: string;
-    state: string;
-    postcode: string;
-    city: string;
-    rate: string;
-    name: string;
-    priority: number;
-    compound: boolean;
-    shipping: boolean;
-    order: number;
-    class: string;
-    postcodes: string[];
-    cities: string[];
+export interface TaxDataType {
+    id: number; // Unique identifier for the resource (read-only)
+    country: string; // Country ISO 3166 code
+    state: string; // State code
+    postcode: string; // Postcode/ZIP (deprecated as of WooCommerce 5.3, use postcodes instead)
+    city: string; // City name (deprecated as of WooCommerce 5.3, use cities instead)
+    postcodes: string[]; // Postcodes/ZIPs (introduced in WooCommerce 5.3)
+    cities: string[]; // City names (introduced in WooCommerce 5.3)
+    rate: string; // Tax rate
+    name: string; // Tax rate name
+    priority: number; // Tax priority (default is 1)
+    compound: boolean; // Whether this is a compound tax rate (default is false)
+    shipping: boolean; // Whether this tax rate applies to shipping (default is true)
+    order: number; // Order that will appear in queries
+    class: string; // Tax class (default is standard)
 }
 
 export interface ShippingMethodDataType {
@@ -76,47 +76,59 @@ export interface ShippingMethodDataType {
 }
 
 export interface ShippingZoneDataType {
-    id: number;
-    name: string;
-    order: number;
-    methods: ShippingMethodDataType[];
-    locations: ShippingLocationDataType[];
+    id: number; // Unique identifier for the resource (read-only)
+    name: string; // Shipping zone name (mandatory)
+    order: number; // Shipping zone order
+    methods?: ShippingMethodDataType[]; // Shipping methods for this zone
+    locations?: ShippingLocationDataType[]; // Locations covered by this zone
 }
+
+/**
+ * Represents a shipping location with its code and type.
+ * 
+ * @interface ShippingLocationDataType
+ * @property {string} code - Shipping zone location code.
+ * @property {string} type - Shipping zone location type. Options: postcode, state, country and continent. Default is country.
+ */
 export interface ShippingLocationDataType {
     code: string;
     type: string;
 }
 
+export interface CouponMetaDataType {
+    id: number; // Meta ID (read-only)
+    key: string; // Meta key
+    value: string; // Meta value
+}
 
 export interface CouponDataType {
-    id: number;
-    code: string;
-    amount: string;
-    date_created: string;
-    date_created_gmt: string;
-    date_modified: string;
-    date_modified_gmt: string;
-    discount_type: string;
-    description: string;
-    date_expires: string | null;
-    date_expires_gmt: string | null;
-    usage_count: number;
-    individual_use: boolean;
-    product_ids: number[];
-    excluded_product_ids: number[];
-    usage_limit: number | null;
-    usage_limit_per_user: number | null;
-    limit_usage_to_x_items: number | null;
-    free_shipping: boolean;
-    product_categories: number[];
-    excluded_product_categories: number[];
-    exclude_sale_items: boolean;
-    minimum_amount: string;
-    maximum_amount: string;
-    email_restrictions: string[];
-    used_by: string[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    meta_data: any[];
+    id: number; // Unique identifier for the object (read-only)
+    code: string; // Coupon code (mandatory)
+    amount: string; // The amount of discount. Should always be numeric, even if setting a percentage.
+    date_created: string; // The date the coupon was created, in the site's timezone (read-only)
+    date_created_gmt: string; // The date the coupon was created, as GMT (read-only)
+    date_modified: string; // The date the coupon was last modified, in the site's timezone (read-only)
+    date_modified_gmt: string; // The date the coupon was last modified, as GMT (read-only)
+    discount_type: 'percent' | 'fixed_cart' | 'fixed_product'; // Type of discount
+    description: string; // Coupon description
+    date_expires: string | null; // The date the coupon expires, in the site's timezone
+    date_expires_gmt: string | null; // The date the coupon expires, as GMT
+    usage_count: number; // Number of times the coupon has been used already (read-only)
+    individual_use: boolean; // If true, the coupon can only be used individually
+    product_ids: number[]; // List of product IDs the coupon can be used on
+    excluded_product_ids: number[]; // List of product IDs the coupon cannot be used on
+    usage_limit: number | null; // How many times the coupon can be used in total
+    usage_limit_per_user: number | null; // How many times the coupon can be used per customer
+    limit_usage_to_x_items: number | null; // Max number of items in the cart the coupon can be applied to
+    free_shipping: boolean; // If true, this coupon will enable free shipping
+    product_categories: number[]; // List of category IDs the coupon applies to
+    excluded_product_categories: number[]; // List of category IDs the coupon does not apply to
+    exclude_sale_items: boolean; // If true, this coupon will not be applied to items that have sale prices
+    minimum_amount: string; // Minimum order amount that needs to be in the cart before coupon applies
+    maximum_amount: string; // Maximum order amount allowed when using the coupon
+    email_restrictions: string[]; // List of email addresses that can use this coupon
+    used_by: string[]; // List of user IDs (or guest email addresses) that have used the coupon (read-only)
+    meta_data: CouponMetaDataType[]; // Meta data
 }
 
 
@@ -194,5 +206,5 @@ export interface ProductBrandType {
     } | null; // Image object or null
     menu_order: number; // Menu order for sorting
     count: number; // Number of published products for the brand
-   
+
 }
