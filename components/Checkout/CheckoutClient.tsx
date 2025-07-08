@@ -16,6 +16,8 @@ import { createOrder } from '../../actions/order-actions';
 import { LineItem } from '../../types/order-type';
 import { OrderData } from '../../lib/validation';
 import { useRouter } from 'next/navigation';
+import StripeCheckout from './StripeCheckoutForm';
+import { createPaymentIntent } from '../../actions/stripePaymentIntentActions';
 
 
 // 1. Zod Schema for client-side validation
@@ -73,6 +75,8 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
     const [selectedShippingMethod, setSelectedShippingMethod] = useState<string>('')
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [cleintSecret, setClientSecret] = useState<string | null>(null);
+    const [paymentIntentOrderId, setPaymentIntentOrderId] = useState<number | null>(null)
     const router = useRouter();
 
 
@@ -435,13 +439,13 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                     // For Stripe, execute your payment processing code here
                     console.log("Order created. Proceeding to Stripe payment...");
 
-                    // ==========================================================
-                    // TODO: Execute your Stripe payment processing logic here.
-                    // You have the `result.order` object, which contains the 
-                    // order ID, totals, and other necessary details.
-                    //
-                    // Example: await handleStripeCheckout(result.order);
-                    // ==========================================================
+                    const stripeResponse = await createPaymentIntent(result.order.id)
+                    if (!stripeResponse || !stripeResponse.clientSecret) {
+                        console.log("Failed to create Stripe payment intent", stripeResponse.error);
+                    } else {
+                        setClientSecret(stripeResponse.clientSecret);
+                        setPaymentIntentOrderId(stripeResponse.orderId)
+                    }
 
                 }
             } else {
@@ -474,182 +478,187 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                     </div>
                 </div>
             </div>
-            <div className="checkout-block relative md:pt-[74px] pt-[56px]">
+            <div className="checkout-block relative md:pt-[74px] pt-[56px] mb-10">
                 <div className="content-main flex max-lg:flex-col-reverse justify-between">
                     <div className="left flex lg:justify-end w-full">
                         <div className="lg:max-w-[716px] flex-shrink-0 w-full lg:pt-20 pt-12 lg:pr-[70px] pl-[16px] max-lg:pr-[16px]">
-                            <form onSubmit={handleSubmit(onSubmit)} className="form-checkout">
-                                <div className="login flex justify-between gap-4">
-                                    <h4 className="heading4">Contact</h4>
-                                    <Link href={"/login"} className="text-button underline">Login here</Link>
-                                </div>
-                                <div>
-                                    <input type="email" className={`border-line mt-5 px-4 py-3 w-full rounded-lg ${errors.email ? 'border-red' : ''}`} placeholder="Email" {...register("email")} />
-                                    {errors.email && <p className="text-red text-sm mt-1">{errors.email.message}</p>}
-
-                                    <div className="flex items-center mt-5">
-                                        <div className="block-input">
-                                            <input type="checkbox" id="emailOffers" {...register("emailOffers")} />
-                                            <Icon.CheckSquareIcon weight='fill' className="icon-checkbox text-2xl" />
+                            {cleintSecret !== null ? (
+                                <StripeCheckout clientSecret={cleintSecret} orderId={paymentIntentOrderId!} />
+                            )
+                                :
+                                (
+                                    <form onSubmit={handleSubmit(onSubmit)} className="form-checkout">
+                                        <div className="login flex justify-between gap-4">
+                                            <h4 className="heading4">Contact</h4>
+                                            <Link href={"/login"} className="text-button underline">Login here</Link>
                                         </div>
-                                        <label htmlFor="emailOffers" className="pl-2 cursor-pointer">Email me with news and offers</label>
-                                    </div>
+                                        <div>
+                                            <input type="email" className={`border-line mt-5 px-4 py-3 w-full rounded-lg ${errors.email ? 'border-red' : ''}`} placeholder="Email" {...register("email")} />
+                                            {errors.email && <p className="text-red text-sm mt-1">{errors.email.message}</p>}
 
-                                    <input type="tel" className={`border-line mt-5 px-4 py-3 w-full rounded-lg ${errors.phone ? 'border-red' : ''}`} placeholder="Phone" {...register("phone")} />
-                                    {errors.phone && <p className="text-red text-sm mt-1">{errors.phone.message}</p>}
-                                </div>
-
-                                <div className="information md:mt-10 mt-6">
-                                    <div className="heading5">Delivery</div>
-                                    <div className="form-checkout mt-5">
-                                        <div className="grid sm:grid-cols-2 gap-4 gap-y-5 flex-wrap">
-                                            <div className="col-span-full select-block">
-                                                <select className={`border px-4 py-3 w-full rounded-lg ${errors.country ? 'border-red' : 'border-line'}`} {...register("country")}>
-                                                    <option value="">Choose Country/Region</option>
-                                                    {countriesData.map((country) => (
-                                                        <option key={country.code} value={country.code}>{country.name}</option>
-                                                    ))}
-                                                </select>
-                                                <Icon.CaretDownIcon className="arrow-down" />
-                                                {errors.country && <p className="text-red text-sm mt-1">{errors.country.message}</p>}
+                                            <div className="flex items-center mt-5">
+                                                <div className="block-input">
+                                                    <input type="checkbox" id="emailOffers" {...register("emailOffers")} />
+                                                    <Icon.CheckSquareIcon weight='fill' className="icon-checkbox text-2xl" />
+                                                </div>
+                                                <label htmlFor="emailOffers" className="pl-2 cursor-pointer">Email me with news and offers</label>
                                             </div>
 
-                                            <div className="">
-                                                <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.lastName ? 'border-red' : ''}`} placeholder="First Name" {...register("firstName")} />
-                                                {errors.firstName && <p className="text-red text-sm mt-1">{errors.firstName.message}</p>}
-                                            </div>
-
-                                            <div className="">
-                                                <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.lastName ? 'border-red' : ''}`} placeholder="Last Name" {...register("lastName")} />
-                                                {errors.lastName && <p className="text-red text-sm mt-1">{errors.lastName.message}</p>}
-                                            </div>
-
-                                            <div className="col-span-full">
-                                                <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.address ? 'border-red' : ''}`} placeholder="Address" {...register("address")} />
-                                                {errors.address && <p className="text-red text-sm mt-1">{errors.address.message}</p>}
-                                            </div>
-
-                                            <div className="">
-                                                <input className="border-line px-4 py-3 w-full rounded-lg" placeholder="Apartment, suite, etc. (optional)" {...register("apartment")} />
-                                            </div>
-
-                                            <div className="">
-                                                <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.city ? 'border-red' : ''}`} placeholder="City" {...register("city")} />
-                                                {errors.city && <p className="text-red text-sm mt-1">{errors.city.message}</p>}
-                                            </div>
-
-                                            <div className="select-block">
-                                                <select className={`border px-4 py-3 w-full rounded-lg ${errors.state ? 'border-red' : 'border-line'}`} disabled={!selectedCountry} {...register("state")}>
-                                                    <option value="">State</option>
-                                                    {getSelectedCountryStates().map((state) => (
-                                                        <option key={state.code} value={state.code}>{state.name}</option>
-                                                    ))}
-                                                </select>
-                                                <Icon.CaretDown className="arrow-down align-middle" />
-                                                {errors.state && <p className="text-red text-sm mt-1">{errors.state.message}</p>}
-                                            </div>
-
-                                            <div className="">
-                                                <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.zipcode ? 'border-red' : ''}`} placeholder="Zip Code" {...register("zipcode")} />
-                                                {errors.zipcode && <p className="text-red text-sm mt-1">{errors.zipcode.message}</p>}
-                                            </div>
+                                            <input type="tel" className={`border-line mt-5 px-4 py-3 w-full rounded-lg ${errors.phone ? 'border-red' : ''}`} placeholder="Phone" {...register("phone")} />
+                                            {errors.phone && <p className="text-red text-sm mt-1">{errors.phone.message}</p>}
                                         </div>
 
-                                        <h4 className="heading4 md:mt-10 mt-6">Shipping method</h4>
-                                        <div className="shipping-methods mt-5">
-                                            {selectedCountry ? (
-                                                availableShippingMethods.length > 0 ? (
-                                                    <div className="space-y-3">
-                                                        {availableShippingMethods.map((method) => (
-                                                            <div key={method.id} className="flex items-center justify-between p-4 border border-line rounded-lg">
-                                                                <div className="flex items-center gap-3">
-                                                                    <input
-                                                                        type="radio"
-                                                                        name="shipping_method"
-                                                                        id={`shipping_${method.id}`}
-                                                                        value={method.id}
-                                                                        checked={selectedShippingMethod === method.id.toString()}
-                                                                        onChange={() => handleShippingMethodChange(
-                                                                            method.id.toString(),
-                                                                            Number(method.settings.cost?.value || 0)
-                                                                        )}
-                                                                    />
-                                                                    <label htmlFor={`shipping_${method.id}`} className="cursor-pointer">
-                                                                        {method.title}
-                                                                        {/* {method.method_description && (
+                                        <div className="information md:mt-10 mt-6">
+                                            <div className="heading5">Delivery</div>
+                                            <div className="form-checkout mt-5">
+                                                <div className="grid sm:grid-cols-2 gap-4 gap-y-5 flex-wrap">
+                                                    <div className="col-span-full select-block">
+                                                        <select className={`border px-4 py-3 w-full rounded-lg ${errors.country ? 'border-red' : 'border-line'}`} {...register("country")}>
+                                                            <option value="">Choose Country/Region</option>
+                                                            {countriesData.map((country) => (
+                                                                <option key={country.code} value={country.code}>{country.name}</option>
+                                                            ))}
+                                                        </select>
+                                                        <Icon.CaretDownIcon className="arrow-down" />
+                                                        {errors.country && <p className="text-red text-sm mt-1">{errors.country.message}</p>}
+                                                    </div>
+
+                                                    <div className="">
+                                                        <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.lastName ? 'border-red' : ''}`} placeholder="First Name" {...register("firstName")} />
+                                                        {errors.firstName && <p className="text-red text-sm mt-1">{errors.firstName.message}</p>}
+                                                    </div>
+
+                                                    <div className="">
+                                                        <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.lastName ? 'border-red' : ''}`} placeholder="Last Name" {...register("lastName")} />
+                                                        {errors.lastName && <p className="text-red text-sm mt-1">{errors.lastName.message}</p>}
+                                                    </div>
+
+                                                    <div className="col-span-full">
+                                                        <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.address ? 'border-red' : ''}`} placeholder="Address" {...register("address")} />
+                                                        {errors.address && <p className="text-red text-sm mt-1">{errors.address.message}</p>}
+                                                    </div>
+
+                                                    <div className="">
+                                                        <input className="border-line px-4 py-3 w-full rounded-lg" placeholder="Apartment, suite, etc. (optional)" {...register("apartment")} />
+                                                    </div>
+
+                                                    <div className="">
+                                                        <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.city ? 'border-red' : ''}`} placeholder="City" {...register("city")} />
+                                                        {errors.city && <p className="text-red text-sm mt-1">{errors.city.message}</p>}
+                                                    </div>
+
+                                                    <div className="select-block">
+                                                        <select className={`border px-4 py-3 w-full rounded-lg ${errors.state ? 'border-red' : 'border-line'}`} disabled={!selectedCountry} {...register("state")}>
+                                                            <option value="">State</option>
+                                                            {getSelectedCountryStates().map((state) => (
+                                                                <option key={state.code} value={state.code}>{state.name}</option>
+                                                            ))}
+                                                        </select>
+                                                        <Icon.CaretDown className="arrow-down align-middle" />
+                                                        {errors.state && <p className="text-red text-sm mt-1">{errors.state.message}</p>}
+                                                    </div>
+
+                                                    <div className="">
+                                                        <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.zipcode ? 'border-red' : ''}`} placeholder="Zip Code" {...register("zipcode")} />
+                                                        {errors.zipcode && <p className="text-red text-sm mt-1">{errors.zipcode.message}</p>}
+                                                    </div>
+                                                </div>
+
+                                                <h4 className="heading4 md:mt-10 mt-6">Shipping method</h4>
+                                                <div className="shipping-methods mt-5">
+                                                    {selectedCountry ? (
+                                                        availableShippingMethods.length > 0 ? (
+                                                            <div className="space-y-3">
+                                                                {availableShippingMethods.map((method) => (
+                                                                    <div key={method.id} className="flex items-center justify-between p-4 border border-line rounded-lg">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <input
+                                                                                type="radio"
+                                                                                name="shipping_method"
+                                                                                id={`shipping_${method.id}`}
+                                                                                value={method.id}
+                                                                                checked={selectedShippingMethod === method.id.toString()}
+                                                                                onChange={() => handleShippingMethodChange(
+                                                                                    method.id.toString(),
+                                                                                    Number(method.settings.cost?.value || 0)
+                                                                                )}
+                                                                            />
+                                                                            <label htmlFor={`shipping_${method.id}`} className="cursor-pointer">
+                                                                                {method.title}
+                                                                                {/* {method.method_description && (
                                                                             <p className="text-sm text-secondary mt-1">{method.method_description}</p>
                                                                         )} */}
-                                                                    </label>
-                                                                </div>
-                                                                <span className="text-title">
-                                                                    {Number(method.settings.cost?.value || 0) === 0 ? (
-                                                                        'Free'
-                                                                    ) : (
-                                                                        <>
-                                                                            {decodeHtmlEntities(currentCurrency?.symbol || '$')}
-                                                                            {Number(method.settings.cost?.value || 0).toFixed(2)}
-                                                                        </>
-                                                                    )}
-                                                                </span>
+                                                                            </label>
+                                                                        </div>
+                                                                        <span className="text-title">
+                                                                            {Number(method.settings.cost?.value || 0) === 0 ? (
+                                                                                'Free'
+                                                                            ) : (
+                                                                                <>
+                                                                                    {decodeHtmlEntities(currentCurrency?.symbol || '$')}
+                                                                                    {Number(method.settings.cost?.value || 0).toFixed(2)}
+                                                                                </>
+                                                                            )}
+                                                                        </span>
+                                                                    </div>
+                                                                ))}
                                                             </div>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div className="body1 text-secondary2 py-6 px-5 border border-line rounded-lg bg-surface">
-                                                        No shipping methods available for this location
-                                                    </div>
-                                                )
-                                            ) : (
-                                                <div className="body1 text-secondary2 py-6 px-5 border border-line rounded-lg bg-surface">
-                                                    Enter your shipping address to view available shipping methods
+                                                        ) : (
+                                                            <div className="body1 text-secondary2 py-6 px-5 border border-line rounded-lg bg-surface">
+                                                                No shipping methods available for this location
+                                                            </div>
+                                                        )
+                                                    ) : (
+                                                        <div className="body1 text-secondary2 py-6 px-5 border border-line rounded-lg bg-surface">
+                                                            Enter your shipping address to view available shipping methods
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </div>
-                                        <div className="payment-block md:mt-10 mt-6">
-                                            <h4 className="heading4">Payment</h4>
-                                            <p className="body1 text-secondary2 mt-3">All transactions are secure and encrypted.</p>
-                                            <div className="list-payment mt-5">
-                                                <div className="payment-methods">
-                                                    <div className="item flex items-center gap-2 relative px-5 border border-line rounded-t-lg">
-                                                        <input
-                                                            type="radio"
-                                                            value="cod"
-                                                            className="cursor-pointer"
-                                                            {...register("paymentMethod")}
-                                                        />
-                                                        <label htmlFor="cod_payment" className="w-full py-4 cursor-pointer">Cash on Delivery</label>
-                                                        <Icon.TruckIcon className="text-xl absolute top-1/2 right-5 -translate-y-1/2" />
+                                                <div className="payment-block md:mt-10 mt-6">
+                                                    <h4 className="heading4">Payment</h4>
+                                                    <p className="body1 text-secondary2 mt-3">All transactions are secure and encrypted.</p>
+                                                    <div className="list-payment mt-5">
+                                                        <div className="payment-methods">
+                                                            <div className="item flex items-center gap-2 relative px-5 border border-line rounded-t-lg">
+                                                                <input
+                                                                    type="radio"
+                                                                    value="cod"
+                                                                    className="cursor-pointer"
+                                                                    {...register("paymentMethod")}
+                                                                />
+                                                                <label htmlFor="cod_payment" className="w-full py-4 cursor-pointer">Cash on Delivery</label>
+                                                                <Icon.TruckIcon className="text-xl absolute top-1/2 right-5 -translate-y-1/2" />
+                                                            </div>
+                                                            <div className="item flex items-center gap-2 relative px-5 border border-line rounded-b-lg">
+                                                                <input
+                                                                    type="radio"
+                                                                    value="stripe"
+                                                                    className="cursor-pointer"
+                                                                    {...register("paymentMethod")}
+                                                                />
+                                                                <label htmlFor="stripe_payment" className="w-full py-4 cursor-pointer">Credit Card</label>
+                                                                <Icon.CreditCardIcon className="text-xl absolute top-1/2 right-5 -translate-y-1/2" />
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div className="item flex items-center gap-2 relative px-5 border border-line rounded-b-lg">
-                                                        <input
-                                                            type="radio"
-                                                            value="stripe"
-                                                            className="cursor-pointer"
-                                                            {...register("paymentMethod")}
-                                                        />
-                                                        <label htmlFor="stripe_payment" className="w-full py-4 cursor-pointer">Credit Card</label>
-                                                        <Icon.CreditCardIcon className="text-xl absolute top-1/2 right-5 -translate-y-1/2" />
-                                                    </div>
+                                                </div>
+
+                                                <div className="block-button md:mt-10 mt-6">
+                                                    <button type="submit"
+                                                        className={cn("button-main w-full bg-black",
+                                                            isSubmitting ? 'cursor-not-allowed opacity-50' : '',
+                                                            watch("paymentMethod") === 'cod' ? 'bg-primary havor:bg-primary/90' : 'bg-primary hover:bg-primary/90'
+                                                        )}
+                                                        disabled={isSubmitting}
+                                                    >
+                                                        {isSubmitting ? 'Processing...' : watch("paymentMethod") === 'cod' ? 'Place Order' : 'Pay Now'}
+                                                    </button>
+                                                    {submitError && <p className="text-red text-center text-sm mt-2">{submitError}</p>}
                                                 </div>
                                             </div>
                                         </div>
-
-                                        <div className="block-button md:mt-10 mt-6">
-                                            <button type="submit"
-                                                className={cn("button-main w-full bg-black",
-                                                    isSubmitting ? 'cursor-not-allowed opacity-50' : '',
-                                                    watch("paymentMethod") === 'cod' ? 'bg-primary havor:bg-primary/90' : 'bg-primary hover:bg-primary/90'
-                                                )}
-                                                disabled={isSubmitting}
-                                            >
-                                                {isSubmitting ? 'Processing...' : watch("paymentMethod") === 'cod' ? 'Place Order' : 'Pay Now'}
-                                            </button>
-                                            {submitError && <p className="text-red text-center text-sm mt-2">{submitError}</p>}
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                            <div className="copyright caption1 md:mt-20 mt-12 py-3 border-t border-line">©2024 Anvogue. All Rights Reserved.</div>
+                                    </form>
+                                )}
                         </div>
                     </div>
                     <div className="right justify-start flex-shrink-0 lg:w-[47%] bg-surface lg:py-20 py-12">

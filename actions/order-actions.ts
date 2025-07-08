@@ -105,3 +105,21 @@ export async function fetchOrdersByUserId(userId: number): Promise<OrderType[]> 
         return [];
     }
 }
+
+
+export async function updateOrderStatus(orderId: number, status: string, transactionId: string, paid: boolean, date: string) {
+    try {
+        const payload = {
+            status,
+            transaction_id: transactionId,
+            set_paid: paid,
+            date_paid: date,
+            customer_note: `Payment completed via Stripe. Transaction ID: ${transactionId}`
+        };
+        await WooCommerce.put(`orders/${orderId}`, payload);
+        return { success: true };
+    } catch (err) {
+        console.error(`Failed to update order ${orderId}:`, err);
+        return { success: false, error: "Failed to update order status." };
+    }
+}

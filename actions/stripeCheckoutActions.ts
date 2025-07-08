@@ -88,8 +88,8 @@ export async function createCheckoutSession(orderId: number) {
             metadata: {
                 woocommerce_order_id: order.id,
             },
-            success_url: `${origin}/success?order_key=${order.order_key}`,
-            cancel_url: `${origin}/order?id=${order.id}`,
+            success_url: `${origin}/payment/success?order_key=${order.order_key}`,
+            cancel_url: `${origin}/checkout/order?id=${order.id}`,
         });
 
         // 6. Return the session ID

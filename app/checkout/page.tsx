@@ -1,6 +1,7 @@
 import React from 'react'
 import { getCountries, getTaxes, getShippingZones } from '@/actions/data-actions'
 import CheckoutClient from '@/components/Checkout/CheckoutClient'
+import Footer from '../../components/Footer/Footer'
 
 interface CouponData {
     id: string
@@ -30,14 +31,25 @@ const Checkout = async ({ searchParams }: CheckoutPageProps) => {
     const shippingData = shippingZones.flatMap(zone => zone.methods || [])
 
     return (
-        <CheckoutClient
-            countriesData={countriesData}
-            taxesData={taxesData}
-            shippingData={shippingData}
-            shippingZones={shippingZones}
-            appliedCouponProp={appliedCoupon || ''}
-        />
+        <>
+            <CheckoutClient
+                countriesData={countriesData}
+                taxesData={taxesData}
+                shippingData={shippingData}
+                shippingZones={shippingZones}
+                appliedCouponProp={appliedCoupon || ''}
+            />
+            <Footer />
+        </>
     )
+}
+
+
+export const metadata = {
+    title: 'Checkout - Complete Your Order',
+    description: 'Complete your purchase securely with our checkout process. Review your order, enter shipping and payment details.',
+    keywords: 'checkout, order, payment, shipping, purchase, cart',
+    robots: 'noindex, nofollow'
 }
 
 export default Checkout
