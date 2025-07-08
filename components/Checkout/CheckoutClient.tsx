@@ -56,7 +56,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
 }) => {
     const { openModalCart } = useModalCartContext()
     const { currentCurrency } = useAppData()
-    const { cartState } = useCart();
+    const { cartState, clearCart } = useCart();
     const [totalCart, setTotalCart] = useState<number>(0)
     const [selectedCountry, setSelectedCountry] = useState<string>('')
     const [selectedState, setSelectedState] = useState<string>('')
@@ -433,8 +433,9 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                 if (formData.paymentMethod === 'cod') {
                     // For Cash on Delivery, redirect to the thank you page
                     console.log("Order created with COD. Redirecting...");
+                    // Redirect to thank you page with orderId
+                    clearCart(); // Clear cart after successful order creation
                     router.push(`/checkout/thank-you?orderId=${result.order.id}`);
-
                 } else if (formData.paymentMethod === 'stripe') {
                     // For Stripe, execute your payment processing code here
                     console.log("Order created. Proceeding to Stripe payment...");

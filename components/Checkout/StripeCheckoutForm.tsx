@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { stripePromise } from '../../lib/stripe';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import { useRouter } from 'next/navigation';
+import { useCart } from '../../context/CartContext';
 
 // Extended payment intent type to include metadata
 interface PaymentIntentWithMetadata extends PaymentIntent {
@@ -34,6 +35,7 @@ const PaymentForm = ({
     const [message, setMessage] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isUpdatingOrder, setIsUpdatingOrder] = useState(false);
+    const { clearCart } = useCart()
     const stripe = useStripe();
     const elements = useElements();
     const router = useRouter();
@@ -59,6 +61,8 @@ const PaymentForm = ({
             const result = await updateOrderStatus(finalOrderId, 'processing', paymentIntent.id, true, new Date().toString());
             if (result.success) {
                 // Redirect to thank you page with orderId
+                clearCart(); // Clear cart after successful payment
+                setMessage('Payment successful! Redirecting to thank you page...');
                 router.push(`/checkout/thank-you?orderId=${finalOrderId}`);
             } else {
                 console.log(result.error)
@@ -173,7 +177,7 @@ const PaymentForm = ({
             >
                 {isProcessing || isUpdatingOrder ? (
                     <div className="flex items-center justify-center gap-2">
-                        <Icon.CircleNotch className="animate-spin" size={16} />
+                        <Icon.CircleNotchIcon className="animate-spin" size={16} />
                         {isProcessing ? 'Processing Payment...' : 'Updating Order...'}
                     </div>
                 ) : (
@@ -183,7 +187,7 @@ const PaymentForm = ({
 
             {message && (
                 <div className={`p-3 rounded-lg text-center text-sm ${message.includes('succeeded')
-                    ? 'bg-green-100 text-green-700 border border-green-200'
+                    ? 'bg-green-200 text-green-800 border border-green-200'
                     : 'bg-red-100 text-red-700 border border-red-200'
                     }`}>
                     {message}
@@ -219,7 +223,7 @@ export default function StripeCheckout({
         return (
             <div className="flex items-center justify-center p-8">
                 <div className="flex items-center gap-3">
-                    <Icon.CircleNotch className="animate-spin" size={24} />
+                    <Icon.CircleNotchIcon className="animate-spin" size={24} />
                     <span className="text-gray-600">Loading payment form...</span>
                 </div>
             </div>
