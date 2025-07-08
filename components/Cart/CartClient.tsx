@@ -156,7 +156,18 @@ const CartClient = () => {
                                                         </div>
                                                         <div>
                                                             <div className="text-title">{product.name}</div>
-                                                            <div className="list-select mt-3"></div>
+                                                            <div className="list-select mt-3">
+                                                                {product.selectedColor &&
+                                                                    <div className="text-secondary text-sm">
+                                                                        <span className="font-bold">Color:</span> {product.selectedColor}
+                                                                    </div>
+                                                                }
+                                                                {product.selectedSize &&
+                                                                    <div className="text-secondary text-sm">
+                                                                        <span className="font-bold">Size:</span> {product.selectedSize}
+                                                                    </div>
+                                                                }
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

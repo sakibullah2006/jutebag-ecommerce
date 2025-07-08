@@ -4,11 +4,38 @@ import Link from 'next/link'
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import { useCart } from '@/context/CartContext'
 import { useModalCartContext } from '@/context/ModalCartContext'
-import { calculatePrice, decodeHtmlEntities } from '@/lib/utils';
+import { calculatePrice, cn, decodeHtmlEntities } from '@/lib/utils';
 import { useAppData } from '@/context/AppDataContext';
 import Image from "next/image"
 import { CountryDataType, TaxDataType, ShippingMethodDataType, CouponDataType, StateDataType, ShippingZoneDataType } from '@/types/data-type'
 import { validateCoupon } from '@/actions/coupon'
+import z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { createOrder } from '../../actions/order-actions';
+import { LineItem } from '../../types/order-type';
+import { OrderData } from '../../lib/validation';
+import { useRouter } from 'next/navigation';
+
+
+// 1. Zod Schema for client-side validation
+const checkoutSchema = z.object({
+    email: z.string().email({ message: "A valid email is required." }),
+    emailOffers: z.boolean().optional(),
+    phone: z.string().min(7, { message: "A valid phone number is required." }),
+    country: z.string().min(1, { message: "Country is required." }),
+    firstName: z.string().min(1, { message: "Last name is required." }),
+    lastName: z.string().min(1, { message: "Last name is required." }),
+    address: z.string().min(1, { message: "Address is required." }),
+    apartment: z.string().optional(),
+    city: z.string().min(1, { message: "City is required." }),
+    state: z.string().min(1, { message: "State is required." }),
+    zipcode: z.string().min(1, { message: "ZIP code is required." }),
+    paymentMethod: z.enum(["cod", "stripe"]),
+    useShippingAsBilling: z.boolean(),
+});
+
+type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
 interface CheckoutClientProps {
     countriesData: CountryDataType[]
@@ -44,6 +71,42 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
     const [couponError, setCouponError] = useState<string>('')
     const [availableShippingMethods, setAvailableShippingMethods] = useState<ShippingMethodDataType[]>([])
     const [selectedShippingMethod, setSelectedShippingMethod] = useState<string>('')
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const router = useRouter();
+
+
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: { errors },
+    } = useForm<CheckoutFormValues>({
+        resolver: zodResolver(checkoutSchema),
+        // You can set default values here if needed
+        defaultValues: {
+            email: '',
+            phone: '',
+            country: '',
+            lastName: '',
+            address: '',
+            city: '',
+            state: '',
+            zipcode: '',
+            paymentMethod: 'cod',
+            useShippingAsBilling: true,
+        }
+    });
+
+    // Watch form fields to sync with your existing state and logic
+    const watchedCountry = watch("country");
+    const watchedState = watch("state");
+
+    useEffect(() => {
+        setSelectedCountry(watchedCountry || '');
+        setSelectedState(watchedState || '');
+    }, [watchedCountry, watchedState]);
+
 
     // Debounce hook for shipping calculation
     const useDebounce = <T,>(value: T, delay: number): T => {
@@ -126,6 +189,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
             setShippingCost(0)
         }
     }, [shippingZones, shippingData])
+
 
     // Calculate applicable taxes based on selected location
     const calculateTaxes = useCallback((country: string, state: string, subtotal: number) => {
@@ -284,6 +348,115 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
         }))
     }
 
+    const onSubmit = async (formData: CheckoutFormValues) => {
+        setIsSubmitting(true);
+        setSubmitError(null);
+
+        // Prepare the data payload for the createOrder server action
+        const orderPayload: OrderData = {
+            payment_method: formData.paymentMethod,
+            payment_method_title: formData.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Stripe',
+            billing: {
+                first_name: formData.firstName || '',
+                last_name: formData.lastName,
+                address_1: formData.address,
+                address_2: formData.apartment || '',
+                city: formData.city,
+                state: formData.state,
+                postcode: formData.zipcode,
+                country: formData.country,
+                email: formData.email,
+                phone: formData.phone,
+            },
+            shipping: {
+                email: formData.email,
+                phone: formData.phone,
+                first_name: formData.firstName || '',
+                last_name: formData.lastName,
+                address_1: formData.address,
+                address_2: formData.apartment || '',
+                city: formData.city,
+                state: formData.state,
+                postcode: formData.zipcode,
+                country: formData.country,
+            }
+        };
+
+        const lineItems: LineItem[] = cartState.cartArray.map(item => ({
+            product_id: item.id,
+            variation_id: item.selectedVariation ? parseInt(item.selectedVariation?.id.toString()) : undefined,
+            quantity: item.quantity,
+            name: item.name,
+            total: (Number(calculatePrice(item)) * item.quantity).toFixed(2),
+            price: Number(calculatePrice(item)).toFixed(2),
+            meta_data: [
+                {
+                    id: 0,
+                    key: 'product_image',
+                    value: item.images[0].src || ''
+                },
+                ...(item.selectedColor ? [{
+                    id: 1,
+                    key: 'Color',
+                    value: item.selectedColor
+                }] : []),
+                ...(item.selectedSize ? [{
+                    id: 2,
+                    key: 'Size',
+                    value: item.selectedSize
+                }] : [])
+            ]
+        }));
+
+        const shippingLines = selectedShippingMethod ? [{
+            method_id: selectedShippingMethod,
+            method_title: availableShippingMethods.find(m => m.id.toString() === selectedShippingMethod)?.title || '',
+            total: shippingCost.toFixed(2),
+        }] : [];
+
+        try {
+            // This part is the same for both payment methods
+            const result = await createOrder({
+                orderData: orderPayload,
+                lineItems,
+                cart_tax: taxAmount,
+                shipping_lines: shippingLines,
+                coupon_lines: appliedCoupon ? [{ code: appliedCoupon.code }] : [],
+            });
+
+            if (result.success && result.order) {
+                // --- This is the new conditional logic based on payment method ---
+                if (formData.paymentMethod === 'cod') {
+                    // For Cash on Delivery, redirect to the thank you page
+                    console.log("Order created with COD. Redirecting...");
+                    router.push(`/checkout/thank-you?orderId=${result.order.id}`);
+
+                } else if (formData.paymentMethod === 'stripe') {
+                    // For Stripe, execute your payment processing code here
+                    console.log("Order created. Proceeding to Stripe payment...");
+
+                    // ==========================================================
+                    // TODO: Execute your Stripe payment processing logic here.
+                    // You have the `result.order` object, which contains the 
+                    // order ID, totals, and other necessary details.
+                    //
+                    // Example: await handleStripeCheckout(result.order);
+                    // ==========================================================
+
+                }
+            } else {
+                console.error("Error creating order:", result.error);
+                throw new Error(result.error || "An unknown error occurred while creating the order.");
+            }
+        } catch (err: unknown) {
+            setSubmitError(err instanceof Error ? err.message : 'An unexpected error occurred');
+            console.log("Error creating order:", err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+
     return (
         <>
             <div id="header" className='relative w-full'>
@@ -291,10 +464,10 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                     <div className="container mx-auto h-full">
                         <div className="header-main flex items-center justify-between h-full">
                             <Link href={'/'} className='flex items-center'>
-                                <div className="heading4">Anvogue</div>
+                                <div className="heading4">SakibBaba</div>
                             </Link>
                             <button className="max-md:hidden cart-icon flex items-center relative h-fit cursor-pointer" onClick={openModalCart}>
-                                <Icon.Handbag size={24} color='black' />
+                                <Icon.HandbagIcon size={24} color='black' />
                                 <span className="quantity cart-quantity absolute -right-1.5 -top-1.5 text-xs text-white bg-black w-4 h-4 flex items-center justify-center rounded-full">{cartState.cartArray.length}</span>
                             </button>
                         </div>
@@ -305,92 +478,83 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                 <div className="content-main flex max-lg:flex-col-reverse justify-between">
                     <div className="left flex lg:justify-end w-full">
                         <div className="lg:max-w-[716px] flex-shrink-0 w-full lg:pt-20 pt-12 lg:pr-[70px] pl-[16px] max-lg:pr-[16px]">
-                            <form>
+                            <form onSubmit={handleSubmit(onSubmit)} className="form-checkout">
                                 <div className="login flex justify-between gap-4">
                                     <h4 className="heading4">Contact</h4>
                                     <Link href={"/login"} className="text-button underline">Login here</Link>
                                 </div>
                                 <div>
-                                    <input type="text" className="border-line mt-5 px-4 py-3 w-full rounded-lg" placeholder="Email or mobile phone number" required />
+                                    <input type="email" className={`border-line mt-5 px-4 py-3 w-full rounded-lg ${errors.email ? 'border-red' : ''}`} placeholder="Email" {...register("email")} />
+                                    {errors.email && <p className="text-red text-sm mt-1">{errors.email.message}</p>}
+
                                     <div className="flex items-center mt-5">
                                         <div className="block-input">
-                                            <input type="checkbox" name="remember" id="remember" />
+                                            <input type="checkbox" id="emailOffers" {...register("emailOffers")} />
                                             <Icon.CheckSquareIcon weight='fill' className="icon-checkbox text-2xl" />
                                         </div>
-                                        <label htmlFor="remember" className="pl-2 cursor-pointer">Email me with news and offers</label>
+                                        <label htmlFor="emailOffers" className="pl-2 cursor-pointer">Email me with news and offers</label>
                                     </div>
+
+                                    <input type="tel" className={`border-line mt-5 px-4 py-3 w-full rounded-lg ${errors.phone ? 'border-red' : ''}`} placeholder="Phone" {...register("phone")} />
+                                    {errors.phone && <p className="text-red text-sm mt-1">{errors.phone.message}</p>}
                                 </div>
+
                                 <div className="information md:mt-10 mt-6">
                                     <div className="heading5">Delivery</div>
-                                    <div className="deli_type mt-5">
-                                        <div className="item flex items-center gap-2 relative px-5 border border-line rounded-t-lg">
-                                            <input type="radio" name="deli_type" id="ship_type" className="cursor-pointer" defaultChecked />
-                                            <label htmlFor="ship_type" className="w-full py-4 cursor-pointer">Ship</label>
-                                            <Icon.Truck className="text-xl absolute top-1/2 right-5 -translate-y-1/2" />
-                                        </div>
-                                        <div className="item flex items-center gap-2 relative px-5 border border-line rounded-b-lg">
-                                            <input type="radio" name="deli_type" id="store_type" className="cursor-pointer" />
-                                            <label htmlFor="store_type" className="w-full py-4 cursor-pointer">Pickup in store</label>
-                                            <Icon.Storefront className="text-xl absolute top-1/2 right-5 -translate-y-1/2" />
-                                        </div>
-                                    </div>
                                     <div className="form-checkout mt-5">
                                         <div className="grid sm:grid-cols-2 gap-4 gap-y-5 flex-wrap">
                                             <div className="col-span-full select-block">
-                                                <select
-                                                    className="border border-line px-4 py-3 w-full rounded-lg"
-                                                    id="region"
-                                                    name="region"
-                                                    value={selectedCountry}
-                                                    onChange={handleCountryChange}
-                                                >
+                                                <select className={`border px-4 py-3 w-full rounded-lg ${errors.country ? 'border-red' : 'border-line'}`} {...register("country")}>
                                                     <option value="">Choose Country/Region</option>
                                                     {countriesData.map((country) => (
-                                                        <option key={country.code} value={country.code}>
-                                                            {country.name}
-                                                        </option>
+                                                        <option key={country.code} value={country.code}>{country.name}</option>
                                                     ))}
                                                 </select>
                                                 <Icon.CaretDownIcon className="arrow-down" />
+                                                {errors.country && <p className="text-red text-sm mt-1">{errors.country.message}</p>}
                                             </div>
+
                                             <div className="">
-                                                <input className="border-line px-4 py-3 w-full rounded-lg" id="firstName" type="text" placeholder="First Name (optional)" />
+                                                <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.lastName ? 'border-red' : ''}`} placeholder="First Name" {...register("firstName")} />
+                                                {errors.firstName && <p className="text-red text-sm mt-1">{errors.firstName.message}</p>}
                                             </div>
+
                                             <div className="">
-                                                <input className="border-line px-4 py-3 w-full rounded-lg" id="lastName" type="text" placeholder="Last Name" required />
+                                                <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.lastName ? 'border-red' : ''}`} placeholder="Last Name" {...register("lastName")} />
+                                                {errors.lastName && <p className="text-red text-sm mt-1">{errors.lastName.message}</p>}
                                             </div>
-                                            <div className="col-span-full relative">
-                                                <input className="border-line pl-4 pr-12 py-3 w-full rounded-lg" id="address" type="text" placeholder="Address" required />
-                                                <Icon.MagnifyingGlassIcon className="text-xl absolute top-1/2 -translate-y-1/2 right-5" />
+
+                                            <div className="col-span-full">
+                                                <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.address ? 'border-red' : ''}`} placeholder="Address" {...register("address")} />
+                                                {errors.address && <p className="text-red text-sm mt-1">{errors.address.message}</p>}
                                             </div>
+
                                             <div className="">
-                                                <input className="border-line px-4 py-3 w-full rounded-lg" id="apartment" type="text" placeholder="Apartment, suite,etc.(optional)" />
+                                                <input className="border-line px-4 py-3 w-full rounded-lg" placeholder="Apartment, suite, etc. (optional)" {...register("apartment")} />
                                             </div>
+
                                             <div className="">
-                                                <input className="border-line px-4 py-3 w-full rounded-lg" id="city" type="text" placeholder="City" required />
+                                                <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.city ? 'border-red' : ''}`} placeholder="City" {...register("city")} />
+                                                {errors.city && <p className="text-red text-sm mt-1">{errors.city.message}</p>}
                                             </div>
+
                                             <div className="select-block">
-                                                <select
-                                                    className="border border-line px-4 py-3 w-full rounded-lg"
-                                                    id="state"
-                                                    name="state"
-                                                    value={selectedState}
-                                                    onChange={handleStateChange}
-                                                    disabled={!selectedCountry}
-                                                >
+                                                <select className={`border px-4 py-3 w-full rounded-lg ${errors.state ? 'border-red' : 'border-line'}`} disabled={!selectedCountry} {...register("state")}>
                                                     <option value="">State</option>
                                                     {getSelectedCountryStates().map((state) => (
-                                                        <option key={state.code} value={state.code}>
-                                                            {state.name}
-                                                        </option>
+                                                        <option key={state.code} value={state.code}>{state.name}</option>
                                                     ))}
                                                 </select>
-                                                <Icon.CaretDownIcon className="arrow-down" />
+                                                <Icon.CaretDown className="arrow-down align-middle" />
+                                                {errors.state && <p className="text-red text-sm mt-1">{errors.state.message}</p>}
                                             </div>
+
                                             <div className="">
-                                                <input className="border-line px-4 py-3 w-full rounded-lg" id="zipcode" type="text" placeholder="Zip Code" required />
+                                                <input className={`border-line px-4 py-3 w-full rounded-lg ${errors.zipcode ? 'border-red' : ''}`} placeholder="Zip Code" {...register("zipcode")} />
+                                                {errors.zipcode && <p className="text-red text-sm mt-1">{errors.zipcode.message}</p>}
                                             </div>
                                         </div>
+
                                         <h4 className="heading4 md:mt-10 mt-6">Shipping method</h4>
                                         <div className="shipping-methods mt-5">
                                             {selectedCountry ? (
@@ -445,39 +609,42 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                                             <h4 className="heading4">Payment</h4>
                                             <p className="body1 text-secondary2 mt-3">All transactions are secure and encrypted.</p>
                                             <div className="list-payment mt-5">
-                                                <div className="item">
-                                                    <div className="type flex items-center justify-between bg-linear p-5 border border-black rounded-t-lg">
-                                                        <strong className="text-title">Credit Card</strong>
-                                                        <Icon.CreditCardIcon className="text-2xl" />
+                                                <div className="payment-methods">
+                                                    <div className="item flex items-center gap-2 relative px-5 border border-line rounded-t-lg">
+                                                        <input
+                                                            type="radio"
+                                                            value="cod"
+                                                            className="cursor-pointer"
+                                                            {...register("paymentMethod")}
+                                                        />
+                                                        <label htmlFor="cod_payment" className="w-full py-4 cursor-pointer">Cash on Delivery</label>
+                                                        <Icon.TruckIcon className="text-xl absolute top-1/2 right-5 -translate-y-1/2" />
                                                     </div>
-                                                    <div className="form_payment grid grid-cols-2 gap-4 gap-y-5 p-5 rounded-b-lg bg-surface">
-                                                        <div className="col-span-full relative">
-                                                            <input className="border-line pl-4 pr-12 py-3 w-full rounded-lg" id="cardNumbers" type="text" placeholder="Card Numbers" required />
-                                                            <Icon.LockSimple className="text-xl text-secondary absolute top-1/2 -translate-y-1/2 right-5" />
-                                                        </div>
-                                                        <div className="relative">
-                                                            <input className="border-line px-4 py-3 w-full rounded-lg" id="expirationDate" type="text" placeholder="Expiration date (MM /YY)" required />
-                                                        </div>
-                                                        <div className="relative">
-                                                            <input className="border-line pl-4 pr-12 py-3 w-full rounded-lg" id="securityCode" type="text" placeholder="Security code" required />
-                                                            <Icon.Question className="text-xl text-secondary absolute top-1/2 -translate-y-1/2 right-5" />
-                                                        </div>
-                                                        <div className="col-span-full relative">
-                                                            <input className="border-line px-4 py-3 w-full rounded-lg" id="cardName" type="text" placeholder="Name On Card" required />
-                                                        </div>
-                                                        <div className="col-span-full flex items-center">
-                                                            <div className="block-input">
-                                                                <input type="checkbox" name="useAddress" id="useAddress" />
-                                                                <Icon.CheckSquare weight='fill' className="icon-checkbox text-2xl" />
-                                                            </div>
-                                                            <label htmlFor="useAddress" className="text-title pl-2 cursor-pointer">Use shipping address as billing address</label>
-                                                        </div>
+                                                    <div className="item flex items-center gap-2 relative px-5 border border-line rounded-b-lg">
+                                                        <input
+                                                            type="radio"
+                                                            value="stripe"
+                                                            className="cursor-pointer"
+                                                            {...register("paymentMethod")}
+                                                        />
+                                                        <label htmlFor="stripe_payment" className="w-full py-4 cursor-pointer">Credit Card</label>
+                                                        <Icon.CreditCardIcon className="text-xl absolute top-1/2 right-5 -translate-y-1/2" />
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+
                                         <div className="block-button md:mt-10 mt-6">
-                                            <button className="button-main w-full tracking-widest">Pay now</button>
+                                            <button type="submit"
+                                                className={cn("button-main w-full bg-black",
+                                                    isSubmitting ? 'cursor-not-allowed opacity-50' : '',
+                                                    watch("paymentMethod") === 'cod' ? 'bg-primary havor:bg-primary/90' : 'bg-primary hover:bg-primary/90'
+                                                )}
+                                                disabled={isSubmitting}
+                                            >
+                                                {isSubmitting ? 'Processing...' : watch("paymentMethod") === 'cod' ? 'Place Order' : 'Pay Now'}
+                                            </button>
+                                            {submitError && <p className="text-red text-center text-sm mt-2">{submitError}</p>}
                                         </div>
                                     </div>
                                 </div>

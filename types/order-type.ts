@@ -43,19 +43,19 @@ export interface TaxLine {
 }
 
 export interface LineItem {
-    id: number; // Item ID (read-only)
+    id?: number; // Item ID (read-only)
     name: string; // Product name
     product_id: number; // Product ID
-    variation_id: number; // Variation ID, if applicable
+    variation_id?: number; // Variation ID, if applicable
     quantity: number; // Quantity ordered
-    tax_class: string; // Slug of the tax class of product
-    subtotal: string; // Line subtotal (before discounts)
-    subtotal_tax: string; // Line subtotal tax (before discounts) (read-only)
+    tax_class?: string; // Slug of the tax class of product
+    subtotal?: string; // Line subtotal (before discounts)
+    subtotal_tax?: string; // Line subtotal tax (before discounts) (read-only)
     total: string; // Line total (after discounts)
-    total_tax: string; // Line total tax (after discounts) (read-only)
-    taxes: TaxLine[]; // Line taxes (read-only)
-    meta_data: MetaData[]; // Meta data
-    sku: string; // Product SKU (read-only)
+    total_tax?: string; // Line total tax (after discounts) (read-only)
+    taxes?: TaxLine[]; // Line taxes (read-only)
+    meta_data?: MetaData[]; // Meta data
+    sku?: string; // Product SKU (read-only)
     price: string; // Product price (read-only)
     size?: string; // Product size (custom field)
 }

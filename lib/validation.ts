@@ -5,6 +5,7 @@ export const deliverySchema = z.object({
   first_name: z.string().min(1, "First name is required"),
   last_name: z.string().min(1, "Last name is required"),
   address_1: z.string().min(1, "Address is required"),
+  address_2: z.string().optional(),
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State/District is required").optional(),
   postcode: z.string().min(1, "Postal code is required"),

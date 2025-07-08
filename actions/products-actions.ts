@@ -2,6 +2,7 @@
 
 import { Product, ProductReview, VariationProduct } from "@/types/product-type";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
+import { revalidatePath } from "next/cache";
 
 const WooCommerce = new WooCommerceRestApi({
   url: process.env.WORDPRESS_SITE_URL as string,
@@ -189,6 +190,7 @@ export async function createProductReview(reviewData: {
       verified: response.data.verified,
     };
 
+    revalidatePath('/')
     return {
       success: true,
       review: createdReview,
