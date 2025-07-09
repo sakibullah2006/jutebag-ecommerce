@@ -7,13 +7,21 @@ import TopNavOne from '../../components/Header/TopNav/TopNavOne'
 import Breadcrumb from '../../components/Breadcrumb/Breadcrumb'
 import Footer from '../../components/Footer/Footer'
 import MenuOne from '../../components/Header/Menu/MenuOne'
+import { Metadata } from 'next'
+
+
+
+export const metadata: Metadata = {
+    title: 'Dashboard - My Account',
+    description: 'Manage your account, view orders, and update your profile information.',
+}
 
 interface DashboardPageProps {
     searchParams: { tab?: string; userId?: string }
 }
 
 const Dashboard = async ({ searchParams }: DashboardPageProps) => {
-    const { tab = 'dashboard' } = searchParams
+    const { tab = 'dashboard' } = await searchParams
 
     // Get userId from cookies (JWT token contains user info)
     const cookieStore = await cookies()

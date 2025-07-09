@@ -5,6 +5,7 @@ import TopNavOne from '@/components/Header/TopNav/TopNavOne';
 import ShopBreadCrumb1 from '@/components/Shop/ShopBreadCrumb';
 import { Product as ProductType } from '@/types/product-type';
 import { Suspense } from 'react';
+import { Metadata } from 'next';
 
 // Define props type for the component
 type BreadCrumb1Props = {
@@ -48,3 +49,21 @@ export default async function BreadCrumb1({ searchParams }: BreadCrumb1Props) {
         </>
     );
 }
+
+export const metadata: Metadata = {
+    title: 'Shop - SakibBaba',
+    description: 'Discover our latest collection of products at SakibBaba. Browse through our wide selection of quality items with great prices.',
+    keywords: ['shop', 'products', 'SakibBaba', 'online store', 'fashion', 'clothing'],
+    openGraph: {
+        title: 'Shop - SakibBaba',
+        description: 'Discover our latest collection of products at SakibBaba. Browse through our wide selection of quality items with great prices.',
+        type: 'website',
+        url: '/shop',
+        siteName: 'SakibBaba',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'Shop - SakibBaba',
+        description: 'Discover our latest collection of products at SakibBaba. Browse through our wide selection of quality items with great prices.',
+    },
+};

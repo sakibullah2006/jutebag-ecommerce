@@ -12,6 +12,25 @@ import WhatNewOne from '@/components/Home/WhatNewOne'
 import SliderTwo from '@/components/Slider/SliderTwo'
 import React from 'react'
 import MenuOne from '../components/Header/Menu/MenuOne'
+import { Metadata } from 'next'
+
+
+export const metadata: Metadata = {
+  title: 'Home | SakibBaba Store',
+  description: 'Discover the latest products and collections at SakibBaba Store. Shop now for exclusive deals and free shipping on orders over $50.',
+  keywords: 'online store, shopping, products, collections, deals, free shipping',
+  openGraph: {
+    title: 'Home | SakibBaba Store',
+    description: 'Discover the latest products and collections at SakibBaba Store. Shop now for exclusive deals and free shipping on orders over $50.',
+    type: 'website',
+    url: '/',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Home | SakibBaba Store',
+    description: 'Discover the latest products and collections at SakibBaba Store. Shop now for exclusive deals and free shipping on orders over $50.',
+  },
+}
 
 
 
@@ -24,6 +43,8 @@ export default async function HomeTwo() {
     getProductTags()
   ])
   console.log("Fetch Products:", products.length);
+
+
 
   return (
     <>
