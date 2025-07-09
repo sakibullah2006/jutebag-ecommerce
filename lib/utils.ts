@@ -1,3 +1,4 @@
+import { CartItem } from "@/context/CartContext"
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -9,10 +10,17 @@ export function cn(...inputs: ClassValue[]) {
 export function formatDate(dateString: string): string {
   const date = new Date(dateString)
   return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   })
+}
+
+export function decodeHtmlEntities(html: string) {
+  if (typeof window !== 'undefined') {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.documentElement.textContent;
+  }
 }
 
 export function getRelativeTime(dateString: string): string {
@@ -38,9 +46,33 @@ export function formatPrice(price: number | string): string {
       style: "currency",
       currency: "USD",
     }).format(numericPrice)
-  } catch(e) {
+  } catch (e) {
     console.log(`Error formating price: ${e}`)
-  } 
+  }
   return String(price)
 
+}
+
+export const calculatePrice = (product: CartItem) => {
+  let price: string | number | undefined;
+
+  if (product.selectedColor || product.selectedSize) {
+    if (product.selectedVariation?.on_sale) {
+      price = product.selectedVariation.sale_price;
+    } else if ((product.selectedColor || product.selectedSize) && !product.selectedVariation) {
+      price = product.price
+    } else {
+      price = product.selectedVariation?.regular_price ?? product.selectedVariation?.price;
+    }
+  } else {
+    if (product.on_sale) {
+      price = product.sale_price;
+    } else {
+      price = product.regular_price ?? product.price;
+    }
+  }
+
+  // Convert to number and ensure we have a valid price
+  const numericPrice = typeof price === "string" ? Number.parseFloat(price) : price;
+  return numericPrice && numericPrice > 0 ? numericPrice : 0;
 }

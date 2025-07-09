@@ -1,140 +1,113 @@
-import * as asRatio from "@tailwindcss/aspect-ratio"
-import * as container_quries from "@tailwindcss/container-queries"
-import * as forms from "@tailwindcss/forms"
-import * as typography from "@tailwindcss/typography"
+// tailwind.config.ts
+import type { Config } from 'tailwindcss';
 
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-    content: [
-      './app/**/*.{js,ts,jsx,tsx,mdx}',
-      './pages/**/*.{js,ts,jsx,tsx,mdx}',
-      './components/**/*.{js,ts,jsx,tsx,mdx}',
-      './lib/**/*.{js,ts,jsx,tsx,mdx}',
-    ],
-    theme: {
-      extend: {
-        colors: {
-          background: {
-            DEFAULT: 'oklch(1 0 0)',
-            dark: 'oklch(0.145 0 0)',
-          },
-          foreground: {
-            DEFAULT: 'oklch(0.145 0 0)',
-            dark: 'oklch(0.985 0 0)',
-          },
-          primary: {
-            DEFAULT: 'oklch(0.205 0 0)',
-            foreground: 'oklch(0.985 0 0)',
-            dark: 'oklch(0.922 0 0)',
-            'dark-foreground': 'oklch(0.205 0 0)',
-          },
-          secondary: {
-            DEFAULT: 'oklch(0.97 0 0)',
-            foreground: 'oklch(0.205 0 0)',
-            dark: 'oklch(0.269 0 0)',
-            'dark-foreground': 'oklch(0.985 0 0)',
-          },
-          muted: {
-            DEFAULT: 'oklch(0.97 0 0)',
-            foreground: 'oklch(0.556 0 0)',
-            dark: 'oklch(0.269 0 0)',
-            'dark-foreground': 'oklch(0.708 0 0)',
-          },
-          accent: {
-            DEFAULT: 'oklch(0.97 0 0)',
-            foreground: 'oklch(0.205 0 0)',
-            dark: 'oklch(0.269 0 0)',
-            'dark-foreground': 'oklch(0.985 0 0)',
-          },
-          destructive: {
-            DEFAULT: 'oklch(0.577 0.245 27.325)',
-            dark: 'oklch(0.704 0.191 22.216)',
-          },
-          border: {
-            DEFAULT: 'oklch(0.922 0 0)',
-            dark: 'oklch(1 0 0 / 10%)',
-          },
-          input: {
-            DEFAULT: 'oklch(0.922 0 0)',
-            dark: 'oklch(1 0 0 / 15%)',
-          },
-          ring: {
-            DEFAULT: 'oklch(0.708 0 0)',
-            dark: 'oklch(0.556 0 0)',
-          },
-          chart: {
-            1: 'oklch(0.646 0.222 41.116)',
-            2: 'oklch(0.6 0.118 184.704)',
-            3: 'oklch(0.398 0.07 227.392)',
-            4: 'oklch(0.828 0.189 84.429)',
-            5: 'oklch(0.769 0.188 70.08)',
-            'dark-1': 'oklch(0.488 0.243 264.376)',
-            'dark-2': 'oklch(0.696 0.17 162.48)',
-            'dark-3': 'oklch(0.769 0.188 70.08)',
-            'dark-4': 'oklch(0.627 0.265 303.9)',
-            'dark-5': 'oklch(0.645 0.246 16.439)',
-          },
-          sidebar: {
-            DEFAULT: 'oklch(0.985 0 0)',
-            foreground: 'oklch(0.145 0 0)',
-            primary: 'oklch(0.205 0 0)',
-            'primary-foreground': 'oklch(0.985 0 0)',
-            accent: 'oklch(0.97 0 0)',
-            'accent-foreground': 'oklch(0.205 0 0)',
-            border: 'oklch(0.922 0 0)',
-            ring: 'oklch(0.708 0 0)',
-            dark: 'oklch(0.205 0 0)',
-            'dark-foreground': 'oklch(0.985 0 0)',
-            'dark-primary': 'oklch(0.488 0.243 264.376)',
-            'dark-primary-foreground': 'oklch(0.985 0 0)',
-            'dark-accent': 'oklch(0.269 0 0)',
-            'dark-accent-foreground': 'oklch(0.985 0 0)',
-            'dark-border': 'oklch(1 0 0 / 10%)',
-            'dark-ring': 'oklch(0.556 0 0)',
-          },
-        },
-        fontFamily: {
-          sans: ['var(--font-geist-sans)', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-          mono: ['var(--font-geist-mono)'],
-        },
-        fontSize: {
-          xs: ['0.75rem', { lineHeight: '1rem' }],
-          sm: ['0.875rem', { lineHeight: '1.25rem' }],
-          base: ['1rem', { lineHeight: '1.5rem' }],
-          lg: ['1.125rem', { lineHeight: '1.75rem' }],
-          xl: ['1.25rem', { lineHeight: '1.75rem' }],
-          '2xl': ['1.5rem', { lineHeight: '2rem' }],
-          '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
-          '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
-        },
-        borderRadius: {
-          sm: 'calc(0.625rem - 4px)',
-          md: 'calc(0.625rem - 2px)',
-          lg: '0.625rem',
-          xl: 'calc(0.625rem + 4px)',
-        },
-        boxShadow: {
-          'soft': '0 2px 8px rgba(0, 0, 0, 0.05)',
-          'medium': '0 4px 12px rgba(0, 0, 0, 0.1)',
-        },
-        transitionDuration: {
-          DEFAULT: '200ms',
-        },
-        transitionTimingFunction: {
-          DEFAULT: 'cubic-bezier(0.4, 0, 0.2, 1)',
+const config: Config = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx,scss}',
+    './components/**/*.{js,ts,jsx,tsx,mdx,scss}',
+    './styles/**/*.{js,ts,jsx,tsx,mdx,scss}',
+    './app/**/*.{js,ts,jsx,tsx,mdx,scss}',
+  ],
+  theme: {
+    // 👇 The container object should also be inside extend
+    // to avoid overwriting other theme properties like screens.
+    extend: {
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic':
+          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
+      container: { // ✅ Move container inside extend
+        padding: {
+          DEFAULT: '16px',
         },
       },
+      colors: { // ✅ Move your colors object here
+        transparent: 'transparent',
+        green: {
+          DEFAULT: '#D2EF9A',
+          100: '#f7fdf0',
+          200: '#eefce1',
+          300: '#e5fad2',
+          400: '#dcf8c3',
+          500: '#D2EF9A',
+          600: '#c4e885',
+          700: '#b6e170',
+          800: '#a8da5b',
+          900: '#9ad346',
+        },
+        black: {
+          DEFAULT: '#1F1F1F',
+          100: '#e6e6e6',
+          200: '#cccccc',
+          300: '#b3b3b3',
+          400: '#999999',
+          500: '#1F1F1F',
+          600: '#1a1a1a',
+          700: '#151515',
+          800: '#101010',
+          900: '#0b0b0b',
+        },
+        secondary: '#696C70',
+        secondary2: '#A0A0A0',
+        white: '#ffffff',
+        surface: '#F7F7F7',
+        red: {
+          DEFAULT: '#DB4444',
+          100: '#fdeaea',
+          200: '#fbd5d5',
+          300: '#f9c0c0',
+          400: '#f7abab',
+          500: '#DB4444',
+          600: '#c73d3d',
+          700: '#b33636',
+          800: '#9f2f2f',
+          900: '#8b2828',
+        },
+        purple: {
+          DEFAULT: '#8684D4',
+          100: '#f1f1fb',
+          200: '#e3e3f7',
+          300: '#d5d5f3',
+          400: '#c7c7ef',
+          500: '#8684D4',
+          600: '#7a78c7',
+          700: '#6e6cba',
+          800: '#6260ad',
+          900: '#5654a0',
+        },
+        success: '#3DAB25',
+        yellow: {
+          DEFAULT: '#ECB018',
+          100: '#fef9ed',
+          200: '#fdf3db',
+          300: '#fcedc9',
+          400: '#fbe7b7',
+          500: '#ECB018',
+          600: '#d49e16',
+          700: '#bc8c14',
+          800: '#a47a12',
+          900: '#8c6810',
+        },
+        pink: {
+          DEFAULT: '#F4407D',
+          100: '#feebf1',
+          200: '#fdd7e3',
+          300: '#fcc3d5',
+          400: '#fbafc7',
+          500: '#F4407D',
+          600: '#dc3a71',
+          700: '#c43465',
+          800: '#ac2e59',
+          900: '#94284d',
+        },
+        line: '#E9E9E9',
+        outline: 'rgba(0, 0, 0, 0.15)',
+        surface2: 'rgba(255, 255, 255, 0.2)',
+        surface1: 'rgba(255, 255, 255, 0.1)',
+      },
     },
-    plugins: [
-      require("daisyui"),
-        typography,
-        forms,
-        asRatio,
-        container_quries
-    ],
-    daisyui: {
-      themes: false,
-      base: false, // Disable Daisy's base styles
-    },
-    darkMode: 'class',
-  }
+  },
+  plugins: [],
+};
+export default config;

@@ -1,0 +1,50 @@
+import { getAllProductsPaginated } from '@/actions/products-actions';
+import Footer from '@/components/Footer/Footer';
+import MenuOne from '@/components/Header/Menu/MenuOne';
+import TopNavOne from '@/components/Header/TopNav/TopNavOne';
+import ShopBreadCrumb1 from '@/components/Shop/ShopBreadCrumb';
+import { Product as ProductType } from '@/types/product-type';
+import { Suspense } from 'react';
+
+// Define props type for the component
+type BreadCrumb1Props = {
+    searchParams: {
+        type?: string;
+        gender?: string;
+        category?: string;
+    };
+};
+
+export default async function BreadCrumb1({ searchParams }: BreadCrumb1Props) {
+    // Extract search parameters
+    const { type, gender, category } = await searchParams;
+
+    // Fetch products server-side
+    const { products, status } = await getAllProductsPaginated();
+    // Handle fetch status if needed
+    if (status !== 'OK') {
+        // You can add error handling here, e.g., return a fallback UI
+        return (
+            <div>Error fetching products</div>
+        );
+    }
+
+    return (
+        <>
+            {/* <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" /> */}
+            <div id="header" className="relative w-full">
+                <MenuOne props="bg-transparent" />
+            </div>
+            <Suspense fallback={<div>Loading breadcrumb...</div>}>
+                <ShopBreadCrumb1
+                    data={products}
+                    productPerPage={9}
+                    dataType={type}
+                    gender={gender ?? null}
+                    category={category ?? null}
+                />
+            </Suspense>
+            <Footer />
+        </>
+    );
+}
