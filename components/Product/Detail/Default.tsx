@@ -89,7 +89,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
             }
         }
         return () => { isMounted = false; };
-    }, [])
+    }, [variations])
 
 
     const calculateReviews = () => {
@@ -500,9 +500,9 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                 <div className="button-block mt-5">
                                     <button
                                         type="button"
+                                        disabled={data.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)}
                                         onClick={handleBuyNow}
-                                        disabled={data.stock_status === "outofstock"}
-                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable
+                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)
                                             ? "bg-surface text-secondary2 border"
                                             : "bg-black text-white hover:bg-green-300"
                                             }`}
