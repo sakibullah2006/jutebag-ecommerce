@@ -30,7 +30,7 @@ export const getProductById = async ({ id }: { id: string }): Promise<{ product:
 
 export const getProductVariationsById = async ({ id }: { id: string }): Promise<{ variations?: VariationProduct[], status: "OK" | "ERROR" }> => {
   try {
-    const variations = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products/${id}/variations`, { cache: "force-cache", next: { revalidate: 100 } }).then(async variations => await variations.json())
+    const variations = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products/${id}/variations`, { cache: "default", next: { revalidate: 100 } }).then(async variations => await variations.json())
     // console.log(product ?? "No product found")
     return {
       variations,

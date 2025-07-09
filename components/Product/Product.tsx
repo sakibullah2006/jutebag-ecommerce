@@ -1,10 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 'use client'
-
-import { getCurrentCurrency } from '@/actions/data-actions'
 import { getProductVariationsById } from '@/actions/products-actions'
 import { useCart } from '@/context/CartContext'
-import { useCompare } from '@/context/CompareContext'
 import { useModalCartContext } from '@/context/ModalCartContext'
 import { useModalCompareContext } from '@/context/ModalCompareContext'
 import { useModalQuickviewContext } from '@/context/ModalQuickviewContext'
@@ -12,7 +9,6 @@ import { useModalWishlistContext } from '@/context/ModalWishlistContext'
 import { useWishlist } from '@/context/WishlistContext'
 import { COLORS } from '@/data/color-codes'
 import { decodeHtmlEntities } from '@/lib/utils'
-import { CurrencyType } from '@/types/data-type'
 import { Product as ProductType, VariationProduct } from '@/types/product-type'
 import * as Icon from "@phosphor-icons/react/dist/ssr"
 import { isNull } from 'lodash'
@@ -23,6 +19,7 @@ import router from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import Marquee from 'react-fast-marquee'
 import Rate from '../Other/Rate'
+import { useAppData } from '../../context/AppDataContext'
 
 interface ProductProps {
     data: ProductType
@@ -49,7 +46,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
         return ''
     })
     const [openQuickShop, setOpenQuickShop] = useState<boolean>(false)
-    const [currentCurrency, setCurrentCurrency] = useState<CurrencyType>({ name: 'doller', symbol: '$', code: 'USD' })
+    const { currentCurrency } = useAppData()
     const { addToCart, cartState } = useCart();
     const { openModalCart } = useModalCartContext();
     const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist();
@@ -64,13 +61,6 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
 
     useEffect(() => {
         let isMounted = true;
-        const loadCurrency = async () => {
-            const currency = await getCurrentCurrency();
-            if (isMounted) {
-                setCurrentCurrency(currency);
-            }
-        }
-        loadCurrency()
         fetchVariations()
         // loadVariations();
         setIsLoading(false);
@@ -209,7 +199,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     };
 
     const handleQuickviewOpen = () => {
-        openQuickview(data, variations || [])
+        openQuickview(data)
     }
 
     const handleDetailProduct = (productId: string) => {
@@ -648,10 +638,10 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                             )} */}
                             {!isNull(selectedVariation) ?
                                 (<div className="product-price-block flex items-center gap-2 flex-wrap mt-1 duration-300 relative z-[1]">
-                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency.symbol)}{selectedVariation.on_sale ? Number(selectedVariation.sale_price).toFixed(2) : Number(selectedVariation.price).toFixed(2)}</div>
+                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{selectedVariation.on_sale ? Number(selectedVariation.sale_price).toFixed(2) : Number(selectedVariation.price).toFixed(2)}</div>
                                     {selectedVariation.on_sale && percentSale > 0 && (
                                         <>
-                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency.symbol)}{Number(selectedVariation.price).toFixed(2)}</del></div>
+                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(selectedVariation.price).toFixed(2)}</del></div>
                                             <div className="product-sale caption1 font-medium bg-green px-3 py-0.5 inline-block rounded-full">
                                                 -{percentSale}%
                                             </div>
@@ -660,13 +650,13 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                 </div>) :
                                 (<div className="product-price-block flex items-center gap-2 flex-wrap mt-1 duration-300 relative z-[1]">
                                     {data.variations && data.variations.length > 0 ?
-                                        <div className="product-price text-title">{decodeHtmlEntities(currentCurrency.symbol)}{data.on_sale ? Number(data.price).toFixed(2) : Number(data.price).toFixed(2)}</div>
+                                        <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{data.on_sale ? Number(data.price).toFixed(2) : Number(data.price).toFixed(2)}</div>
                                         :
-                                        <div className="product-price text-title">{decodeHtmlEntities(currentCurrency.symbol)}{data.on_sale ? Number(data.sale_price).toFixed(2) : Number(data.price).toFixed(2)}</div>
+                                        <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{data.on_sale ? Number(data.sale_price).toFixed(2) : Number(data.price).toFixed(2)}</div>
                                     }
                                     {data.on_sale && percentSale > 0 && (
                                         <>
-                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency.symbol)}{Number(data.price).toFixed(2)}</del></div>
+                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(data.price).toFixed(2)}</del></div>
                                             <div className="product-sale caption1 font-medium bg-green px-3 py-0.5 inline-block rounded-full">
                                                 -{percentSale}%
                                             </div>

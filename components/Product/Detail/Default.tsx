@@ -1,6 +1,5 @@
 'use client'
 
-import { getCurrentCurrency } from '@/actions/data-actions'
 import ModalSizeguide from '@/components/Modal/ModalSizeguide'
 import Rate from '@/components/Other/Rate'
 import { useCompare } from '@/context/CompareContext'
@@ -15,7 +14,7 @@ import * as Icon from "@phosphor-icons/react/dist/ssr"
 import parse from 'html-react-parser'
 import Image from 'next/image'
 import Link from 'next/link'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import SwiperCore from 'swiper/core'
 import 'swiper/css/bundle'
 import { Navigation, Scrollbar, Thumbs } from 'swiper/modules'
@@ -24,6 +23,7 @@ import Product from '../Product'
 import ReviewForm from '../ReviewForm'
 import { useCart } from '@/context/CartContext'
 import { useAppData } from '@/context/AppDataContext'
+import { useRouter } from 'next/navigation'
 
 
 
@@ -72,6 +72,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     const { openModalCompare } = useModalCompareContext()
     const isColorReq = data.attributes.some(attr => attr.name.toLowerCase() === "color")
     const isSizeReq = data.attributes.some(attr => attr.name.toLowerCase() === "size")
+    const router = useRouter();
 
     // console.log('Raw HTML:', data.description);
     useEffect(() => {
@@ -90,15 +91,6 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
         return () => { isMounted = false; };
     }, [])
 
-    useEffect(() => {
-        // Find the variation that matches the active color and size
-        const matchingVariation = findMatchingVariation();
-        if (matchingVariation) {
-            setSelectedVariation(matchingVariation);
-        } else {
-            setSelectedVariation(null);
-        }
-    }, [activeColor, activeSize])
 
     const calculateReviews = () => {
         let calculatedAverage_rating = 0;
@@ -128,7 +120,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     };
 
     // Find matching variation based on activeColor or activeSize
-    const findMatchingVariation = () => {
+    const findMatchingVariation = useCallback(() => {
         // If there are no variations loaded, we can't find a match.
         if (variations?.length === 0) return null;
 
@@ -150,7 +142,17 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
         });
 
         return matchingVariant ?? null;
-    };
+    }, [variations, activeColor, activeSize, data.attributes]);
+
+    useEffect(() => {
+        // Find the variation that matches the active color and size
+        const matchingVariation = findMatchingVariation();
+        if (matchingVariation) {
+            setSelectedVariation(matchingVariation);
+        } else {
+            setSelectedVariation(null);
+        }
+    }, [activeColor, activeSize, findMatchingVariation])
 
 
     const onReviewSubmitted = (review: ProductReview) => {
@@ -238,6 +240,23 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
             cartVariation ?? undefined
         );
         openModalCart()
+    };
+
+    const handleBuyNow = () => {
+        const cartVariation = findMatchingVariation()
+
+        // if ((isColorReq && activeColor) && (isSizeReq && activeSize))
+
+        addToCart(
+            data, // The base product data
+            quantity,
+            activeSize,
+            activeColor,
+            cartVariation?.id?.toString(),
+            cartVariation ?? undefined
+        );
+
+        router.push("/checkout");
     };
 
     const handleAddToWishlist = () => {
@@ -481,6 +500,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                 <div className="button-block mt-5">
                                     <button
                                         type="button"
+                                        onClick={handleBuyNow}
                                         disabled={data.stock_status === "outofstock"}
                                         className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable
                                             ? "bg-surface text-secondary2 border"

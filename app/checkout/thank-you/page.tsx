@@ -1,6 +1,5 @@
 import React from 'react'
 import { getOrder } from '@/actions/order-actions'
-import { getCurrentCurrency } from '@/actions/data-actions'
 import ThankYouClient from '@/components/ThankYou/ThankYouClient'
 import { notFound } from 'next/navigation'
 

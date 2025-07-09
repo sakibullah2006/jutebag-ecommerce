@@ -1,4 +1,3 @@
-import { getAttributesWithTerms, getBrands, getCurrentCurrency, getProductCategories, getProductTags } from '@/actions/data-actions';
 import { getAllProductsPaginated } from '@/actions/products-actions';
 import Footer from '@/components/Footer/Footer';
 import MenuOne from '@/components/Header/Menu/MenuOne';

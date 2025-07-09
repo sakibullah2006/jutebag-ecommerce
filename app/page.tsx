@@ -1,8 +1,6 @@
 import { getProductTags } from '@/actions/data-actions'
 import { getAllProductsPaginated } from '@/actions/products-actions'
 import Footer from '@/components/Footer/Footer'
-import MenuTwo from '@/components/Header/Menu/MenuTwo'
-import TopNavOne from '@/components/Header/TopNav/TopNavOne'
 import Banner from '@/components/Home/Banner'
 import Benefit from '@/components/Home/Benefit'
 import Brand from '@/components/Home/Brand'
@@ -13,6 +11,7 @@ import WhatNewOne from '@/components/Home/WhatNewOne'
 // import ModalNewsletter from '@/components/Modal/ModalNewsletter'
 import SliderTwo from '@/components/Slider/SliderTwo'
 import React from 'react'
+import MenuOne from '../components/Header/Menu/MenuOne'
 
 
 
@@ -30,7 +29,7 @@ export default async function HomeTwo() {
     <>
       {/* <TopNavOne props="style-two bg-purple" slogan='Limited Offer: Free shipping on orders over $50' /> */}
       <div id="header" className='relative w-full'>
-        <MenuTwo />
+        <MenuOne props={'bg-transparent'} />
         <SliderTwo />
       </div>
       <Collection props="pt-5" />

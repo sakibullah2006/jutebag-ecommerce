@@ -12,34 +12,25 @@ import { useAppData } from '@/context/AppDataContext';
 import { ProductType } from '@/types/ProductType';
 import { Product as ProductType2, VariationProduct } from '@/types/product-type';
 import { decodeHtmlEntities } from '@/lib/utils';
+import { getProductVariationsById } from '@/actions/products-actions';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import Image from 'next/image';
 import React, { useState, useEffect, useCallback } from 'react';
 import Rate from '../Other/Rate';
 import ModalSizeguide from './ModalSizeguide';
+import VariationSkeleton from '../Other/VariationSkeleton';
 import parse from 'html-react-parser';
+import { useRouter } from 'next/navigation';
 
 const ModalQuickview = () => {
     const [photoIndex, setPhotoIndex] = useState(0)
     const [openPopupImg, setOpenPopupImg] = useState(false)
-    // const [openSizeGuide, setOpenSizeGuide] = useState<boolean>(false)
-    const { selectedProduct, variations, closeQuickview } = useModalQuickviewContext()
-    const [activeColor, setActiveColor] = useState<string>(() => {
-        const attr = selectedProduct?.attributes?.find(attr => attr.name === "color")
-        if (attr) {
-            return attr.options[0]
-        } else {
-            return ''
-        }
-    })
-    const [activeSize, setActiveSize] = useState<string>(() => {
-        const attr = selectedProduct?.attributes?.find(attr => attr.name === "size")
-        if (attr) {
-            return attr.options[0]
-        } else {
-            return ''
-        }
-    })
+    const [openSizeGuide, setOpenSizeGuide] = useState<boolean>(false)
+    const [variations, setVariations] = useState<VariationProduct[]>([])
+    const [isLoadingVariations, setIsLoadingVariations] = useState(false)
+    const { selectedProduct, closeQuickview } = useModalQuickviewContext()
+    const [activeColor, setActiveColor] = useState<string>('')
+    const [activeSize, setActiveSize] = useState<string>('')
     const [quantity, setQuantity] = useState(1)
     const [selectedVariation, setSelectedVariation] = useState<VariationProduct | null>(null)
     const { currentCurrency } = useAppData()
@@ -47,9 +38,72 @@ const ModalQuickview = () => {
     const { openModalCart } = useModalCartContext()
     const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist()
     const { openModalWishlist } = useModalWishlistContext()
+    const { addToCompare, removeFromCompare, compareState } = useCompare();
+    const { openModalCompare } = useModalCompareContext()
+    const router = useRouter()
 
     const isColorReq = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === "color") || false
     const isSizeReq = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === "size") || false
+
+
+    // useEffect(() => {
+    //     let isMounted = true;
+    //     fetchVariations()
+    //     // loadVariations();
+    //     return () => { isMounted = false; };
+    // }, []);
+
+
+
+
+    // Fetch variations ONLY when the selected product changes
+    useEffect(() => {
+        const fetchVariations = async () => {
+            // Exit if there's no product or it has no variation IDs to fetch
+            if (!selectedProduct?.id || selectedProduct.variations.length === 0) {
+                setVariations([]); // Clear out old variations
+                setIsLoadingVariations(false);
+                return;
+            }
+
+            console.log('Fetching variations for product:', selectedProduct.id);
+            setIsLoadingVariations(true);
+            try {
+                const result = await getProductVariationsById({ id: selectedProduct.id.toString() });
+                if (result.status === "OK" && result.variations) {
+                    setVariations(result.variations);
+                    console.log('Fetched variations:', result.variations);
+                } else {
+                    console.log('Failed to fetch variations:', result.status);
+                    setVariations([]); // Clear on failure to avoid stale data
+                }
+            } catch (error) {
+                console.error('Error fetching variations:', error);
+                setVariations([]); // Also clear on error
+            } finally {
+                // The loading state is set here or after variations are set in the next effect.
+                // For simplicity, we can do it here.
+                setIsLoadingVariations(false);
+            }
+        };
+
+        fetchVariations();
+
+        // Also, reset the active attributes and quantity when the product changes
+        if (selectedProduct) {
+            const colorAttr = selectedProduct.attributes?.find(attr => attr.name.toLowerCase() === "color");
+            setActiveColor(colorAttr?.options[0] || '');
+
+            const sizeAttr = selectedProduct.attributes?.find(attr => attr.name.toLowerCase() === "size");
+            setActiveSize(sizeAttr?.options[0] || '');
+
+            setQuantity(1);
+        }
+
+    }, [selectedProduct]);
+
+
+
 
     // Find matching variation based on activeColor or activeSize
     const findMatchingVariation = useCallback(() => {
@@ -74,20 +128,20 @@ const ModalQuickview = () => {
         });
 
         return matchingVariant ?? null;
-    }, [variations, selectedProduct, activeColor, activeSize]);
+    }, [selectedProduct, activeColor, activeSize, variations]);
 
     useEffect(() => {
         if (!selectedProduct || !selectedProduct.variations || selectedProduct.variations.length === 0) {
             return;
         }
         // Find the first variation that matches the active color and size
-        if (variations) {
+        if (variations && variations.length > 0) {
             const initialVariation = findMatchingVariation();
             if (initialVariation) {
                 setSelectedVariation(initialVariation);
             }
         }
-    }, [selectedProduct, variations, findMatchingVariation])
+    }, [selectedProduct, findMatchingVariation, variations, activeColor, activeSize]);
 
     useEffect(() => {
         // Find the variation that matches the active color and size
@@ -173,6 +227,23 @@ const ModalQuickview = () => {
         }
     };
 
+    const handleBuyNow = () => {
+        if (selectedProduct) {
+            const cartVariation = findMatchingVariation()
+
+            addToCart(
+                selectedProduct as unknown as ProductType2, // The base product data
+                quantity,
+                activeSize,
+                activeColor,
+                cartVariation?.id?.toString(),
+                cartVariation ?? undefined
+            );
+            router.push("/checkout")
+            closeQuickview()
+        }
+    }
+
     const handleAddToWishlist = () => {
         if (selectedProduct) {
             // if product existed in wishlit, remove from wishlist and set state to false
@@ -186,27 +257,21 @@ const ModalQuickview = () => {
         }
     };
 
-    // const handleAddToCompare = () => {
-    //     if (selectedProduct) {
-    //         // if product existed in compare, remove from compare and set state to false
-    //         if (compareState.compareArray.length < 3) {
-    //             if (compareState.compareArray.some(item => item.id.toString() === selectedProduct.id.toString())) {
-    //                 removeFromCompare(selectedProduct.id.toString());
-    //             } else {
-    //                 // else, add to compare and set state to true
-    //                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //                 addToCompare(selectedProduct as any);
-    //             }
-    //         } else {
-    //             alert('Compare up to 3 products')
-    //         }
-    //         openModalCompare();
-    //     }
-    // };
+    const handleClose = () => {
+        // ✨ 2. Reset all local state to its initial state
+        setVariations([]);
+        setSelectedVariation(null);
+        setActiveColor('');
+        setActiveSize('');
+        setQuantity(1);
+
+        // ✨ 3. Call the original context function to finish closing
+        closeQuickview();
+    };
 
     return (
         <>
-            <div className={`modal-quickview-block`} onClick={closeQuickview}>
+            <div className={`modal-quickview-block`} onClick={handleClose}>
                 <div
                     className={`modal-quickview-main py-6 ${selectedProduct !== null ? 'open' : ''}`}
                     onClick={(e) => { e.stopPropagation() }}
@@ -260,103 +325,109 @@ const ModalQuickview = () => {
                                     <span className='caption1 text-secondary'>(1.234 reviews)</span>
                                 </div>
                                 <div className="flex items-center gap-3 flex-wrap mt-5 pb-6 border-b border-line">
-                                    <div className="product-price heading5">
-                                        {currentCurrency ? decodeHtmlEntities(currentCurrency.symbol) : '$'}
-                                        {Number(selectedVariation?.sale_price || selectedVariation?.price || selectedProduct?.sale_price || selectedProduct?.price).toFixed(2)}
-                                    </div>
-                                    {((selectedVariation?.on_sale || selectedProduct?.on_sale) && percentSale > 0) && (
+                                    {isLoadingVariations && selectedProduct?.variations && selectedProduct.variations.length > 0 ? (
+                                        <div className="animate-pulse">
+                                            <div className="h-6 bg-surface rounded w-20"></div>
+                                        </div>
+                                    ) : (
                                         <>
-                                            <div className='w-px h-4 bg-line'></div>
-                                            <div className="product-origin-price font-normal text-secondary2">
-                                                <del>
-                                                    {currentCurrency ? decodeHtmlEntities(currentCurrency.symbol) : '$'}
-                                                    {Number(selectedVariation?.regular_price || selectedProduct?.regular_price || selectedProduct?.price).toFixed(2)}
-                                                </del>
+                                            <div className="product-price heading5">
+                                                {currentCurrency ? decodeHtmlEntities(currentCurrency.symbol) : '$'}
+                                                {Number(selectedVariation?.sale_price || selectedVariation?.price || selectedProduct?.sale_price || selectedProduct?.price).toFixed(2)}
                                             </div>
-                                            <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
-                                                -{percentSale}%
-                                            </div>
+                                            {((selectedVariation?.on_sale || selectedProduct?.on_sale) && percentSale > 0) && (
+                                                <>
+                                                    <div className='w-px h-4 bg-line'></div>
+                                                    <div className="product-origin-price font-normal text-secondary2">
+                                                        <del>
+                                                            {currentCurrency ? decodeHtmlEntities(currentCurrency.symbol) : '$'}
+                                                            {Number(selectedVariation?.regular_price || selectedProduct?.regular_price || selectedProduct?.price).toFixed(2)}
+                                                        </del>
+                                                    </div>
+                                                    <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
+                                                        -{percentSale}%
+                                                    </div>
+                                                </>
+                                            )}
                                         </>
                                     )}
                                     <div className='desc text-secondary parsed-html mt-3'>{selectedProduct?.short_description ? parse(selectedProduct.short_description) : parse(selectedProduct?.description.toString().slice(0, 200) + "...")}</div>
                                 </div>
                                 <div className="list-action mt-6">
-                                    {selectedProduct?.attributes?.some(item => item.name.toLowerCase() === "color") && (
-                                        <div className="choose-color">
-                                            <div className="text-title">Colors: <span className='text-title color'>{activeColor}</span></div>
-                                            <div className="list-color flex items-center gap-2 flex-wrap mt-3">
-                                                {selectedProduct?.attributes?.find(item => item.name.toLowerCase() === "color")?.options.map((item, index) => (
-                                                    <div
-                                                        className={`color-item w-fit h-fit flex px-3 py-2 items-center justify-center text-button rounded-md bg-white border border-line ${activeColor === item ? 'active' : ''}`}
-                                                        key={index}
-                                                        onClick={() => handleActiveColor(item)}
-                                                    >
-                                                        {item}
+                                    {isLoadingVariations && selectedProduct?.variations && selectedProduct.variations.length > 0 ? (
+                                        <VariationSkeleton />
+                                    ) : (
+                                        <>
+                                            {selectedProduct?.attributes?.some(item => item.name.toLowerCase() === "color") && (
+                                                <div className="choose-color">
+                                                    <div className="text-title">Colors: <span className='text-title color'>{activeColor}</span></div>
+                                                    <div className="list-color flex items-center gap-2 flex-wrap mt-3">
+                                                        {selectedProduct?.attributes?.find(item => item.name.toLowerCase() === "color")?.options.map((item, index) => (
+                                                            <div
+                                                                className={`color-item w-fit h-fit flex px-3 py-2 items-center justify-center text-button rounded-md bg-white border border-line ${activeColor === item ? 'active' : ''}`}
+                                                                key={index}
+                                                                onClick={() => handleActiveColor(item)}
+                                                            >
+                                                                {item}
+                                                            </div>
+                                                        ))}
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {selectedProduct?.attributes?.some(item => item.name.toLowerCase() === "size") && (
-                                        <div className="choose-size mt-5">
-                                            {/* <div className="heading flex items-center justify-between">
-                                                <div className="text-title">Size: <span className='text-title size'>{activeSize}</span></div>
-                                                <div
-                                                    className="caption1 size-guide text-red underline cursor-pointer"
-                                                    onClick={handleOpenSizeGuide}
-                                                >
-                                                    Size Guide
                                                 </div>
-                                                <ModalSizeguide data={selectedProduct as unknown as ProductType} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
-                                            </div> */}
-                                            <div className="list-size flex items-center gap-2 flex-wrap mt-3">
-                                                {selectedProduct?.attributes?.find(item => item.name.toLowerCase() === "size")?.options.map((item, index) => (
-                                                    <div
-                                                        className={`size-item ${item === 'freesize' ? 'px-3 py-2' : 'w-12 h-12'} flex items-center justify-center text-button rounded-full bg-white border border-line ${activeSize === item ? 'active' : ''}`}
-                                                        key={index}
-                                                        onClick={() => handleActiveSize(item)}
-                                                    >
-                                                        {item}
+                                            )}
+                                            {selectedProduct?.attributes?.some(item => item.name.toLowerCase() === "size") && (
+                                                <div className="choose-size mt-5">
+                                                    <div className="text-title">Size: <span className='text-title size'>{activeSize}</span></div>
+                                                    <div className="list-size flex items-center gap-2 flex-wrap mt-3">
+                                                        {selectedProduct?.attributes?.find(item => item.name.toLowerCase() === "size")?.options.map((item, index) => (
+                                                            <div
+                                                                className={`size-item ${item === 'freesize' ? 'px-3 py-2' : 'w-12 h-12'} flex items-center justify-center text-button rounded-full bg-white border border-line ${activeSize === item ? 'active' : ''}`}
+                                                                key={index}
+                                                                onClick={() => handleActiveSize(item)}
+                                                            >
+                                                                {item}
+                                                            </div>
+                                                        ))}
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                     <div className="text-title mt-5">Quantity:</div>
                                     <div className="choose-quantity flex items-center max-xl:flex-wrap lg:justify-between gap-5 mt-3">
                                         <div className="quantity-block md:p-3 max-md:py-1.5 max-md:px-3 flex items-center justify-between rounded-lg border border-line sm:w-[180px] w-[120px] flex-shrink-0">
                                             <Icon.Minus
-                                                onClick={handleDecreaseQuantity}
-                                                className={`${quantity === 1 ? 'disabled' : ''} cursor-pointer body1`}
+                                                onClick={!isLoadingVariations ? handleDecreaseQuantity : undefined}
+                                                className={`${quantity === 1 || isLoadingVariations ? 'disabled' : ''} cursor-pointer body1`}
                                             />
                                             <div className="body1 font-semibold">{quantity}</div>
                                             <Icon.Plus
-                                                onClick={handleIncreaseQuantity}
-                                                className={`${quantity === selectedProduct?.stock_quantity ? 'disabled' : ''} cursor-pointer body1`}
+                                                onClick={!isLoadingVariations ? handleIncreaseQuantity : undefined}
+                                                className={`${quantity === selectedProduct?.stock_quantity || isLoadingVariations ? 'disabled' : ''} cursor-pointer body1`}
                                             />
                                         </div>
                                         <button
                                             type="button"
-                                            disabled={selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)}
+                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)}
                                             onClick={handleAddToCart}
-                                            className={`button-main w-full text-center ${selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)
+                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)
                                                 ? "bg-surface text-secondary2 border"
                                                 : "bg-white text-black border border-black"
                                                 }`}
                                         >
-                                            {selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 ? "Out Of Stock" : "Add To Cart"}
+                                            {isLoadingVariations ? "Loading..." : (selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 ? "Out Of Stock" : "Add To Cart")}
                                         </button>
                                     </div>
                                     <div className="button-block mt-5">
                                         <button
+                                            onClick={handleBuyNow}
                                             type="button"
-                                            disabled={selectedProduct?.stock_status === "outofstock"}
-                                            className={`button-main w-full text-center ${selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable
+                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock"}
+                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable
                                                 ? "bg-surface text-secondary2 border"
                                                 : "bg-black text-white"
                                                 }`}
                                         >
-                                            {selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 ? "Out Of Stock" : "Buy It Now"}
+                                            {isLoadingVariations ? "Loading..." : (selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 ? "Out Of Stock" : "Buy It Now")}
                                         </button>
                                     </div>
                                     <div className="flex items-center flex-wrap lg:gap-20 gap-8 gap-y-4 mt-5">

@@ -23,7 +23,7 @@ interface Props {
 const MenuOne: React.FC<Props> = ({ props }) => {
     const router = useRouter()
     const pathname = usePathname()
-    let [selectedType, setSelectedType] = useState<string | null>()
+    const [selectedType, setSelectedType] = useState<string | null>()
     const { openLoginPopup, handleLoginPopup } = useLoginPopup()
     const { openMenuMobile, handleMenuMobile } = useMenuMobile()
     const [openSubNavMobile, setOpenSubNavMobile] = useState<number | null>(null)
