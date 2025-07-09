@@ -15,7 +15,7 @@ import { useForm } from 'react-hook-form';
 import { createOrder } from '../../actions/order-actions';
 import { LineItem } from '../../types/order-type';
 import { OrderData } from '../../lib/validation';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import StripeCheckout from './StripeCheckoutForm';
 import { createPaymentIntent } from '../../actions/stripePaymentIntentActions';
 
@@ -460,6 +460,11 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
             setIsSubmitting(false);
         }
     };
+
+    if (cartState.cartArray.length === 0 && !cleintSecret) {
+        redirect('/cart'); // Redirect to cart if no items in cart
+        return null; // Redirect to cart if no items in cart
+    }
 
 
     return (

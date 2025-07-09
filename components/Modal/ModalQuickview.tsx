@@ -364,7 +364,7 @@ const ModalQuickview = () => {
                                                     <div className="list-color flex items-center gap-2 flex-wrap mt-3">
                                                         {selectedProduct?.attributes?.find(item => item.name.toLowerCase() === "color")?.options.map((item, index) => (
                                                             <div
-                                                                className={`color-item w-fit h-fit flex px-3 py-2 items-center justify-center text-button rounded-md bg-white border border-line ${activeColor === item ? 'active' : ''}`}
+                                                                className={`color-item w-fit h-fit flex px-3 py-2 items-center justify-center text-button rounded-md  border border-line ${activeColor === item ? 'active bg-black-800 text-white ' : ''}`}
                                                                 key={index}
                                                                 onClick={() => handleActiveColor(item)}
                                                             >
@@ -421,8 +421,8 @@ const ModalQuickview = () => {
                                         <button
                                             onClick={handleBuyNow}
                                             type="button"
-                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock"}
-                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable
+                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)}
+                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)
                                                 ? "bg-surface text-secondary2 border"
                                                 : "bg-black text-white"
                                                 }`}
