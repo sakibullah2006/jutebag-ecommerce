@@ -112,7 +112,8 @@ export async function getProductReviews(productId: number) {
     // Make API request to get reviews with no-cache headers
     const response = await WooCommerce.get("products/reviews", {
       product: productId,
-      _nocache: Date.now(), // Append timestamp to prevent caching
+      cache: 'force-cache', next: { revalidate: 30 }
+      // _nocache: Date.now(), // Append timestamp to prevent caching
     });
 
     // Check if response contains reviews
@@ -190,7 +191,7 @@ export async function createProductReview(reviewData: {
       verified: response.data.verified,
     };
 
-    revalidatePath('/')
+    revalidatePath('/products/[id]')
     return {
       success: true,
       review: createdReview,

@@ -8,100 +8,201 @@ import { useModalCompareContext } from '@/context/ModalCompareContext';
 import { useModalQuickviewContext } from '@/context/ModalQuickviewContext';
 import { useModalWishlistContext } from '@/context/ModalWishlistContext';
 import { useWishlist } from '@/context/WishlistContext';
+import { useAppData } from '@/context/AppDataContext';
 import { ProductType } from '@/types/ProductType';
+import { Product as ProductType2, VariationProduct } from '@/types/product-type';
+import { decodeHtmlEntities } from '@/lib/utils';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Rate from '../Other/Rate';
 import ModalSizeguide from './ModalSizeguide';
+import parse from 'html-react-parser';
 
 const ModalQuickview = () => {
     const [photoIndex, setPhotoIndex] = useState(0)
     const [openPopupImg, setOpenPopupImg] = useState(false)
-    const [openSizeGuide, setOpenSizeGuide] = useState<boolean>(false)
-    const { selectedProduct, closeQuickview } = useModalQuickviewContext()
-    const [activeColor, setActiveColor] = useState<string>('')
-    const [activeSize, setActiveSize] = useState<string>('')
+    // const [openSizeGuide, setOpenSizeGuide] = useState<boolean>(false)
+    const { selectedProduct, variations, closeQuickview } = useModalQuickviewContext()
+    const [activeColor, setActiveColor] = useState<string>(() => {
+        const attr = selectedProduct?.attributes?.find(attr => attr.name === "color")
+        if (attr) {
+            return attr.options[0]
+        } else {
+            return ''
+        }
+    })
+    const [activeSize, setActiveSize] = useState<string>(() => {
+        const attr = selectedProduct?.attributes?.find(attr => attr.name === "size")
+        if (attr) {
+            return attr.options[0]
+        } else {
+            return ''
+        }
+    })
+    const [quantity, setQuantity] = useState(1)
+    const [selectedVariation, setSelectedVariation] = useState<VariationProduct | null>(null)
+    const { currentCurrency } = useAppData()
     const { addToCart, updateCart, cartState } = useCart()
     const { openModalCart } = useModalCartContext()
     const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist()
     const { openModalWishlist } = useModalWishlistContext()
-    const { addToCompare, removeFromCompare, compareState } = useCompare();
-    const { openModalCompare } = useModalCompareContext()
-    const percentSale = selectedProduct && Math.floor(100 - ((selectedProduct.price / selectedProduct.originPrice) * 100))
 
-    const handleOpenSizeGuide = () => {
-        setOpenSizeGuide(true);
-    };
+    const isColorReq = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === "color") || false
+    const isSizeReq = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === "size") || false
 
-    const handleCloseSizeGuide = () => {
-        setOpenSizeGuide(false);
-    };
+    // Find matching variation based on activeColor or activeSize
+    const findMatchingVariation = useCallback(() => {
+        // If there are no variations loaded, we can't find a match.
+        if (!variations || variations?.length === 0) return null;
 
-    const handleActiveColor = (item: string) => {
-        setActiveColor(item)
-    }
+        // Check if the product is supposed to have color and size variations
+        const hasColorAttribute = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === 'color' && attr.variation);
+        const hasSizeAttribute = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === 'size' && attr.variation);
 
-    const handleActiveSize = (item: string) => {
-        setActiveSize(item)
-    }
+        // Find a variation where every required attribute matches the active state.
+        const matchingVariant = variations?.find((variation) => {
+            // A variation is a match if its color and size match the active selection.
+            // If an attribute doesn't exist for variations (e.g., only color, no size), it's considered a match.
+            const colorMatch = !hasColorAttribute || variation.attributes.some(
+                attr => attr.name.toLowerCase() === 'color' && attr.option === activeColor
+            );
+            const sizeMatch = !hasSizeAttribute || variation.attributes.some(
+                attr => attr.name.toLowerCase() === 'size' && attr.option === activeSize
+            );
+            return colorMatch && sizeMatch;
+        });
 
-    const handleIncreaseQuantity = () => {
-        if (selectedProduct) {
-            selectedProduct.quantityPurchase += 1
-            updateCart(selectedProduct.id, selectedProduct.quantityPurchase + 1, activeSize, activeColor);
+        return matchingVariant ?? null;
+    }, [variations, selectedProduct, activeColor, activeSize]);
+
+    useEffect(() => {
+        if (!selectedProduct || !selectedProduct.variations || selectedProduct.variations.length === 0) {
+            return;
+        }
+        // Find the first variation that matches the active color and size
+        if (variations) {
+            const initialVariation = findMatchingVariation();
+            if (initialVariation) {
+                setSelectedVariation(initialVariation);
+            }
+        }
+    }, [selectedProduct, variations, findMatchingVariation])
+
+    useEffect(() => {
+        // Find the variation that matches the active color and size
+        const matchingVariation = findMatchingVariation();
+        if (matchingVariation) {
+            setSelectedVariation(matchingVariation);
+        } else {
+            setSelectedVariation(null);
+        }
+    }, [findMatchingVariation])
+
+    const percentSale = selectedProduct ? Math.floor(100 - ((Number(selectedProduct?.sale_price || findMatchingVariation()?.sale_price) / Number(selectedProduct?.regular_price || findMatchingVariation()?.regular_price)) * 100)) : 0
+
+
+    // const handleOpenSizeGuide = () => {
+    //     setOpenSizeGuide(true);
+    // };
+
+    // const handleCloseSizeGuide = () => {
+    //     setOpenSizeGuide(false);
+    // };
+
+    // This "smart" handler updates the color and ensures the selected size is still valid.
+    const handleActiveColor = (newColor: string) => {
+        setActiveColor(newColor);
+
+        // Find all sizes that are available with the newly selected color
+        const availableSizes = new Set(
+            variations?.filter(v => v.attributes.some(a => a.name.toLowerCase() === 'color' && a.option === newColor))
+                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'size')?.option)
+                .filter((s): s is string => !!s)
+        );
+
+        // If the current size is not in the list of available sizes for the new color,
+        // automatically switch to the first available size.
+        if (availableSizes.size > 0 && !availableSizes.has(activeSize)) {
+            setActiveSize(Array.from(availableSizes)[0]);
         }
     };
 
+    // This "smart" handler updates the size and ensures the selected color is still valid.
+    const handleActiveSize = (newSize: string) => {
+        setActiveSize(newSize);
+
+        // Find all colors that are available with the newly selected size
+        const availableColors = new Set(
+            variations?.filter(v => v.attributes.some(a => a.name.toLowerCase() === 'size' && a.option === newSize))
+                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'color')?.option)
+                .filter((c): c is string => !!c)
+        );
+
+        // If the current color is not in the list of available colors for the new size,
+        // automatically switch to the first available color.
+        if (availableColors.size > 0 && !availableColors.has(activeColor)) {
+            setActiveColor(Array.from(availableColors)[0]);
+        }
+    };
+
+    const handleIncreaseQuantity = () => {
+        setQuantity(quantity + 1);
+    };
+
     const handleDecreaseQuantity = () => {
-        if (selectedProduct && selectedProduct.quantityPurchase > 1) {
-            selectedProduct.quantityPurchase -= 1
-            updateCart(selectedProduct.id, selectedProduct.quantityPurchase - 1, activeSize, activeColor);
+        if (quantity > 1) {
+            setQuantity(quantity - 1);
         }
     };
 
     const handleAddToCart = () => {
         if (selectedProduct) {
-            if (!cartState.cartArray.find(item => item.id === selectedProduct.id)) {
-                addToCart({ ...selectedProduct });
-                updateCart(selectedProduct.id, selectedProduct.quantityPurchase, activeSize, activeColor)
-            } else {
-                updateCart(selectedProduct.id, selectedProduct.quantityPurchase, activeSize, activeColor)
-            }
+            const cartVariation = findMatchingVariation()
+
+            addToCart(
+                selectedProduct as unknown as ProductType2, // The base product data
+                quantity,
+                activeSize,
+                activeColor,
+                cartVariation?.id?.toString(),
+                cartVariation ?? undefined
+            );
             openModalCart()
             closeQuickview()
         }
     };
 
     const handleAddToWishlist = () => {
-        // if product existed in wishlit, remove from wishlist and set state to false
         if (selectedProduct) {
+            // if product existed in wishlit, remove from wishlist and set state to false
             if (wishlistState.wishlistArray.some(item => item.id === selectedProduct.id)) {
-                removeFromWishlist(selectedProduct.id);
+                removeFromWishlist(selectedProduct.id.toString());
             } else {
                 // else, add to wishlist and set state to true
-                addToWishlist(selectedProduct);
+                addToWishlist(selectedProduct as unknown as ProductType2);
             }
+            openModalWishlist();
         }
-        openModalWishlist();
     };
 
-    const handleAddToCompare = () => {
-        // if product existed in wishlit, remove from wishlist and set state to false
-        if (selectedProduct) {
-            if (compareState.compareArray.length < 3) {
-                if (compareState.compareArray.some(item => item.id === selectedProduct.id)) {
-                    removeFromCompare(selectedProduct.id);
-                } else {
-                    // else, add to wishlist and set state to true
-                    addToCompare(selectedProduct);
-                }
-            } else {
-                alert('Compare up to 3 products')
-            }
-        }
-        openModalCompare();
-    };
+    // const handleAddToCompare = () => {
+    //     if (selectedProduct) {
+    //         // if product existed in compare, remove from compare and set state to false
+    //         if (compareState.compareArray.length < 3) {
+    //             if (compareState.compareArray.some(item => item.id.toString() === selectedProduct.id.toString())) {
+    //                 removeFromCompare(selectedProduct.id.toString());
+    //             } else {
+    //                 // else, add to compare and set state to true
+    //                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //                 addToCompare(selectedProduct as any);
+    //             }
+    //         } else {
+    //             alert('Compare up to 3 products')
+    //         }
+    //         openModalCompare();
+    //     }
+    // };
 
     return (
         <>
@@ -116,10 +217,10 @@ const ModalQuickview = () => {
                                 {selectedProduct?.images.map((item, index) => (
                                     <div className="bg-img w-full aspect-[3/4] max-md:w-[150px] max-md:flex-shrink-0 rounded-[20px] overflow-hidden md:mt-6" key={index}>
                                         <Image
-                                            src={item}
+                                            src={item.src}
                                             width={1500}
                                             height={2000}
-                                            alt={item}
+                                            alt={item.alt || item.name}
                                             priority={true}
                                             className='w-full h-full object-cover'
                                         />
@@ -140,7 +241,7 @@ const ModalQuickview = () => {
                             <div className="product-infor px-4">
                                 <div className="flex justify-between">
                                     <div>
-                                        <div className="caption2 text-secondary font-semibold uppercase">{selectedProduct?.type}</div>
+                                        <div className="caption2 text-secondary font-semibold uppercase">{selectedProduct?.tags?.[0]?.name || selectedProduct?.type}</div>
                                         <div className="heading4 mt-1">{selectedProduct?.name}</div>
                                     </div>
                                     <div
@@ -148,108 +249,125 @@ const ModalQuickview = () => {
                                         onClick={handleAddToWishlist}
                                     >
                                         {wishlistState.wishlistArray.some(item => item.id === selectedProduct?.id) ? (
-                                            <>
-                                                <Icon.Heart size={20} weight='fill' className='text-red' />
-                                            </>
+                                            <Icon.Heart size={20} weight='fill' className='text-red' />
                                         ) : (
-                                            <>
-                                                <Icon.Heart size={20} />
-                                            </>
+                                            <Icon.Heart size={20} />
                                         )}
                                     </div>
                                 </div>
                                 <div className="flex items-center mt-3">
-                                    <Rate currentRate={selectedProduct?.rate} size={14} />
+                                    <Rate currentRate={Number(selectedProduct?.average_rating) || 0} size={14} />
                                     <span className='caption1 text-secondary'>(1.234 reviews)</span>
                                 </div>
                                 <div className="flex items-center gap-3 flex-wrap mt-5 pb-6 border-b border-line">
-                                    <div className="product-price heading5">${selectedProduct?.price}.00</div>
-                                    <div className='w-px h-4 bg-line'></div>
-                                    <div className="product-origin-price font-normal text-secondary2"><del>${selectedProduct?.originPrice}.00</del></div>
-                                    {selectedProduct?.originPrice && (
-                                        <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
-                                            -{percentSale}%
-                                        </div>
+                                    <div className="product-price heading5">
+                                        {currentCurrency ? decodeHtmlEntities(currentCurrency.symbol) : '$'}
+                                        {Number(selectedVariation?.sale_price || selectedVariation?.price || selectedProduct?.sale_price || selectedProduct?.price).toFixed(2)}
+                                    </div>
+                                    {((selectedVariation?.on_sale || selectedProduct?.on_sale) && percentSale > 0) && (
+                                        <>
+                                            <div className='w-px h-4 bg-line'></div>
+                                            <div className="product-origin-price font-normal text-secondary2">
+                                                <del>
+                                                    {currentCurrency ? decodeHtmlEntities(currentCurrency.symbol) : '$'}
+                                                    {Number(selectedVariation?.regular_price || selectedProduct?.regular_price || selectedProduct?.price).toFixed(2)}
+                                                </del>
+                                            </div>
+                                            <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
+                                                -{percentSale}%
+                                            </div>
+                                        </>
                                     )}
-                                    <div className='desc text-secondary mt-3'>{selectedProduct?.description}</div>
+                                    <div className='desc text-secondary parsed-html mt-3'>{selectedProduct?.short_description ? parse(selectedProduct.short_description) : parse(selectedProduct?.description.toString().slice(0, 200) + "...")}</div>
                                 </div>
                                 <div className="list-action mt-6">
-                                    <div className="choose-color">
-                                        <div className="text-title">Colors: <span className='text-title color'>{activeColor}</span></div>
-                                        <div className="list-color flex items-center gap-2 flex-wrap mt-3">
-                                            {selectedProduct?.variation.map((item, index) => (
-                                                <div
-                                                    className={`color-item w-12 h-12 rounded-xl duration-300 relative ${activeColor === item.color ? 'active' : ''}`}
-                                                    key={index}
-                                                    datatype={item.image}
-                                                    onClick={() => {
-                                                        handleActiveColor(item.color)
-                                                    }}
-                                                >
-                                                    <Image
-                                                        src={item.colorImage}
-                                                        width={100}
-                                                        height={100}
-                                                        alt='color'
-                                                        className='rounded-xl'
-                                                    />
-                                                    <div className="tag-action bg-black text-white caption2 capitalize px-1.5 py-0.5 rounded-sm">
-                                                        {item.color}
+                                    {selectedProduct?.attributes?.some(item => item.name.toLowerCase() === "color") && (
+                                        <div className="choose-color">
+                                            <div className="text-title">Colors: <span className='text-title color'>{activeColor}</span></div>
+                                            <div className="list-color flex items-center gap-2 flex-wrap mt-3">
+                                                {selectedProduct?.attributes?.find(item => item.name.toLowerCase() === "color")?.options.map((item, index) => (
+                                                    <div
+                                                        className={`color-item w-fit h-fit flex px-3 py-2 items-center justify-center text-button rounded-md bg-white border border-line ${activeColor === item ? 'active' : ''}`}
+                                                        key={index}
+                                                        onClick={() => handleActiveColor(item)}
+                                                    >
+                                                        {item}
                                                     </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className="choose-size mt-5">
-                                        <div className="heading flex items-center justify-between">
-                                            <div className="text-title">Size: <span className='text-title size'>{activeSize}</span></div>
-                                            <div
-                                                className="caption1 size-guide text-red underline cursor-pointer"
-                                                onClick={handleOpenSizeGuide}
-                                            >
-                                                Size Guide
+                                                ))}
                                             </div>
-                                            <ModalSizeguide data={selectedProduct} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
                                         </div>
-                                        <div className="list-size flex items-center gap-2 flex-wrap mt-3">
-                                            {selectedProduct?.sizes.map((item, index) => (
+                                    )}
+                                    {selectedProduct?.attributes?.some(item => item.name.toLowerCase() === "size") && (
+                                        <div className="choose-size mt-5">
+                                            {/* <div className="heading flex items-center justify-between">
+                                                <div className="text-title">Size: <span className='text-title size'>{activeSize}</span></div>
                                                 <div
-                                                    className={`size-item ${item === 'freesize' ? 'px-3 py-2' : 'w-12 h-12'} flex items-center justify-center text-button rounded-full bg-white border border-line ${activeSize === item ? 'active' : ''}`}
-                                                    key={index}
-                                                    onClick={() => handleActiveSize(item)}
+                                                    className="caption1 size-guide text-red underline cursor-pointer"
+                                                    onClick={handleOpenSizeGuide}
                                                 >
-                                                    {item}
+                                                    Size Guide
                                                 </div>
-                                            ))}
+                                                <ModalSizeguide data={selectedProduct as unknown as ProductType} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
+                                            </div> */}
+                                            <div className="list-size flex items-center gap-2 flex-wrap mt-3">
+                                                {selectedProduct?.attributes?.find(item => item.name.toLowerCase() === "size")?.options.map((item, index) => (
+                                                    <div
+                                                        className={`size-item ${item === 'freesize' ? 'px-3 py-2' : 'w-12 h-12'} flex items-center justify-center text-button rounded-full bg-white border border-line ${activeSize === item ? 'active' : ''}`}
+                                                        key={index}
+                                                        onClick={() => handleActiveSize(item)}
+                                                    >
+                                                        {item}
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                     <div className="text-title mt-5">Quantity:</div>
                                     <div className="choose-quantity flex items-center max-xl:flex-wrap lg:justify-between gap-5 mt-3">
                                         <div className="quantity-block md:p-3 max-md:py-1.5 max-md:px-3 flex items-center justify-between rounded-lg border border-line sm:w-[180px] w-[120px] flex-shrink-0">
                                             <Icon.Minus
                                                 onClick={handleDecreaseQuantity}
-                                                className={`${selectedProduct?.quantityPurchase === 1 ? 'disabled' : ''} cursor-pointer body1`}
+                                                className={`${quantity === 1 ? 'disabled' : ''} cursor-pointer body1`}
                                             />
-                                            <div className="body1 font-semibold">{selectedProduct?.quantityPurchase}</div>
+                                            <div className="body1 font-semibold">{quantity}</div>
                                             <Icon.Plus
                                                 onClick={handleIncreaseQuantity}
-                                                className='cursor-pointer body1'
+                                                className={`${quantity === selectedProduct?.stock_quantity ? 'disabled' : ''} cursor-pointer body1`}
                                             />
                                         </div>
-                                        <div onClick={handleAddToCart} className="button-main w-full text-center bg-white text-black border border-black">Add To Cart</div>
+                                        <button
+                                            type="button"
+                                            disabled={selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)}
+                                            onClick={handleAddToCart}
+                                            className={`button-main w-full text-center ${selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)
+                                                ? "bg-surface text-secondary2 border"
+                                                : "bg-white text-black border border-black"
+                                                }`}
+                                        >
+                                            {selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 ? "Out Of Stock" : "Add To Cart"}
+                                        </button>
                                     </div>
                                     <div className="button-block mt-5">
-                                        <div className="button-main w-full text-center">Buy It Now</div>
+                                        <button
+                                            type="button"
+                                            disabled={selectedProduct?.stock_status === "outofstock"}
+                                            className={`button-main w-full text-center ${selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable
+                                                ? "bg-surface text-secondary2 border"
+                                                : "bg-black text-white"
+                                                }`}
+                                        >
+                                            {selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 ? "Out Of Stock" : "Buy It Now"}
+                                        </button>
                                     </div>
                                     <div className="flex items-center flex-wrap lg:gap-20 gap-8 gap-y-4 mt-5">
-                                        <div className="compare flex items-center gap-3 cursor-pointer" onClick={handleAddToCompare}>
+                                        {/* <div className="compare flex items-center gap-3 cursor-pointer" onClick={handleAddToCompare}>
                                             <div
                                                 className="compare-btn md:w-12 md:h-12 w-10 h-10 flex items-center justify-center border border-line cursor-pointer rounded-xl duration-300 hover:bg-black hover:text-white"
                                             >
                                                 <Icon.ArrowsCounterClockwise className='heading6' />
                                             </div>
                                             <span>Compare</span>
-                                        </div>
+                                        </div> */}
                                         <div className="share flex items-center gap-3 cursor-pointer">
                                             <div className="share-btn md:w-12 md:h-12 w-10 h-10 flex items-center justify-center border border-line cursor-pointer rounded-xl duration-300 hover:bg-black hover:text-white">
                                                 <Icon.ShareNetwork weight='fill' className='heading6' />
@@ -271,82 +389,63 @@ const ModalQuickview = () => {
                                         <div className="flex items-center flex-wrap gap-1 mt-3">
                                             <Icon.Timer className='body1' />
                                             <span className="text-title">Estimated Delivery:</span>
-                                            <span className="text-secondary">14 January - 18 January</span>
-                                        </div>
-                                        <div className="flex items-center flex-wrap gap-1 mt-3">
-                                            <Icon.Eye className='body1' />
-                                            <span className="text-title">38</span>
-                                            <span className="text-secondary">people viewing this product right now!</span>
+                                            <span className="text-secondary">{new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span>
                                         </div>
                                         <div className="flex items-center gap-1 mt-3">
                                             <div className="text-title">SKU:</div>
-                                            <div className="text-secondary">53453412</div>
+                                            <div className="text-secondary">{selectedProduct?.sku || "N/A"}</div>
                                         </div>
                                         <div className="flex items-center gap-1 mt-3">
                                             <div className="text-title">Categories:</div>
-                                            <div className="text-secondary">{selectedProduct?.category}, {selectedProduct?.gender}</div>
+                                            <div className="text-secondary">
+                                                {selectedProduct?.categories?.map((item, index) => item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()).join(", ") || "N/A"}
+                                            </div>
                                         </div>
                                         <div className="flex items-center gap-1 mt-3">
                                             <div className="text-title">Tag:</div>
-                                            <div className="text-secondary">{selectedProduct?.type}</div>
+                                            <div className="text-secondary">
+                                                {selectedProduct?.tags?.map((item) => item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()).join(", ") || "N/A"}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="list-payment mt-7">
                                         <div className="main-content lg:pt-8 pt-6 lg:pb-6 pb-4 sm:px-4 px-3 border border-line rounded-xl relative max-md:w-2/3 max-sm:w-full">
-                                            <div className="heading6 px-5 bg-white absolute -top-[14px] left-1/2 -translate-x-1/2 whitespace-nowrap">Guranteed safe checkout</div>
-                                            <div className="list grid grid-cols-6">
+                                            <div className="heading6 px-5 bg-white absolute -top-[14px] left-1/2 -translate-x-1/2 whitespace-nowrap">Guaranteed safe checkout</div>
+                                            <div className="list grid grid-cols-4">
                                                 <div className="item flex items-center justify-center lg:px-3 px-1">
                                                     <Image
-                                                        src={'/images/payment/Frame-0.png'}
+                                                        src={'/images/payment/visa_logo.png'}
                                                         width={500}
                                                         height={450}
                                                         alt='payment'
-                                                        className='w-full'
+                                                        className='w-full rounded-lg p-1 border-line border'
                                                     />
                                                 </div>
                                                 <div className="item flex items-center justify-center lg:px-3 px-1">
                                                     <Image
-                                                        src={'/images/payment/Frame-1.png'}
+                                                        src={'/images/payment/master_card_logo.png'}
                                                         width={500}
                                                         height={450}
                                                         alt='payment'
-                                                        className='w-full'
+                                                        className='w-full rounded-lg p-1 border-line border'
                                                     />
                                                 </div>
                                                 <div className="item flex items-center justify-center lg:px-3 px-1">
                                                     <Image
-                                                        src={'/images/payment/Frame-2.png'}
+                                                        src={'/images/payment/paypal_logo.png'}
                                                         width={500}
                                                         height={450}
                                                         alt='payment'
-                                                        className='w-full'
+                                                        className='w-full rounded-lg p-1 border-line border'
                                                     />
                                                 </div>
                                                 <div className="item flex items-center justify-center lg:px-3 px-1">
                                                     <Image
-                                                        src={'/images/payment/Frame-3.png'}
+                                                        src={'/images/payment/google_pay_logo.png'}
                                                         width={500}
                                                         height={450}
                                                         alt='payment'
-                                                        className='w-full'
-                                                    />
-                                                </div>
-                                                <div className="item flex items-center justify-center lg:px-3 px-1">
-                                                    <Image
-                                                        src={'/images/payment/Frame-4.png'}
-                                                        width={500}
-                                                        height={450}
-                                                        alt='payment'
-                                                        className='w-full'
-                                                    />
-                                                </div>
-                                                <div className="item flex items-center justify-center lg:px-3 px-1">
-                                                    <Image
-                                                        src={'/images/payment/Frame-5.png'}
-                                                        width={500}
-                                                        height={450}
-                                                        alt='payment'
-                                                        className='w-full'
+                                                        className='w-full rounded-lg p-1 border-line border'
                                                     />
                                                 </div>
                                             </div>

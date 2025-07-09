@@ -209,7 +209,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     };
 
     const handleQuickviewOpen = () => {
-        // openQuickview(data)
+        openQuickview(data, variations || [])
     }
 
     const handleDetailProduct = (productId: string) => {

@@ -1,7 +1,7 @@
 'use client'
 
 // ModalQuickviewContext.tsx
-import { ProductType } from '@/types/ProductType';
+import { Product as ProductType, VariationProduct } from '@/types/product-type';
 import React, { createContext, ReactNode, useContext, useState } from 'react';
 
 interface ModalQuickviewContextProps {
@@ -10,7 +10,8 @@ interface ModalQuickviewContextProps {
 
 interface ModalQuickviewContextValue {
     selectedProduct: ProductType | null;
-    openQuickview: (product: ProductType) => void;
+    variations?: VariationProduct[];
+    openQuickview: (product: ProductType, variations?: VariationProduct[]) => void;
     closeQuickview: () => void;
 }
 
@@ -18,13 +19,18 @@ const ModalQuickviewContext = createContext<ModalQuickviewContextValue | undefin
 
 export const ModalQuickviewProvider: React.FC<ModalQuickviewContextProps> = ({ children }) => {
     const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
+    const [variations, setVariations] = useState<VariationProduct[] | undefined>(undefined);
 
-    const openQuickview = (product: ProductType) => {
+    const openQuickview = (product: ProductType, variations?: VariationProduct[]) => {
         setSelectedProduct(product);
+        if (variations) {
+            setVariations(variations);
+        }
     };
 
     const closeQuickview = () => {
         setSelectedProduct(null);
+        setVariations(undefined);
     };
 
     return (

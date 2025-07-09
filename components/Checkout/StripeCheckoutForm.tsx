@@ -74,7 +74,7 @@ const PaymentForm = ({
         } finally {
             setIsUpdatingOrder(false);
         }
-    }, [orderId, router]);
+    }, [clearCart, orderId, router]);
 
     useEffect(() => {
         if (!stripe) {

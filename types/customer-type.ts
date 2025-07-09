@@ -28,6 +28,8 @@ export interface Customer {
         state: string;
         postcode: string;
         country: string;
+        email?: string;
+        phone?: string
     };
 }
 
@@ -46,7 +48,7 @@ export interface DownloadData {
         name: string;
         file: string;
     };
-   
+
 }
 
 

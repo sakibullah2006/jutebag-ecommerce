@@ -28,7 +28,7 @@ export async function fetchProfileData(userId: number) {
   try {
     const [customerResponse, ordersResponse, customerDownloads] = await Promise.all([
       WooCommerce.get(`customers/${encodeURIComponent(userId)}`, { next: { revalidate: 2 } }),
-      WooCommerce.get("orders", { params: { customer: userId } }),
+      WooCommerce.get("orders", { params: { customer: userId }, next: { revalidate: 0 } }),
       WooCommerce.get(`customers/${userId}/downloads`, { next: { revalidate: 0 } })
     ]);
 
@@ -52,7 +52,7 @@ export async function fetchProfileData(userId: number) {
 
 export async function getCustomerInfo(userId: number) {
   try {
-    const response = await WooCommerce.get(`customers/${encodeURIComponent(userId)}`);
+    const response = await WooCommerce.get(`customers/${encodeURIComponent(userId)}`, { cache: 'force-cache', next: { revalidate: 30 } });
     const customer = response.data as Customer;
     return { success: true, data: customer };
   } catch (error) {
@@ -64,7 +64,7 @@ export async function getCustomerInfo(userId: number) {
 
 export async function updateCustomerPersonalInfo(userId: number, data: PersonalInfoFormValues) {
   try {
-    const customersResponse = await WooCommerce.get(`customers?email=${encodeURIComponent(data.email)}`);
+    const customersResponse = await WooCommerce.get(`customers?email=${encodeURIComponent(data.email)}`, { cache: 'force-cache', next: { revalidate: 30 } });
     const existingCustomer = customersResponse.data.find((c: Customer) => c.id !== userId);
     if (existingCustomer) {
       return { success: false, message: 'Email is already in use by another account' };
@@ -104,8 +104,9 @@ export async function updateCustomerAddress(id: number, type: 'billing' | 'shipp
 
     const response = await WooCommerce.put(`customers/${encodeURIComponent(id)}`, {
       ...updateData,
-      next: { revalidatePath: `/profile/${id}` },
+      next: { revalidatePath: `/dashboard` },
     });
+    revalidatePath("/dashboard")
     return { success: true, message: `${type.charAt(0).toUpperCase() + type.slice(1)} address updated successfully`, data: response.data };
   } catch (error) {
     console.error(`Error updating ${type} address:`, error);
