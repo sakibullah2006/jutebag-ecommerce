@@ -269,6 +269,14 @@ const ModalQuickview = () => {
         closeQuickview();
     };
 
+    const handleOpenSizeGuide = () => {
+        setOpenSizeGuide(true);
+    };
+
+    const handleCloseSizeGuide = () => {
+        setOpenSizeGuide(false);
+    };
+
     return (
         <>
             <div className={`modal-quickview-block`} onClick={handleClose}>
@@ -376,7 +384,17 @@ const ModalQuickview = () => {
                                             )}
                                             {selectedProduct?.attributes?.some(item => item.name.toLowerCase() === "size") && (
                                                 <div className="choose-size mt-5">
-                                                    <div className="text-title">Size: <span className='text-title size'>{activeSize}</span></div>
+                                                    {/* <div className="text-title">Size: <span className='text-title size'>{activeSize}</span></div> */}
+                                                    <div className="heading flex items-center justify-between">
+                                                        <div className="text-title">Size: <span className='text-title size'>{activeSize}</span></div>
+                                                        <div
+                                                            className="caption1 size-guide text-red underline cursor-pointer"
+                                                            onClick={handleOpenSizeGuide}
+                                                        >
+                                                            Size Guide
+                                                        </div>
+                                                        <ModalSizeguide data={selectedProduct} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
+                                                    </div>
                                                     <div className="list-size flex items-center gap-2 flex-wrap mt-3">
                                                         {selectedProduct?.attributes?.find(item => item.name.toLowerCase() === "size")?.options.map((item, index) => (
                                                             <div
