@@ -70,8 +70,8 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     const { openModalWishlist } = useModalWishlistContext()
     const { addToCompare, removeFromCompare, compareState } = useCompare();
     const { openModalCompare } = useModalCompareContext()
-    const isColorReq = data.attributes.some(attr => attr.name.toLowerCase() === "color")
-    const isSizeReq = data.attributes.some(attr => attr.name.toLowerCase() === "size")
+    const isColorReq = data.attributes?.some(attr => attr.name.toLowerCase() === "color")
+    const isSizeReq = data.attributes?.some(attr => attr.name.toLowerCase() === "size")
     const router = useRouter();
 
     // console.log('Raw HTML:', data.description);
@@ -102,7 +102,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
             five: 0
         };
 
-        reviews.forEach((review) => {
+        reviews?.forEach((review) => {
             if (review.rating === 1) star_count.one++;
             else if (review.rating === 2) star_count.two++;
             else if (review.rating === 3) star_count.three++;
@@ -115,7 +115,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
         return {
             rating_count: reviews.length,
             ...star_count,
-            calculatedAverage_rating
+            calculatedAverage_rating: calculatedAverage_rating || 0,
         };
     };
 
@@ -125,17 +125,17 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
         if (variations?.length === 0) return null;
 
         // Check if the product is supposed to have color and size variations
-        const hasColorAttribute = data.attributes.some(attr => attr.name.toLowerCase() === 'color' && attr.variation);
-        const hasSizeAttribute = data.attributes.some(attr => attr.name.toLowerCase() === 'size' && attr.variation);
+        const hasColorAttribute = data.attributes?.some(attr => attr.name.toLowerCase() === 'color' && attr.variation);
+        const hasSizeAttribute = data.attributes?.some(attr => attr.name.toLowerCase() === 'size' && attr.variation);
 
         // Find a variation where every required attribute matches the active state.
         const matchingVariant = variations?.find((variation) => {
             // A variation is a match if its color and size match the active selection.
             // If an attribute doesn't exist for variations (e.g., only color, no size), it's considered a match.
-            const colorMatch = !hasColorAttribute || variation.attributes.some(
+            const colorMatch = !hasColorAttribute || variation.attributes?.some(
                 attr => attr.name.toLowerCase() === 'color' && attr.option === activeColor
             );
-            const sizeMatch = !hasSizeAttribute || variation.attributes.some(
+            const sizeMatch = !hasSizeAttribute || variation.attributes?.some(
                 attr => attr.name.toLowerCase() === 'size' && attr.option === activeSize
             );
             return colorMatch && sizeMatch;
@@ -183,8 +183,8 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
         // Find all sizes that are available with the newly selected color
         const availableSizes = new Set(
-            variations?.filter(v => v.attributes.some(a => a.name.toLowerCase() === 'color' && a.option === newColor))
-                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'size')?.option)
+            variations?.filter(v => v.attributes?.some(a => a.name.toLowerCase() === 'color' && a.option === newColor))
+                .map(v => v.attributes?.find(a => a.name.toLowerCase() === 'size')?.option)
                 .filter((s): s is string => !!s)
         );
 
@@ -201,8 +201,8 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
         // Find all colors that are available with the newly selected size
         const availableColors = new Set(
-            variations?.filter(v => v.attributes.some(a => a.name.toLowerCase() === 'size' && a.option === newSize))
-                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'color')?.option)
+            variations?.filter(v => v.attributes?.some(a => a.name.toLowerCase() === 'size' && a.option === newSize))
+                .map(v => v.attributes?.find(a => a.name.toLowerCase() === 'color')?.option)
                 .filter((c): c is string => !!c)
         );
 
@@ -378,7 +378,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                         <div className="product-infor md:w-1/2 w-full lg:pl-[15px] md:pl-2">
                             <div className="flex justify-between">
                                 <div>
-                                    <div className="caption2 text-secondary font-semibold uppercase">{data.tags[0].name}</div>
+                                    <div className="caption2 text-secondary font-semibold uppercase">{data.tags[0]?.name || ""}</div>
                                     <div className="heading4 mt-1">{data.name}</div>
                                 </div>
                                 <div
@@ -420,15 +420,15 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                     </>
                                 )}
 
-                                <div className='desc text-secondary parsed-html mt-3'>{parse(data.short_description)}</div>
+                                <div className='desc text-secondary parsed-html mt-3'>{parse(data.short_description || "")}</div>
                             </div>
                             <div className="list-action mt-6">
-                                {data.attributes.some(item => item.name.toLowerCase() === "color") && (
+                                {data.attributes?.some(item => item.name.toLowerCase() === "color") && (
                                     <div className="choose-color">
                                         <div className="text-title">Colors: <span className='text-title color'>{activeColor}</span></div>
 
                                         <div className="list-size flex items-center gap-2 flex-wrap mt-3">
-                                            {data.attributes.find(item => item.name.toLowerCase() === "color")?.options.map((item, index) => (
+                                            {data.attributes?.find(item => item.name.toLowerCase() === "color")?.options.map((item, index) => (
                                                 <div
                                                     className={`size-item w-fit h-fit flex px-3 py-2 items-center justify-center text-button rounded-md bg-white border border-line ${activeColor === item ? 'active' : ''}`}
                                                     key={index}
@@ -443,7 +443,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                         </div>
                                     </div>
                                 )}
-                                {data.attributes.some(item => item.name.toLowerCase() === "size") && (
+                                {data.attributes?.some(item => item.name.toLowerCase() === "size") && (
                                     <div className="choose-size mt-5">
                                         <div className="heading flex items-center justify-between">
                                             <div className="text-title">Size: <span className='text-title size'>{activeSize}</span></div>
@@ -456,7 +456,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                         <ModalSizeguide data={data} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} /> */}
                                         </div>
                                         <div className="list-size flex items-center gap-2 flex-wrap mt-3">
-                                            {data.attributes.find(item => item.name.toLowerCase() === "size")?.options.map((item, index) => (
+                                            {data.attributes?.find(item => item.name.toLowerCase() === "size")?.options.map((item, index) => (
                                                 <div
                                                     className={`size-item ${item === 'freesize' ? 'px-3 py-2' : 'w-12 h-12'} flex items-center justify-center text-button rounded-full bg-white border border-line ${activeSize === item ? 'active' : ''}`}
                                                     key={index}
@@ -552,13 +552,13 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                     <div className="flex items-center gap-1 mt-3">
                                         <div className="text-title">Categories:</div>
                                         <div className="text-secondary">
-                                            {data.categories.map((item, index) => item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()).join(", ") || "N/A"}
+                                            {data.categories?.map((item, index) => item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()).join(", ") || "N/A"}
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1 mt-3">
                                         <div className="text-title">Tag:</div>
                                         <div className="text-secondary">
-                                            {data.tags.map((item) => item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()).join(", ") || "N/A"}
+                                            {data.tags?.map((item) => item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()).join(", ") || "N/A"}
                                         </div>
                                     </div>
                                 </div>
@@ -758,17 +758,17 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                             <div className="text-title sm:w-1/4 w-1/3">Lining</div>
                                             <p>100% polyurethane</p>
                                         </div>
-                                        {data.attributes.some(att => att.name.toLowerCase() === "size") &&
+                                        {data.attributes?.some(att => att.name.toLowerCase() === "size") &&
                                             <div className="item flex items-center gap-8 py-3 px-10">
                                                 <div className="text-title sm:w-1/4 w-1/3">Size</div>
-                                                <p>{data.attributes.find(att => att.name.toLowerCase() === "size")?.options.map(s => s).join(", ")}</p>
+                                                <p>{data.attributes?.find(att => att.name.toLowerCase() === "size")?.options.map(s => s).join(", ")}</p>
                                             </div>
                                         }
 
-                                        {data.attributes.some(att => att.name.toLowerCase() === "color") &&
+                                        {data.attributes?.some(att => att.name.toLowerCase() === "color") &&
                                             <div className="item bg-surface flex items-center gap-8 py-3 px-10">
                                                 <div className="text-title sm:w-1/4 w-1/3">Colors</div>
-                                                <p>{data.attributes.find(att => att.name.toLowerCase() === "color")?.options.map(c => c).join(", ")}</p>
+                                                <p>{data.attributes?.find(att => att.name.toLowerCase() === "color")?.options.map(c => c).join(", ")}</p>
                                             </div>
                                         }
 
@@ -842,7 +842,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                                     style={{ width: `${(reviewsInfo.five / reviewsInfo.rating_count) * 100}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="caption1 w-2">{((reviewsInfo.five / reviewsInfo.rating_count) * 100)}%</div>
+                                            <div className="caption1 w-2">{((reviewsInfo.five / reviewsInfo.rating_count) * 100 || 0)}%</div>
                                         </div>
                                         <div className="item flex items-center justify-end gap-1.5 mt-1">
                                             <div className="flex items-center gap-1">
@@ -855,7 +855,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                                     style={{ width: `${(reviewsInfo.four / reviewsInfo.rating_count) * 100}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="caption1 w-2">{((reviewsInfo.four / reviewsInfo.rating_count) * 100).toFixed(0)}%</div>
+                                            <div className="caption1 w-2">{((reviewsInfo.four / reviewsInfo.rating_count) * 100 || 0).toFixed(0)}%</div>
                                         </div>
                                         <div className="item flex items-center justify-end gap-1.5 mt-1">
                                             <div className="flex items-center gap-1">
@@ -868,7 +868,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                                     style={{ width: `${(reviewsInfo.three / reviewsInfo.rating_count) * 100}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="caption1 w-2">{((reviewsInfo.three / reviewsInfo.rating_count) * 100).toFixed(0)}%</div>
+                                            <div className="caption1 w-2">{((reviewsInfo.three / reviewsInfo.rating_count) * 100 || 0).toFixed(0)}%</div>
                                         </div>
                                         <div className="item flex items-center justify-end gap-1.5 mt-1">
                                             <div className="flex items-center gap-1">
@@ -881,7 +881,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                                     style={{ width: `${(reviewsInfo.two / reviewsInfo.rating_count) * 100}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="caption1 w-2">{((reviewsInfo.two / reviewsInfo.rating_count) * 100).toFixed(0)}%</div>
+                                            <div className="caption1 w-2">{((reviewsInfo.two / reviewsInfo.rating_count) * 100 || 0).toFixed(0)}%</div>
                                         </div>
                                         <div className="item flex items-center justify-end gap-1.5 mt-1">
                                             <div className="flex items-center gap-2">
@@ -894,7 +894,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                                     style={{ width: `${(reviewsInfo.one / reviewsInfo.rating_count) * 100}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="caption1 w-2">{((reviewsInfo.one / reviewsInfo.rating_count) * 100).toFixed(0)}%</div>
+                                            <div className="caption1 w-2">{((reviewsInfo.one / reviewsInfo.rating_count) * 100 || 0).toFixed(0)}%</div>
                                         </div>
                                     </div>
                                 </div>
@@ -929,7 +929,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                 <div className="list-review mt-6">
                                     {reviews.length > 0 ? (
                                         <>
-                                            {reviews.map((review, index) => (
+                                            {reviews?.map((review, index) => (
                                                 <div className="item mb-10" key={index}>
                                                     <div className="heading flex items-center justify-between">
                                                         <div className="user-infor flex gap-4">
