@@ -1,6 +1,6 @@
 'use client'
 
-import { ProductType } from '@/types/ProductType';
+import { Product as ProductType } from '@/types/product-type';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import React, { useState } from 'react';
 // import Slider from 'react-slider'
@@ -14,39 +14,39 @@ interface Props {
 }
 
 const ModalSizeguide: React.FC<Props> = ({ data, isOpen, onClose }) => {
-    const [activeSize, setActiveSize] = useState<string>('')
-    const [heightRange, setHeightRange] = useState<{ min: number; max: number }>({ min: 100, max: 200 });
-    const [weightRange, setWeightRange] = useState<{ min: number; max: number }>({ min: 30, max: 90 });
+    // const [activeSize, setActiveSize] = useState<string>('')
+    // const [heightRange, setHeightRange] = useState<{ min: number; max: number }>({ min: 100, max: 200 });
+    // const [weightRange, setWeightRange] = useState<{ min: number; max: number }>({ min: 30, max: 90 });
 
-    const calculateSize = (height: number, weight: number) => {
-        if (height > 180 || weight > 70) {
-            setActiveSize('2XL');
-        } else if (height > 170 || weight > 60) {
-            setActiveSize('XL');
-        } else if (height > 160 || weight > 50) {
-            setActiveSize('L');
-        } else if (height > 155 || weight > 45) {
-            setActiveSize('M');
-        } else if (height > 150 || weight > 40) {
-            setActiveSize('S');
-        } else {
-            setActiveSize('XS');
-        }
-    };
+    // const calculateSize = (height: number, weight: number) => {
+    //     if (height > 180 || weight > 70) {
+    //         setActiveSize('2XL');
+    //     } else if (height > 170 || weight > 60) {
+    //         setActiveSize('XL');
+    //     } else if (height > 160 || weight > 50) {
+    //         setActiveSize('L');
+    //     } else if (height > 155 || weight > 45) {
+    //         setActiveSize('M');
+    //     } else if (height > 150 || weight > 40) {
+    //         setActiveSize('S');
+    //     } else {
+    //         setActiveSize('XS');
+    //     }
+    // };
 
-    const handleHeightChange = (values: number | number[]) => {
-        if (Array.isArray(values)) {
-            setHeightRange({ min: values[0], max: values[1] });
-        }
-        calculateSize(heightRange.max, weightRange.max)
-    };
+    // const handleHeightChange = (values: number | number[]) => {
+    //     if (Array.isArray(values)) {
+    //         setHeightRange({ min: values[0], max: values[1] });
+    //     }
+    //     calculateSize(heightRange.max, weightRange.max)
+    // };
 
-    const handleWeightChange = (values: number | number[]) => {
-        if (Array.isArray(values)) {
-            setWeightRange({ min: values[0], max: values[1] });
-        }
-        calculateSize(heightRange.max, weightRange.max)
-    };
+    // const handleWeightChange = (values: number | number[]) => {
+    //     if (Array.isArray(values)) {
+    //         setWeightRange({ min: values[0], max: values[1] });
+    //     }
+    //     calculateSize(heightRange.max, weightRange.max)
+    // };
 
     return (
         <>
@@ -62,7 +62,7 @@ const ModalSizeguide: React.FC<Props> = ({ data, isOpen, onClose }) => {
                         <Icon.X size={14} />
                     </div>
                     <div className="heading3">Size guide</div>
-                    <div className="md:mt-8 mt-6 progress">
+                    {/* <div className="md:mt-8 mt-6 progress">
                         <div className="flex imd:items-center gap-10 justify-between max-md:flex-col gap-y-5 max-md:pr-3">
                             <div className="flex items-center flex-shrink-0 gap-8">
                                 <span className='flex-shrink-0 md:w-14'>Height</span>
@@ -106,7 +106,7 @@ const ModalSizeguide: React.FC<Props> = ({ data, isOpen, onClose }) => {
                                 {item}
                             </div>
                         ))}
-                    </div>
+                    </div> */}
                     <table>
                         <thead>
                             <tr>
