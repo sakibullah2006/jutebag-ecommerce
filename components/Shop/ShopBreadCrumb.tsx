@@ -2,6 +2,7 @@
 /* eslint-disable prefer-const */
 'use client'
 
+import { useAppData } from "@/context/AppDataContext";
 import { COLORS } from "@/data/color-codes";
 import { decodeHtmlEntities } from "@/lib/utils";
 import { AttributesWithTermsType, CategorieType, CurrencyType, ProductBrandType, TagType } from "@/types/data-type";
@@ -13,7 +14,6 @@ import 'rc-slider/assets/index.css';
 import { useCallback, useEffect, useState } from 'react';
 import HandlePagination from '../Other/HandlePagination';
 import Product from '../Product/Product';
-import { useAppData } from "@/context/AppDataContext";
 
 interface Props {
     data: Array<ProductType>
@@ -149,6 +149,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
 
     if (sortOption === 'discountHighToLow') {
         filteredData = sortedData
+            .filter(item => item.on_sale)
             .sort((a, b) => (
                 (Math.floor(100 - ((Number(b.sale_price) / Number(b.regular_price)) * 100))) - (Math.floor(100 - ((Number(a.sale_price) / Number(a.regular_price)) * 100)))
             ))

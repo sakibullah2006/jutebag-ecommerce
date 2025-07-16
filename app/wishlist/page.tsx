@@ -10,7 +10,7 @@ import { useAppData } from '@/context/AppDataContext'
 import { useWishlist } from '@/context/WishlistContext'
 import { Product as ProductType } from '@/types/product-type'
 import * as Icon from "@phosphor-icons/react/dist/ssr"
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 const Wishlist = () => {
     const { wishlistState } = useWishlist();
@@ -45,10 +45,12 @@ const Wishlist = () => {
         if (sortOption === 'soldQuantityHighToLow') {
             data.sort((a, b) => b.total_sales - a.total_sales);
         } else if (sortOption === 'discountHighToLow') {
-            data.sort((a, b) =>
-                (Math.floor(100 - ((Number(b.sale_price) / Number(b.price)) * 100))) -
-                (Math.floor(100 - ((Number(a.sale_price) / Number(a.price)) * 100)))
-            );
+            data
+                .filter(item => item.on_sale === true)
+                .sort((a, b) =>
+                    (Math.floor(100 - ((Number(b.sale_price) / Number(b.price)) * 100))) -
+                    (Math.floor(100 - ((Number(a.sale_price) / Number(a.price)) * 100)))
+                );
         } else if (sortOption === 'priceHighToLow') {
             data.sort((a, b) => Number(b.price) - Number(a.price));
         } else if (sortOption === 'priceLowToHigh') {

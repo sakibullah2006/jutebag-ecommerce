@@ -9,10 +9,11 @@ import Instagram from '@/components/Home/Instagram'
 import TabFeatures from '@/components/Home/TabFeatures'
 import WhatNewOne from '@/components/Home/WhatNewOne'
 // import ModalNewsletter from '@/components/Modal/ModalNewsletter'
+import TopNavOne from '@/components/Header/TopNav/TopNavOne'
 import SliderTwo from '@/components/Slider/SliderTwo'
+import { Metadata } from 'next'
 import React from 'react'
 import MenuOne from '../components/Header/Menu/MenuOne'
-import { Metadata } from 'next'
 
 
 export const metadata: Metadata = {
@@ -48,7 +49,7 @@ export default async function HomeTwo() {
 
   return (
     <>
-      {/* <TopNavOne props="style-two bg-purple" slogan='Limited Offer: Free shipping on orders over $50' /> */}
+      <TopNavOne props="style-one bg-black" slogan='Limited Offer: Free shipping on orders over $50' />
       <div id="header" className='relative w-full'>
         <MenuOne props={'bg-transparent'} />
         <SliderTwo />

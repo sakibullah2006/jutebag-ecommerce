@@ -1,20 +1,21 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import * as Icon from "@phosphor-icons/react/dist/ssr";
-import { usePathname } from 'next/navigation';
 import Product from '@/components/Product/Product';
-import productData from '@/data/Product.json'
+import { PATH } from '@/constant/pathConstants';
+import { useAppData } from '@/context/AppDataContext';
+import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
+import { useModalCartContext } from '@/context/ModalCartContext';
+import { useModalSearchContext } from '@/context/ModalSearchContext';
+import { useModalWishlistContext } from '@/context/ModalWishlistContext';
+import productData from '@/data/Product.json';
 import useLoginPopup from '@/store/useLoginPopup';
 import useMenuMobile from '@/store/useMenuMobile';
-import { useModalCartContext } from '@/context/ModalCartContext';
-import { useModalWishlistContext } from '@/context/ModalWishlistContext';
-import { useModalSearchContext } from '@/context/ModalSearchContext';
-import { useCart } from '@/context/CartContext';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import * as Icon from "@phosphor-icons/react/dist/ssr";
+import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
 interface Props {
     props: string;
@@ -33,6 +34,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
     const { openModalWishlist } = useModalWishlistContext()
     const { openModalSearch } = useModalSearchContext()
     const { user, isAuthenticated, logout, loading } = useAuth()
+    const { tags, categories,} = useAppData()
 
     const handleOpenSubNavMobile = (index: number) => {
         setOpenSubNavMobile(openSubNavMobile === index ? null : index)
@@ -58,16 +60,16 @@ const MenuOne: React.FC<Props> = ({ props }) => {
     }, [lastScrollPosition]);
 
     const handleGenderClick = (gender: string) => {
-        router.push(`/shop?gender=${gender}`);
+        router.push(`${PATH.SHOP}?gender=${gender}`);
     };
 
     const handleCategoryClick = (category: string) => {
-        router.push(`/shop?category=${category}`);
+        router.push(`${PATH.SHOP}?category=${category}`);
     };
 
     const handleTypeClick = (type: string) => {
         setSelectedType(type)
-        router.push(`/shop?type=${type}`);
+        router.push(`${PATH.SHOP}?type=${type}`);
     };
 
     return (
@@ -79,7 +81,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                             <i className="icon-category text-2xl"></i>
                         </div>
                         <div className="left flex items-center gap-16">
-                            <Link href={'/'} className='flex items-center max-lg:absolute max-lg:left-1/2 max-lg:-translate-x-1/2'>
+                            <Link href={`${PATH.HOME}`} className='flex items-center max-lg:absolute max-lg:left-1/2 max-lg:-translate-x-1/2'>
                                 <div className="heading4">SakibBaba</div>
                             </Link>
                             <div className="menu-main h-full max-lg:hidden">
@@ -582,7 +584,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                     </li> */}
                                     <li className='h-full'>
                                         <Link
-                                            href="/shop"
+                                            href={PATH.SHOP}
                                             className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/shop/') ? 'active' : ''}`}
                                         >
                                             Shop
@@ -1113,20 +1115,20 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                     >
                                         {!isAuthenticated ? (
                                             <>
-                                                <Link href={'/login'} className="button-main w-full text-center">Login</Link>
+                                                <Link href={PATH.LOGIN} className="button-main w-full text-center">Login</Link>
                                                 <div className="text-secondary text-center mt-3 pb-4">Don’t have an account?
-                                                    <Link href={'/register'} className='text-black pl-1 hover:underline'>Register</Link>
+                                                    <Link href={PATH.REGISTER} className='text-black pl-1 hover:underline'>Register</Link>
                                                 </div>
                                             </>
                                         ) : (
                                             <>
                                                 <div className="text-secondary text-center mt-3 pb-4">Hello, <span className='text-black'>{user?.user_display_name}</span></div>
-                                                <Link href={'/dashboard'} className="button-main bg-white text-black border border-black w-full text-center">Dashboard</Link>
+                                                <Link href={PATH.DASHBOARD} className="button-main bg-white text-black border border-black w-full text-center">Dashboard</Link>
                                                 <div
                                                     className={`button-main w-full text-center mt-3 ${loading ? 'disabled' : ''} disabled:bg-gray-300`}
                                                     onClick={() => {
                                                         logout();
-                                                        router.push('/login');
+                                                        router.push(PATH.LOGIN);
                                                     }}
                                                     style={{ cursor: loading ? 'not-allowed' : 'pointer' }}
                                                 >{loading ? "LOGING OUT" : "LOG OUT"}</div>
@@ -1160,14 +1162,14 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                 >
                                     <Icon.X size={14} />
                                 </div>
-                                <Link href={'/'} className='logo text-3xl font-semibold text-center'>SakibBaba</Link>
+                                <Link href={PATH.HOME} className='logo text-3xl font-semibold text-center'>SakibBaba</Link>
                             </div>
                             <div className="form-search relative mt-2 flex items-center justify-between">
                                 <Icon.MagnifyingGlassIcon size={20} className='absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer' />
                                 <input type="text" placeholder='What are you looking for?' onChange={(e) => setMobileSearch(e.target.value)} className=' h-12 rounded-lg rounded-r-none border border-line text-sm w-full pl-10 pr-4' />
                                 <div
                                     className='bg-black flex items-center px-3 rounded-r-lg justify-center h-12 text-white cursor-pointer'
-                                    onClick={() => router.push(`/shop?search=${mobilesearch}`)}
+                                    onClick={() => router.push(`search-result?query=${mobilesearch}`)}
                                 >
                                     <Icon.ArrowRightIcon size={20} className='' weight='bold' />
                                 </div>
@@ -1178,7 +1180,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                         className={`${openSubNavMobile === 1 ? 'open' : ''}`}
                                         onClick={() => handleOpenSubNavMobile(1)}
                                     >
-                                        <Link href={'/shop'} className={`text-xl font-semibold flex items-center justify-between`}>Shop
+                                        <Link href={PATH.SHOP} className={`text-xl font-semibold flex items-center justify-between`}>Shop
                                             {/* <span className='text-right'>
                                                 <Icon.CaretRightIcon size={20} />
                                             </span> */}
@@ -1191,7 +1193,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                     >
                                         <a href={'#!'} className='text-xl font-semibold flex items-center justify-between mt-5'>Categories
                                             <span className='text-right'>
-                                                <Icon.CaretRight size={20} />
+                                                <Icon.CaretRightIcon size={20} />
                                             </span>
                                         </a>
                                         <div className="sub-nav-mobile">
@@ -1516,9 +1518,9 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                         className={`${openSubNavMobile === 3 ? 'open' : ''}`}
                                         onClick={() => handleOpenSubNavMobile(3)}
                                     >
-                                        <a href={'#!'} className='text-xl font-semibold flex items-center justify-between mt-5'>Shop
+                                        <a href={PATH.SHOP} className='text-xl font-semibold flex items-center justify-between mt-5'>Shop
                                             <span className='text-right'>
-                                                <Icon.CaretRight size={20} />
+                                                <Icon.CaretRightIcon size={20} />
                                             </span>
                                         </a>
                                         <div className="sub-nav-mobile">
@@ -1526,7 +1528,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                 className="back-btn flex items-center gap-3"
                                                 onClick={() => handleOpenSubNavMobile(3)}
                                             >
-                                                <Icon.CaretLeft />
+                                                <Icon.CaretLeftIcon />
                                                 Back
                                             </div>
                                             <div className="list-nav-item w-full pt-3 pb-12">
@@ -1537,7 +1539,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                             <ul>
                                                                 <li>
                                                                     <Link
-                                                                        href={'/shop/breadcrumb-img'}
+                                                                        href={`${PATH.SHOP}/breadcrumb-img`}
                                                                         className={`link text-secondary duration-300 ${pathname === '/shop/breadcrumb-img' ? 'active' : ''}`}
                                                                     >
                                                                         Shop Breadcrumb IMG
@@ -1720,7 +1722,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                                 </li>
                                                                 <li>
                                                                     <Link
-                                                                        href={'/my-account'}
+                                                                        href={PATH.DASHBOARD}
                                                                         className={`link text-secondary duration-300 ${pathname === '/my-account' ? 'active' : ''}`}
                                                                     >
                                                                         My Account
@@ -1747,7 +1749,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                     >
                                         <a href={'#!'} className='text-xl font-semibold flex items-center justify-between mt-5'>Product
                                             <span className='text-right'>
-                                                <Icon.CaretRight size={20} />
+                                                <Icon.CaretRightIcon size={20} />
                                             </span>
                                         </a>
                                         <div className="sub-nav-mobile">
@@ -1755,7 +1757,7 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                 className="back-btn flex items-center gap-3"
                                                 onClick={() => handleOpenSubNavMobile(4)}
                                             >
-                                                <Icon.CaretLeft />
+                                                <Icon.CaretLeftIcon />
                                                 Back
                                             </div>
                                             <div className="list-nav-item w-full pt-3 pb-12">
@@ -1919,14 +1921,6 @@ const MenuOne: React.FC<Props> = ({ props }) => {
                                                                     </Link>
                                                                 </li>
                                                             </ul>
-                                                        </div>
-                                                    </div>
-                                                    <div className="recent-product pt-4">
-                                                        <div className="text-button-uppercase pb-1">Recent Products</div>
-                                                        <div className="list-product hide-product-sold  grid grid-cols-2 gap-5 mt-3">
-                                                            {/* {productData.slice(0, 2).map((prd, index) => (
-                                                                <Product key={index} data={prd} type='grid' style='style-1' />
-                                                            ))} */}
                                                         </div>
                                                     </div>
                                                 </div>
