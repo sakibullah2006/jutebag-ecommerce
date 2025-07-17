@@ -75,9 +75,6 @@ const MenuOne: React.FC<Props> = ({ props }) => {
         router.push(`${PATH.SHOP}?type=${type}`);
     };
 
-
-    console.log("categories", categories)
-
     return (
         <>
             <div className={`header-menu style-one ${fixedHeader ? 'fixed' : 'absolute'} top-0 left-0 right-0 w-full md:h-[74px] h-[56px] ${props}`}>

@@ -1,3 +1,5 @@
+
+
 import { getAllProductsPaginated, getProductById, getProductReviews, getProductVariationsById } from '@/actions/products-actions';
 import BreadcrumbProduct from '@/components/Breadcrumb/BreadcrumbProduct';
 import Footer from '@/components/Footer/Footer';
@@ -45,7 +47,7 @@ const ProductDefault = async ({ params }: ProductDefaultProps) => {
         getProductReviews(Number(productId))
     ])
 
-    const include = product.related_ids.map((item) => Number(item))
+    const include = product.related_ids?.map((item) => Number(item))
 
     const { products: relatedProducts } = await getAllProductsPaginated({ params: { include } });
 
