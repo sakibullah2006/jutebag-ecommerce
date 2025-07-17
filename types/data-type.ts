@@ -208,3 +208,26 @@ export interface ProductBrandType {
     count: number; // Number of published products for the brand
 
 }
+
+
+export interface StoreAddress {
+    address1: string;
+    address2: string;
+    city: string;
+    postcode: string;
+    countryState: string; // e.g., "US:NY"
+}
+
+export interface StoreConfig {
+    address: StoreAddress;
+    currency: string;
+    currencySymbol: string;
+    currencyPosition: string;
+    thousandSeparator: string;
+    decimalSeparator: string;
+    numberOfDecimals: number;
+    isTaxesEnabled: boolean;
+    areCouponsEnabled: boolean;
+    sellingLocations: string[];
+    shippingLocations: string[];
+}

@@ -5,6 +5,7 @@ import Breadcrumb from '@/components/Breadcrumb/Breadcrumb'
 import Footer from '@/components/Footer/Footer'
 import CartClient from '@/components/Cart/CartClient'
 import { Metadata } from 'next'
+import { getProductCategories } from '../../actions/data-actions'
 
 
 
@@ -12,11 +13,15 @@ import { Metadata } from 'next'
 
 const Cart = async () => {
 
+    const [categories] = await Promise.all([
+        getProductCategories()
+    ])
+
     return (
         <>
             <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" />
             <div id="header" className='relative w-full'>
-                <MenuOne props="bg-transparent" />
+                <MenuOne props="bg-transparent" categories={categories} />
                 <Breadcrumb heading='Shopping cart' subHeading='Shopping cart' />
             </div>
             <CartClient />

@@ -1,6 +1,6 @@
 "use server"
 
-import { AttributesWithTermsType, AttributeTermType, CategorieType, CountryDataType, CurrencyType, ProductAttributeType, ProductBrandType, ShippingLocationDataType, ShippingMethodDataType, ShippingZoneDataType, TagType, TaxDataType, } from "@/types/data-type";
+import { AttributesWithTermsType, AttributeTermType, CategorieType, CountryDataType, CurrencyType, ProductAttributeType, ProductBrandType, ShippingLocationDataType, ShippingMethodDataType, ShippingZoneDataType, StoreConfig, TagType, TaxDataType, } from "@/types/data-type";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import { error } from "console";
 
@@ -13,10 +13,32 @@ const WooCommerce = new WooCommerceRestApi({
 
 export const getCountries = async (): Promise<CountryDataType[]> => {
   try {
-    const response = await WooCommerce.get("data/countries", { caches: true });
-    return response.data;
+    const [storeSettings, allCountriesResponse] = await Promise.all([
+      getStoreSettings(),
+      WooCommerce.get("data/countries", { caches: true })
+    ]);
+
+    if (!storeSettings || !allCountriesResponse?.data) {
+      console.error("Could not retrieve store settings or country list.");
+      return [];
+    }
+
+    const shippingLocations = storeSettings.shippingLocations;
+    const allCountries: CountryDataType[] = allCountriesResponse.data;
+
+    if (shippingLocations.length === 0) {
+      return [];
+    }
+
+    // 4. Filter the full country list to include only the allowed shipping locations
+    const filteredCountries = allCountries.filter(country =>
+      shippingLocations.includes(country.code)
+    );
+
+    return filteredCountries;
+
   } catch (error) {
-    console.error("Error fetching countries:", error);
+    console.error("Error fetching filtered countries:", error);
     return [];
   }
 }
@@ -252,3 +274,53 @@ export const getBrands = async (): Promise<ProductBrandType[]> => {
     return [];
   }
 }
+
+export const getStoreSettings = async (): Promise<StoreConfig | null> => {
+  try {
+    const { data: settings } = await WooCommerce.get("settings/general", { caches: true });
+
+    if (!settings || !Array.isArray(settings)) {
+      throw new Error("Invalid settings format received from API.");
+    }
+
+    // Helper to find a setting's value by its ID
+    const findSettingValue = (id: string, defaultValue: string | string[] = '') => {
+      const setting = settings.find((s) => s.id === id);
+      return setting ? setting.value : defaultValue;
+    };
+
+    // Find the currency symbol from the options list
+    const currencyCode = findSettingValue('woocommerce_currency');
+    const currencyOptions = settings.find(s => s.id === 'woocommerce_currency')?.options || {};
+    const currencyString = currencyOptions[currencyCode] || '';
+    // Extract symbol from string like "United States (US) dollar (&#36;) — USD"
+    const symbolMatch = currencyString.match(/\(([^)]+)\)/);
+    const currencySymbol = symbolMatch ? symbolMatch[1].replace(/&#x20b9;/g, '₹').replace(/&[a-z]+;/g, '') : '$';
+
+    const organizedSettings: StoreConfig = {
+      address: {
+        address1: findSettingValue('woocommerce_store_address'),
+        address2: findSettingValue('woocommerce_store_address_2'),
+        city: findSettingValue('woocommerce_store_city'),
+        postcode: findSettingValue('woocommerce_store_postcode'),
+        countryState: findSettingValue('woocommerce_default_country'),
+      },
+      currency: currencyCode,
+      currencySymbol: currencySymbol,
+      currencyPosition: findSettingValue('woocommerce_currency_pos'),
+      thousandSeparator: findSettingValue('woocommerce_price_thousand_sep'),
+      decimalSeparator: findSettingValue('woocommerce_price_decimal_sep'),
+      numberOfDecimals: parseInt(findSettingValue('woocommerce_price_num_decimals', '2'), 10),
+      isTaxesEnabled: findSettingValue('woocommerce_calc_taxes') === 'yes',
+      areCouponsEnabled: findSettingValue('woocommerce_enable_coupons') === 'yes',
+      sellingLocations: findSettingValue('woocommerce_specific_allowed_countries', []),
+      shippingLocations: findSettingValue('woocommerce_specific_ship_to_countries', []),
+    };
+
+    return organizedSettings;
+
+  } catch (error) {
+    console.error("Error fetching store settings:", error);
+    return null;
+  }
+};

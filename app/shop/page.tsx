@@ -22,7 +22,11 @@ export default async function BreadCrumb1({ searchParams }: BreadCrumb1Props) {
     const { type, gender, category } = await searchParams;
 
     // Fetch products server-side
-    const { products, status } = await getAllProductsPaginated();
+    const [{ products, status }, categories] = await Promise.all([
+        getAllProductsPaginated(),
+        getProductCategories()
+
+    ])
 
 
     // Handle fetch status if needed
@@ -37,7 +41,7 @@ export default async function BreadCrumb1({ searchParams }: BreadCrumb1Props) {
         <>
             {/* <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" /> */}
             <div id="header" className="relative w-full">
-                <MenuOne props="bg-transparent" />
+                <MenuOne props="bg-transparent" categories={categories} />
             </div>
             <Suspense fallback={<div>Loading breadcrumb...</div>}>
                 <ShopBreadCrumb1

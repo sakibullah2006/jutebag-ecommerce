@@ -1,21 +1,24 @@
 'use client'
 
 import { MotionDiv } from '@/types/montion-types'
-import { Product as ProductType } from '@/types/product-type'
+import { ProductCategory, Product as ProductType } from '@/types/product-type'
 // import { ProductType } from '@/types/ProductType'
 import { TagType } from '@/types/data-type'
 import React, { useEffect, useState } from 'react'
 import Product from '../Product/Product'
+import { useAppData } from '../../context/AppDataContext'
 
 interface Props {
-    tags: TagType[]
+    categories?: ProductCategory[]
     data: ProductType[];
     start: number;
     limit: number;
 }
 
-const WhatNewOne: React.FC<Props> = ({ data, start, limit, tags }) => {
-    const [activeTab, setActiveTab] = useState<string>(tags[0]?.name.trim() || 'All');
+const WhatNewOne: React.FC<Props> = ({ data, start, limit, categories }) => {
+    // const { categories } = useAppData()
+    const commonCategories = categories?.filter(cat => cat.slug.includes("common")).sort((a, b) => b.count - a.count)?.slice(0, 5)
+    const [activeTab, setActiveTab] = useState<string>(commonCategories && commonCategories[0]?.slug.trim() || 'All');
 
     const handleTabClick = (type: string) => {
         setActiveTab(type);
@@ -24,7 +27,7 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit, tags }) => {
     const filteredProducts: ProductType[] = data.filter(
         (product) => {
             if (activeTab === 'All') return true;
-            return product.tags.some((tag) => tag.name.toLowerCase() === activeTab.toLowerCase())
+            return product.categories.some((cat) => cat.slug.toLowerCase() === activeTab.toLowerCase())
             // product.categories.some((category) => category.name.toLowerCase() === "fashion")
         }
     );
@@ -41,20 +44,20 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit, tags }) => {
                     <div className="heading flex flex-col items-center text-center">
                         <div className="heading3">What{String.raw`'s`} new</div>
                         <div className="menu-tab flex items-center gap-2 p-1 bg-surface rounded-2xl mt-6">
-                            {tags.sort((a, b) => b.count - a.count).slice(0, 4).map((type) => (
+                            {commonCategories && commonCategories.map((item) => (
                                 <div
-                                    key={type.id}
-                                    className={`tab-item relative text-secondary text-button-uppercase py-2 px-5 cursor-pointer duration-500 hover:text-black ${activeTab === type.name ? 'active' : ''}`}
-                                    onClick={() => handleTabClick(type.name.trim())}
+                                    key={item.id}
+                                    className={`tab-item relative text-secondary text-button-uppercase py-2 px-5 cursor-pointer duration-500 hover:text-black ${activeTab.toLowerCase() === item.slug.toLowerCase() ? 'active' : ''}`}
+                                    onClick={() => handleTabClick(item.slug.trim())}
                                 >
-                                    {activeTab === type.name && (
+                                    {activeTab.toLowerCase() === item.slug.toLowerCase() && (
                                         <MotionDiv
                                             layoutId='active-pill'
                                             className='absolute inset-0 rounded-2xl bg-white'
                                         ></MotionDiv>
                                     )}
                                     <span className='relative text-button-uppercase z-[1]'>
-                                        {type.name.charAt(0).toUpperCase() + type.name.slice(1)}
+                                        {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
                                     </span>
                                 </div>
                             ))}

@@ -1,4 +1,4 @@
-import { getProductTags } from '@/actions/data-actions'
+import { getProductCategories, getProductTags } from '@/actions/data-actions'
 import { getAllProductsPaginated } from '@/actions/products-actions'
 import Footer from '@/components/Footer/Footer'
 import Banner from '@/components/Home/Banner'
@@ -39,9 +39,9 @@ export const metadata: Metadata = {
 export default async function HomeTwo() {
 
   // const { products } = await getAllProductsPaginated();
-  const [{ products }, tags] = await Promise.all([
+  const [{ products }, categories] = await Promise.all([
     getAllProductsPaginated(),
-    getProductTags()
+    getProductCategories()
   ])
   console.log("Fetch Products:", products.length);
 
@@ -51,11 +51,11 @@ export default async function HomeTwo() {
     <>
       <TopNavOne props="style-one bg-black" slogan='Limited Offer: Free shipping on orders over $50' />
       <div id="header" className='relative w-full'>
-        <MenuOne props={'bg-transparent'} />
+        <MenuOne props={'bg-transparent'} categories={categories} />
         <SliderTwo />
       </div>
-      <Collection props="pt-5" />
-      <WhatNewOne data={products} tags={tags} start={0} limit={8} />
+      <Collection props="pt-5" categories={categories} />
+      <WhatNewOne data={products} start={0} limit={8} categories={categories} />
       <Banner />
       <TabFeatures data={products} start={0} limit={8} />
       <Benefit props="md:mt-20 mt-10 py-10 px-2.5 bg-surface rounded-3xl" />

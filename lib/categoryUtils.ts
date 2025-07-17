@@ -15,7 +15,7 @@ type CategoryNode = CategorieType & { children: CategoryNode[] };
 export function generateMenuItems(categories: CategorieType[]): MenuItem[] {
     const finalMenu: MenuItem[] = [];
     const fashionCategory = categories.find(
-        (cat) => cat.slug === 'first_order_fashion'
+        (cat) => cat.slug.toLowerCase().includes("first_order") && cat.slug.toLowerCase().includes("fashion")
     );
 
     if (!fashionCategory) {
