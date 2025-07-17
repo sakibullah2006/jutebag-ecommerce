@@ -52,51 +52,51 @@ export const getAllProductsPaginated = async ({
   params?: { category?: string; search?: string; tag?: string; include?: Array<number> };
 } = {}): Promise<{
   products: Product[];
+  totalItems: number;
   status: 'OK' | 'ERROR';
 }> => {
   let allProducts: Product[] = [];
   let page = 1;
-  const perPage = 50;
+  let totalPages = 1;
+  let totalItems = 0;
 
   try {
-    while (true) {
-      const queryParams = new URLSearchParams({
-        per_page: perPage.toString(),
-        page: page.toString(),
-        ...(params?.category ? { category: params.category } : {}),
-        ...(params?.search ? { search: params.search } : {}),
-        ...(params?.tag ? { tag: params.tag } : {}),
-        ...(params?.include ? { include: params.include.join(',') } : {}),
+    do {
+      const response = await WooCommerce.get("products", {
+        per_page: 100,
+        page: page,
+        ...(params?.category && { category: params.category }),
+        ...(params?.search && { search: params.search }),
+        ...(params?.tag && { tag: params.tag }),
+        ...(params?.include && { include: params.include.join(',') }),
       });
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/woocommerce/products?${queryParams.toString()}`,
-        { cache: 'force-cache', next: { revalidate: 30 } }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch products');
+      if (response.data && Array.isArray(response.data)) {
+        allProducts = allProducts.concat(response.data);
       }
 
-      const products: Product[] = await response.json();
-      allProducts = [...allProducts, ...products];
-
-      if (products.length < perPage) {
-        break; // Exit loop if fewer products are fetched than perPage
+      if (page === 1 && response.headers) {
+        if (response.headers['x-wp-totalpages']) {
+          totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
+        }
+        if (response.headers['x-wp-total']) {
+          totalItems = parseInt(response.headers['x-wp-total'], 10);
+        }
       }
 
-      page++; // Increment page for the next fetch
-    }
+      page++;
+    } while (page <= totalPages);
 
     return {
       products: allProducts,
+      totalItems: totalItems,
       status: 'OK',
     };
   } catch (error) {
     console.error(`Error fetching all paginated products:`, error);
     return {
       products: [],
+      totalItems: 0,
       status: 'ERROR',
     };
   }
@@ -112,6 +112,7 @@ export async function getProductReviews(productId: number) {
     // Make API request to get reviews with no-cache headers
     const response = await WooCommerce.get("products/reviews", {
       product: productId,
+      per_page: 100,
       cache: 'force-cache', next: { revalidate: 30 }
       // _nocache: Date.now(), // Append timestamp to prevent caching
     });

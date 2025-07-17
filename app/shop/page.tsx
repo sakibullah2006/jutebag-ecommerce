@@ -6,6 +6,7 @@ import ShopBreadCrumb1 from '@/components/Shop/ShopBreadCrumb';
 import { Product as ProductType } from '@/types/product-type';
 import { Suspense } from 'react';
 import { Metadata } from 'next';
+import { getProductCategories } from '../../actions/data-actions';
 
 // Define props type for the component
 type BreadCrumb1Props = {
@@ -22,6 +23,8 @@ export default async function BreadCrumb1({ searchParams }: BreadCrumb1Props) {
 
     // Fetch products server-side
     const { products, status } = await getAllProductsPaginated();
+
+
     // Handle fetch status if needed
     if (status !== 'OK') {
         // You can add error handling here, e.g., return a fallback UI

@@ -127,12 +127,32 @@ export const getShippingData = async (
 
 export const getAttributesWithTerms = async (): Promise<AttributesWithTermsType[]> => {
   try {
-    const response = await WooCommerce.get('products/attributes', { caches: true });
-    const attributes: ProductAttributeType[] = response.data;
+    let allAttributes: ProductAttributeType[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const response = await WooCommerce.get('products/attributes', {
+        per_page: 100,
+        page: page,
+        caches: true
+      });
+
+      if (response.data && Array.isArray(response.data)) {
+        allAttributes = allAttributes.concat(response.data);
+      }
+
+      if (page === 1 && response.headers && response.headers['x-wp-totalpages']) {
+        totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
+      }
+
+      page++;
+    } while (page <= totalPages);
+
 
     // Fetch terms for each attribute
-    const attributesWithTerms: AttributesWithTermsType[] = await Promise.all(attributes.map(async (attribute) => {
-      const terms: AttributeTermType[] = await WooCommerce.get(`products/attributes/${attribute.id}/terms`, { caches: true }).then(res => res.data);
+    const attributesWithTerms: AttributesWithTermsType[] = await Promise.all(allAttributes.map(async (attribute) => {
+      const terms: AttributeTermType[] = await WooCommerce.get(`products/attributes/${attribute.id}/terms`, { per_page: 100, caches: true }).then(res => res.data);
       return {
         attribute: attribute,
         terms: terms,
@@ -148,8 +168,30 @@ export const getAttributesWithTerms = async (): Promise<AttributesWithTermsType[
 
 export const getProductCategories = async (): Promise<CategorieType[]> => {
   try {
-    const response = await WooCommerce.get('products/categories', { caches: true });
-    return response.data;
+    let allCategories: CategorieType[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const response = await WooCommerce.get('products/categories', {
+        per_page: 100,
+        page: page,
+        caches: true
+      });
+
+      if (response.data && Array.isArray(response.data)) {
+        allCategories = allCategories.concat(response.data);
+      }
+
+      // Get total pages from headers on the first request
+      if (page === 1 && response.headers && response.headers['x-wp-totalpages']) {
+        totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
+      }
+
+      page++;
+    } while (page <= totalPages);
+
+    return allCategories;
   } catch (error) {
     console.error("Error fetching categories:", error);
     return [];
@@ -158,8 +200,30 @@ export const getProductCategories = async (): Promise<CategorieType[]> => {
 
 export const getProductTags = async (): Promise<TagType[]> => {
   try {
-    const response = await WooCommerce.get('products/tags', { caches: true });
-    return response.data;
+    let allTags: TagType[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const response = await WooCommerce.get('products/tags', {
+        per_page: 100,
+        page: page,
+        caches: true
+      });
+
+      if (response.data && Array.isArray(response.data)) {
+        allTags = allTags.concat(response.data);
+      }
+
+      // Get total pages from headers on the first request
+      if (page === 1 && response.headers && response.headers['x-wp-totalpages']) {
+        totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
+      }
+
+      page++;
+    } while (page <= totalPages);
+
+    return allTags;
   } catch (error) {
     console.error("Error fetching tags:", error);
     return [];
