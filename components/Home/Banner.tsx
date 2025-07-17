@@ -6,10 +6,10 @@ const Banner = () => {
     return (
         <>
             <div className="banner-block style-one grid sm:grid-cols-2 gap-5 md:pt-20 pt-10">
-                <Link href={'/shop/breadcrumb-img'} className="banner-item relative block overflow-hidden duration-500">
+                <Link href={'/shop?type=promotion_bestseller'} className="banner-item relative block overflow-hidden duration-500">
                     <div className="banner-img">
                         <Image
-                            src={'/images/banner/1.png'}
+                            src={'/images/banner/best_sellers.webp'}
                             width={2000}
                             height={1300}
                             alt='banner1'
@@ -22,10 +22,10 @@ const Banner = () => {
                         <div className="text-button text-white relative inline-block pb-1 border-b-2 border-white duration-500 mt-2">Shop Now</div>
                     </div>
                 </Link>
-                <Link href={'/shop/breadcrumb-img'} className="banner-item relative block overflow-hidden duration-500">
+                <Link href={'/shop?type=promotion_new-arrival'} className="banner-item relative block overflow-hidden duration-500">
                     <div className="banner-img">
                         <Image
-                            src={'/images/banner/2.png'}
+                            src={'/images/banner/new_arrival.webp'}
                             width={2000}
                             height={1300}
                             alt='banner2'

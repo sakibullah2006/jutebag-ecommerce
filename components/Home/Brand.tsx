@@ -43,7 +43,7 @@ const Brand = () => {
                             <SwiperSlide>
                                 <div className="brand-item relative flex items-center justify-center h-[36px]">
                                     <Image
-                                        src={'/images/brand/1.png'}
+                                        src={'/images/brand/affiliated_1.webp'}
                                         width={300}
                                         height={300}
                                         alt='1'
@@ -54,7 +54,7 @@ const Brand = () => {
                             <SwiperSlide>
                                 <div className="brand-item relative flex items-center justify-center h-[36px]">
                                     <Image
-                                        src={'/images/brand/2.png'}
+                                        src={'/images/brand/affiliated_2.webp'}
                                         width={300}
                                         height={300}
                                         alt='1'
@@ -65,7 +65,7 @@ const Brand = () => {
                             <SwiperSlide>
                                 <div className="brand-item relative flex items-center justify-center h-[36px]">
                                     <Image
-                                        src={'/images/brand/3.png'}
+                                        src={'/images/brand/affiliated_3.webp'}
                                         width={300}
                                         height={300}
                                         alt='1'
@@ -76,7 +76,7 @@ const Brand = () => {
                             <SwiperSlide>
                                 <div className="brand-item relative flex items-center justify-center h-[36px]">
                                     <Image
-                                        src={'/images/brand/4.png'}
+                                        src={'/images/brand/affiliated_4.webp'}
                                         width={300}
                                         height={300}
                                         alt='1'
@@ -87,7 +87,7 @@ const Brand = () => {
                             <SwiperSlide>
                                 <div className="brand-item relative flex items-center justify-center h-[36px]">
                                     <Image
-                                        src={'/images/brand/5.png'}
+                                        src={'/images/brand/affiliated_5.webp'}
                                         width={300}
                                         height={300}
                                         alt='1'
@@ -98,7 +98,7 @@ const Brand = () => {
                             <SwiperSlide>
                                 <div className="brand-item relative flex items-center justify-center h-[36px]">
                                     <Image
-                                        src={'/images/brand/6.png'}
+                                        src={'/images/brand/affiliated_6.webp'}
                                         width={300}
                                         height={300}
                                         alt='1'

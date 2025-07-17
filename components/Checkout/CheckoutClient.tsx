@@ -1,30 +1,30 @@
 'use client'
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import Link from 'next/link'
-import * as Icon from "@phosphor-icons/react/dist/ssr";
-import { useCart } from '@/context/CartContext'
-import { useModalCartContext } from '@/context/ModalCartContext'
-import { calculatePrice, cn, decodeHtmlEntities } from '@/lib/utils';
+import { validateCoupon } from '@/actions/coupon';
 import { useAppData } from '@/context/AppDataContext';
-import Image from "next/image"
-import { CountryDataType, TaxDataType, ShippingMethodDataType, CouponDataType, StateDataType, ShippingZoneDataType } from '@/types/data-type'
-import { validateCoupon } from '@/actions/coupon'
-import z from 'zod';
+import { useCart } from '@/context/CartContext';
+import { useModalCartContext } from '@/context/ModalCartContext';
+import { calculatePrice, cn, decodeHtmlEntities } from '@/lib/utils';
+import { CountryDataType, CouponDataType, ShippingMethodDataType, ShippingZoneDataType, StateDataType, TaxDataType } from '@/types/data-type';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { createOrder } from '../../actions/order-actions';
-import { LineItem } from '../../types/order-type';
-import { OrderData } from '../../lib/validation';
+import * as Icon from "@phosphor-icons/react/dist/ssr";
+import Image from "next/image";
+import Link from 'next/link';
 import { redirect, useRouter } from 'next/navigation';
-import StripeCheckout from './StripeCheckoutForm';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import z from 'zod';
+import { createOrder } from '../../actions/order-actions';
 import { createPaymentIntent } from '../../actions/stripePaymentIntentActions';
+import { OrderData } from '../../lib/validation';
+import { LineItem } from '../../types/order-type';
+import StripeCheckout from './StripeCheckoutForm';
 
 
 // 1. Zod Schema for client-side validation
 const checkoutSchema = z.object({
     email: z.string().email({ message: "A valid email is required." }),
     emailOffers: z.boolean().optional(),
-    phone: z.string().min(7, { message: "A valid phone number is required." }),
+    phone: z.string().min(7, { message: "A valid phone number is required." }).max(15, { message: "Phone number is too long." }),
     country: z.string().min(1, { message: "Country is required." }),
     firstName: z.string().min(1, { message: "Last name is required." }),
     lastName: z.string().min(1, { message: "Last name is required." }),
@@ -463,7 +463,6 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
 
     if (cartState.cartArray.length === 0 && !cleintSecret) {
         redirect('/cart'); // Redirect to cart if no items in cart
-        return null; // Redirect to cart if no items in cart
     }
 
 

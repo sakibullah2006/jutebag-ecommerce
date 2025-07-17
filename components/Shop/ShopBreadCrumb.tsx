@@ -2,6 +2,7 @@
 /* eslint-disable prefer-const */
 'use client'
 
+import { useAppData } from "@/context/AppDataContext";
 import { COLORS } from "@/data/color-codes";
 import { decodeHtmlEntities } from "@/lib/utils";
 import { AttributesWithTermsType, CategorieType, CurrencyType, ProductBrandType, TagType } from "@/types/data-type";
@@ -13,7 +14,6 @@ import 'rc-slider/assets/index.css';
 import { useCallback, useEffect, useState } from 'react';
 import HandlePagination from '../Other/HandlePagination';
 import Product from '../Product/Product';
-import { useAppData } from "@/context/AppDataContext";
 
 interface Props {
     data: Array<ProductType>
@@ -28,6 +28,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
     const [sortOption, setSortOption] = useState('');
     const [pageCount, setPageCount] = useState<number | null>(null);
     const [type, setType] = useState<string | null | undefined>(dataType)
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(category);
     const [size, setSize] = useState<string | null>()
     const [color, setColor] = useState<string | null>()
     const [brand, setBrand] = useState<string | null>()
@@ -65,6 +66,20 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
         setCurrentPage(0);
     }
 
+    const handleCategory = (cat: string | null) => {
+        const newCategory = selectedCategory === cat ? null : cat;
+        setSelectedCategory(newCategory);
+        setCurrentPage(0);
+
+        const params = new URLSearchParams(window.location.search);
+        if (newCategory) {
+            params.set('category', newCategory);
+        } else {
+            params.delete('category');
+        }
+        window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
+    }
+
     const handleSize = (size: string) => {
         setSize((prevSize) => (prevSize === size ? null : size))
         setCurrentPage(0);
@@ -97,23 +112,23 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
 
         let isDatagenderMatched = true;
         if (gender) {
-            isDatagenderMatched = product.categories.find(cat => cat.slug.includes("gender"))?.name.toLowerCase() === gender.toLowerCase()
+            isDatagenderMatched = product.categories.find(cat => cat.slug.includes("gender"))?.slug.includes(gender) || false;
         }
 
         let isDataCategoryMatched = true;
-        if (category) {
-            isDataCategoryMatched = product.categories.some(cat => cat.name.toLowerCase() === category.toLowerCase())
+        if (selectedCategory) {
+            isDataCategoryMatched = product.categories.some(cat => cat.slug.toLowerCase() === selectedCategory.toLowerCase())
         }
 
         let isDataTypeMatched = true;
         if (dataType) {
-            isDataTypeMatched = product.tags.some((tag) => tag.name.toLowerCase() === dataType!.toLowerCase())
+            isDataTypeMatched = product.tags.some((tag) => tag.slug.toLowerCase() === dataType!.toLowerCase())
         }
 
         let isTypeMatched = true;
         if (type) {
             dataType = type
-            isTypeMatched = product.tags.some((tag) => tag.name.toLowerCase() === dataType!.toLowerCase())
+            isTypeMatched = product.tags.some((tag) => tag.slug.toLowerCase() === dataType!.toLowerCase())
         }
 
         let isSizeMatched = true;
@@ -149,6 +164,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
 
     if (sortOption === 'discountHighToLow') {
         filteredData = sortedData
+            .filter(item => item.on_sale)
             .sort((a, b) => (
                 (Math.floor(100 - ((Number(b.sale_price) / Number(b.regular_price)) * 100))) - (Math.floor(100 - ((Number(a.sale_price) / Number(a.regular_price)) * 100)))
             ))
@@ -197,6 +213,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
         dataType = null
         setShowOnlySale(false);
         setSortOption('');
+        setSelectedCategory(null);
         setType(null);
         setSize(null);
         setColor(null);
@@ -213,19 +230,19 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                     <div className="container lg:pt-[134px] pt-24 pb-10 relative">
                         <div className="main-content w-full h-full flex flex-col items-center justify-center relative z-[1]">
                             <div className="text-content">
-                                <div className="heading2 text-center">{dataType === null ? 'Shop' : dataType}</div>
+                                <div className="heading2 text-center">{selectedCategory === null ? 'Shop' : categories.find(cat => cat.slug === selectedCategory)?.name}</div>
                                 <div className="link flex items-center justify-center gap-1 caption1 mt-3">
                                     <Link href={'/'}>Homepage</Link>
                                     <Icon.CaretRightIcon size={14} className='text-secondary2' />
-                                    <div className='text-secondary2 capitalize'>{dataType === null ? 'Shop' : dataType}</div>
+                                    <div className='text-secondary2 capitalize'>{selectedCategory === null ? 'Shop' : categories.find(cat => cat.slug === selectedCategory)?.name}</div>
                                 </div>
                             </div>
                             <div className="list-tab flex flex-wrap items-center justify-center gap-y-5 gap-8 lg:mt-[70px] mt-12 overflow-hidden">
-                                {tags.slice(0, 5).map((item, index) => (
+                                {categories && categories.filter(cat => cat.slug.includes("common")).sort((a, b) => b.count - a.count).slice(0, 5).map((item, index) => (
                                     <div
                                         key={index}
-                                        className={`tab-item text-button-uppercase cursor-pointer has-line-before line-2px ${dataType?.toLowerCase() === item.name.toLowerCase() ? 'active' : ''}`}
-                                        onClick={() => handleType(item.name.toLowerCase())}
+                                        className={`tab-item text-button-uppercase cursor-pointer has-line-before line-2px ${selectedCategory?.toLowerCase() === item.slug.toLowerCase() ? 'active' : ''}`}
+                                        onClick={() => handleCategory(item.slug.toLowerCase())}
                                     >
                                         {item.name.charAt(0).toUpperCase() + item.name.slice(1)}
                                     </div>
@@ -241,18 +258,39 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                     <div className="flex max-md:flex-wrap max-md:flex-col-reverse gap-y-8">
                         <div className="sidebar lg:w-1/4 md:w-1/3 w-full md:pr-12">
                             <div className="filter-type pb-8 border-b border-line">
-                                <div className="heading6">Products Type</div>
+                                <div className="heading6">Featured</div>
                                 <div className="list-type mt-4">
-                                    {tags && tags.map((item, index) => (
+                                    {tags && tags.filter(tag => tag.slug.includes("promotion")).sort((a, b) => b.count - a.count).map((item, index) => (
                                         <div
                                             key={index}
-                                            className={`item flex items-center justify-between cursor-pointer ${dataType === item.name ? 'active' : ''}`}
-                                            onClick={() => handleType(item.name)}
+                                            className={`item flex items-center justify-between cursor-pointer ${selectedType?.toLowerCase() === item.slug.toLowerCase() ? 'active' : ''}`}
+                                            onClick={() => handleType(item.slug.toLowerCase())}
                                         >
                                             <div className='text-secondary has-line-before hover:text-black capitalize'>{item.name}</div>
                                             <div className='text-secondary2'>
-                                                ({data.filter(dataItem => dataItem.tags.some(tag => tag.name.toLowerCase() === item.name.toLowerCase())
-                                                    && dataItem.categories.some(cat => cat.name.toLowerCase() === 'fashion')).length})
+                                                {/* ({data.filter(dataItem => dataItem.tags.some(tag => tag.name.toLowerCase() === item.name.toLowerCase())
+                                                    && dataItem.categories.some(cat => cat.name.toLowerCase() === 'fashion')).length}) */}
+                                                ({item.count})
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="filter-type pb-8 border-b border-line">
+                                <div className="heading6">Products Type</div>
+                                <div className="list-type mt-4">
+                                    {categories && categories.filter(cat => cat.slug.includes("common")).sort((a, b) => b.count - a.count).map((item, index) => (
+                                        <div
+                                            key={index}
+                                            className={`item flex items-center justify-between cursor-pointer ${selectedCategory?.toLowerCase() === item.slug.toLowerCase() ? 'active' : ''}`}
+                                            onClick={() => handleCategory(item.slug.toLowerCase())}
+                                        >
+                                            <div className='text-secondary has-line-before hover:text-black capitalize'>{item.name}</div>
+                                            <div className='text-secondary2'>
+                                                {/* ({data.filter(dataItem => dataItem.tags.some(tag => tag.name.toLowerCase() === item.name.toLowerCase())
+                                                    && dataItem.categories.some(cat => cat.name.toLowerCase() === 'fashion')).length}) */}
+                                                ({item.count})
                                             </div>
                                         </div>
                                     ))}
@@ -366,7 +404,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                                 <label htmlFor={item.name} className="brand-name capitalize pl-2 cursor-pointer">{item.name}</label>
                                             </div>
                                             <div className='text-secondary2'>
-                                                ({data.filter(dataItem => dataItem.brands.some(brand => brand.name.toLowerCase() === item.name.toLowerCase()) && dataItem.categories.some(cat => cat.name.toLowerCase() === 'fashion')).length})
+                                                ({item.count})
                                             </div>
                                         </div>
                                     ))}
@@ -376,7 +414,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                         <div className="list-product-block lg:w-3/4 md:w-2/3 w-full md:pl-3">
                             <div className="filter-heading flex items-center justify-between gap-5 flex-wrap">
                                 <div className="left flex has-line items-center flex-wrap gap-5">
-                                    <div className="choose-layout flex items-center gap-2">
+                                    {/* <div className="choose-layout flex items-center gap-2">
                                         <div className="item three-col w-8 h-8 border border-line rounded flex items-center justify-center cursor-pointer active">
                                             <div className='flex items-center gap-0.5'>
                                                 <span className='w-[3px] h-4 bg-secondary2 rounded-sm'></span>
@@ -391,7 +429,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                                 <span className='w-4 h-[3px] bg-secondary2 rounded-sm'></span>
                                             </div>
                                         </Link>
-                                    </div>
+                                    </div> */}
                                     <div className="check-sale flex items-center gap-2">
                                         <input
                                             type="checkbox"
@@ -429,16 +467,23 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                     <span className='text-secondary pl-1'>Products Found</span>
                                 </div>
                                 {
-                                    (selectedType || selectedSize || selectedColor || selectedBrand) && (
+                                    (selectedType || selectedSize || selectedColor || selectedBrand || selectedCategory) && (
                                         <>
                                             <div className="list flex items-center gap-3">
                                                 <div className='w-px h-4 bg-line'></div>
                                                 {selectedType && (
                                                     <div className="item flex items-center px-2 py-1 gap-1 bg-linear rounded-full capitalize" onClick={() => { setType(null) }}>
                                                         <Icon.X className='cursor-pointer' />
-                                                        <span>{selectedType}</span>
+                                                        <span>{tags.find(tag => tag.slug.toLowerCase() === selectedType.toLowerCase())?.name}</span>
                                                     </div>
                                                 )}
+                                                {selectedCategory && (
+                                                    <div className="item flex items-center px-2 py-1 gap-1 bg-linear rounded-full capitalize" onClick={() => { handleCategory(null) }}>
+                                                        <Icon.X className='cursor-pointer' />
+                                                        <span>{categories.find(cat => cat.slug.toLowerCase() === selectedCategory.toLowerCase())?.name}</span>
+                                                    </div>
+                                                )}
+
                                                 {selectedSize && (
                                                     <div className="item flex items-center px-2 py-1 gap-1 bg-linear rounded-full capitalize" onClick={() => { setSize(null) }}>
                                                         <Icon.X className='cursor-pointer' />

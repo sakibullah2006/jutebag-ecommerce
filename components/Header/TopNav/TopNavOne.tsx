@@ -22,7 +22,7 @@ const TopNavOne: React.FC<Props> = ({ props, slogan }) => {
                 <div className="container mx-auto h-full">
                     <div className="top-nav-main flex justify-between max-md:justify-center h-full">
                         <div className="left-content flex items-center gap-5 max-md:hidden">
-                            <div
+                            {/* <div
                                 className="choose-type choose-language flex items-center gap-1.5"
                                 onClick={() => {
                                     setIsOpenLanguage(!isOpenLanguage)
@@ -59,7 +59,7 @@ const TopNavOne: React.FC<Props> = ({ props, slogan }) => {
                                     </ul>
                                 </div>
                                 <Icon.CaretDownIcon size={12} color='#fff' />
-                            </div>
+                            </div> */}
                         </div>
                         <div className="text-center text-button-uppercase text-white flex items-center">
                             {slogan}

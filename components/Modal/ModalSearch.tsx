@@ -24,10 +24,10 @@ const ModalSearch = () => {
         <>
             <div className={`modal-search-block`} onClick={closeModalSearch}>
                 <div
-                    className={`modal-search-main md:p-10 p-6 rounded-[32px] ${isModalOpen ? 'open' : ''}`}
+                    className={`modal-search-main md:p-10 p-6 rounded-[32px] min-h-fit  ${isModalOpen ? 'open' : ''}`}
                     onClick={(e) => { e.stopPropagation() }}
                 >
-                    <div className="form-search relative">
+                    <div className="form-search relative overflow-y-hidden">
                         <Icon.MagnifyingGlass
                             className='absolute heading5 right-6 top-1/2 -translate-y-1/2 cursor-pointer'
                             onClick={() => {
@@ -70,14 +70,6 @@ const ModalSearch = () => {
                             >
                                 Top
                             </div>
-                        </div>
-                    </div>
-                    <div className="list-recent mt-8">
-                        <div className="heading6">Recently viewed products</div>
-                        <div className="list-product pb-5 hide-product-sold grid xl:grid-cols-4 sm:grid-cols-2 gap-7 mt-4">
-                            {productData.slice(0, 4).map((product) => (
-                                <Product key={product.id} data={product} type='grid' />
-                            ))}
                         </div>
                     </div>
                 </div>

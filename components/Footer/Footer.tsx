@@ -1,9 +1,16 @@
+"use client"
+
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import * as Icon from "@phosphor-icons/react/dist/ssr";
+import { useAppData } from '../../context/AppDataContext';
+import { STOREINFO } from '../../constant/storeConstants';
 
 const Footer = () => {
+    const { currentCurrency, storeConfig } = useAppData()
+
+
     return (
         <>
             <div id="footer" className='footer'>
@@ -12,7 +19,7 @@ const Footer = () => {
                         <div className="content-footer py-[60px] flex justify-between flex-wrap gap-y-8">
                             <div className="company-infor basis-1/4 max-lg:basis-full pr-7">
                                 <Link href={'/'} className="logo">
-                                    <div className="heading4">SakibBaba</div>
+                                    <div className="heading4">{STOREINFO.name}</div>
                                 </Link>
                                 <div className='flex gap-3 mt-3'>
                                     <div className="flex flex-col ">
@@ -21,9 +28,9 @@ const Footer = () => {
                                         <span className="text-button mt-3">Address:</span>
                                     </div>
                                     <div className="flex flex-col ">
-                                        <span className=''>hi.avitex@gmail.com</span>
-                                        <span className='mt-3'>1-333-345-6868</span>
-                                        <span className='mt-3 pt-px'>549 Oak St.Crystal Lake, IL 60014</span>
+                                        <span className=''>{STOREINFO.email}</span>
+                                        <span className='mt-3'>{STOREINFO.phoneNumber}</span>
+                                        <span className='mt-3 pt-px'>{storeConfig?.address.address1 + ", " + storeConfig?.address.address2}</span>
                                     </div>
                                 </div>
                             </div>
@@ -91,62 +98,58 @@ const Footer = () => {
                                     <div className="choose-language flex items-center gap-1.5">
                                         <select name="language" id="chooseLanguageFooter" className='caption2 bg-transparent'>
                                             <option value="English">English</option>
-                                            <option value="Espana">Espana</option>
-                                            <option value="France">France</option>
                                         </select>
-                                        <Icon.CaretDown size={12} color='#1F1F1F' />
+                                        <Icon.CaretDownIcon size={12} color='#1F1F1F' />
                                     </div>
                                     <div className="choose-currency flex items-center gap-1.5">
                                         <select name="currency" id="chooseCurrencyFooter" className='caption2 bg-transparent'>
-                                            <option value="USD">USD</option>
-                                            <option value="EUR">EUR</option>
-                                            <option value="GBP">GBP</option>
+                                            <option value="USD">{currentCurrency?.code}</option>
                                         </select>
-                                        <Icon.CaretDown size={12} color='#1F1F1F' />
+                                        <Icon.CaretDownIcon size={12} color='#1F1F1F' />
                                     </div>
                                 </div>
                             </div>
                             <div className="right flex items-center gap-2">
                                 <div className="caption1 text-secondary">Payment:</div>
-                                <div className="payment-img">
+                                <div className="payment-img border border-line rounded-sm pr-3 self-center">
                                     <Image
-                                        src={'/images/payment/Frame-0.png'}
-                                        width={500}
-                                        height={500}
+                                        src={'/images/payment/visa_logo.png'}
+                                        width={600}
+                                        height={600}
                                         alt={'payment'}
-                                        className='w-9'
+                                        className='w-12'
                                     />
                                 </div>
-                                <div className="payment-img">
+                                <div className="payment-img border border-line rounded-sm pr-3 self-center">
                                     <Image
-                                        src={'/images/payment/Frame-1.png'}
-                                        width={500}
-                                        height={500}
+                                        src={'/images/payment/master_card_logo.png'}
+                                        width={600}
+                                        height={600}
                                         alt={'payment'}
-                                        className='w-9'
+                                        className='w-12 '
                                     />
                                 </div>
-                                <div className="payment-img">
+                                <div className="payment-img border border-line rounded-sm pr-3 self-center">
                                     <Image
-                                        src={'/images/payment/Frame-2.png'}
-                                        width={500}
-                                        height={500}
+                                        src={'/images/payment/google_pay_logo.png'}
+                                        width={600}
+                                        height={600}
                                         alt={'payment'}
-                                        className='w-9'
+                                        className='w-12'
                                     />
                                 </div>
-                                <div className="payment-img">
+                                <div className="payment-img border border-line rounded-sm pr-3 self-center">
                                     <Image
-                                        src={'/images/payment/Frame-3.png'}
-                                        width={500}
-                                        height={500}
+                                        src={'/images/payment/paypal_logo.png'}
+                                        width={600}
+                                        height={600}
                                         alt={'payment'}
-                                        className='w-9'
+                                        className='w-12'
                                     />
                                 </div>
-                                <div className="payment-img">
+                                {/* <div className="payment-img">
                                     <Image
-                                        src={'/images/payment/Frame-4.png'}
+                                        src={'/images/payment/'}
                                         width={500}
                                         height={500}
                                         alt={'payment'}
@@ -161,7 +164,7 @@ const Footer = () => {
                                         alt={'payment'}
                                         className='w-9'
                                     />
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     </div>

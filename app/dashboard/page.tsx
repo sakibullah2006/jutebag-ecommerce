@@ -8,6 +8,7 @@ import Breadcrumb from '../../components/Breadcrumb/Breadcrumb'
 import Footer from '../../components/Footer/Footer'
 import MenuOne from '../../components/Header/Menu/MenuOne'
 import { Metadata } from 'next'
+import { getProductCategories } from '../../actions/data-actions'
 
 
 
@@ -26,6 +27,10 @@ const Dashboard = async ({ searchParams }: DashboardPageProps) => {
     // Get userId from cookies (JWT token contains user info)
     const cookieStore = await cookies()
     const userCookie = cookieStore.get('user')
+
+    const [categories] = await Promise.all([
+        getProductCategories()
+    ])
 
     if (!userCookie) {
         redirect('/login')
@@ -46,7 +51,7 @@ const Dashboard = async ({ searchParams }: DashboardPageProps) => {
             <>
                 <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" />
                 <div id="header" className='relative w-full'>
-                    <MenuOne props="bg-transparent" />
+                    <MenuOne props="bg-transparent" categories={categories} />
                     <Breadcrumb heading='My Account' subHeading='My Account' />
                 </div>
                 <DashboardClient

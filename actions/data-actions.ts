@@ -1,6 +1,6 @@
 "use server"
 
-import { AttributesWithTermsType, AttributeTermType, CategorieType, CountryDataType, CurrencyType, ProductAttributeType, ProductBrandType, ShippingLocationDataType, ShippingMethodDataType, ShippingZoneDataType, TagType, TaxDataType, } from "@/types/data-type";
+import { AttributesWithTermsType, AttributeTermType, CategorieType, CountryDataType, CurrencyType, ProductAttributeType, ProductBrandType, ShippingLocationDataType, ShippingMethodDataType, ShippingZoneDataType, StoreConfig, TagType, TaxDataType, } from "@/types/data-type";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import { error } from "console";
 
@@ -13,10 +13,32 @@ const WooCommerce = new WooCommerceRestApi({
 
 export const getCountries = async (): Promise<CountryDataType[]> => {
   try {
-    const response = await WooCommerce.get("data/countries", { caches: true });
-    return response.data;
+    const [storeSettings, allCountriesResponse] = await Promise.all([
+      getStoreSettings(),
+      WooCommerce.get("data/countries", { caches: true })
+    ]);
+
+    if (!storeSettings || !allCountriesResponse?.data) {
+      console.error("Could not retrieve store settings or country list.");
+      return [];
+    }
+
+    const shippingLocations = storeSettings.shippingLocations;
+    const allCountries: CountryDataType[] = allCountriesResponse.data;
+
+    if (shippingLocations.length === 0) {
+      return [];
+    }
+
+    // 4. Filter the full country list to include only the allowed shipping locations
+    const filteredCountries = allCountries.filter(country =>
+      shippingLocations.includes(country.code)
+    );
+
+    return filteredCountries;
+
   } catch (error) {
-    console.error("Error fetching countries:", error);
+    console.error("Error fetching filtered countries:", error);
     return [];
   }
 }
@@ -127,12 +149,32 @@ export const getShippingData = async (
 
 export const getAttributesWithTerms = async (): Promise<AttributesWithTermsType[]> => {
   try {
-    const response = await WooCommerce.get('products/attributes', { caches: true });
-    const attributes: ProductAttributeType[] = response.data;
+    let allAttributes: ProductAttributeType[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const response = await WooCommerce.get('products/attributes', {
+        per_page: 100,
+        page: page,
+        caches: true
+      });
+
+      if (response.data && Array.isArray(response.data)) {
+        allAttributes = allAttributes.concat(response.data);
+      }
+
+      if (page === 1 && response.headers && response.headers['x-wp-totalpages']) {
+        totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
+      }
+
+      page++;
+    } while (page <= totalPages);
+
 
     // Fetch terms for each attribute
-    const attributesWithTerms: AttributesWithTermsType[] = await Promise.all(attributes.map(async (attribute) => {
-      const terms: AttributeTermType[] = await WooCommerce.get(`products/attributes/${attribute.id}/terms`, { caches: true }).then(res => res.data);
+    const attributesWithTerms: AttributesWithTermsType[] = await Promise.all(allAttributes.map(async (attribute) => {
+      const terms: AttributeTermType[] = await WooCommerce.get(`products/attributes/${attribute.id}/terms`, { per_page: 100, caches: true }).then(res => res.data);
       return {
         attribute: attribute,
         terms: terms,
@@ -148,8 +190,30 @@ export const getAttributesWithTerms = async (): Promise<AttributesWithTermsType[
 
 export const getProductCategories = async (): Promise<CategorieType[]> => {
   try {
-    const response = await WooCommerce.get('products/categories', { caches: true });
-    return response.data;
+    let allCategories: CategorieType[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const response = await WooCommerce.get('products/categories', {
+        per_page: 100,
+        page: page,
+        caches: true
+      });
+
+      if (response.data && Array.isArray(response.data)) {
+        allCategories = allCategories.concat(response.data);
+      }
+
+      // Get total pages from headers on the first request
+      if (page === 1 && response.headers && response.headers['x-wp-totalpages']) {
+        totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
+      }
+
+      page++;
+    } while (page <= totalPages);
+
+    return allCategories;
   } catch (error) {
     console.error("Error fetching categories:", error);
     return [];
@@ -158,8 +222,30 @@ export const getProductCategories = async (): Promise<CategorieType[]> => {
 
 export const getProductTags = async (): Promise<TagType[]> => {
   try {
-    const response = await WooCommerce.get('products/tags', { caches: true });
-    return response.data;
+    let allTags: TagType[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const response = await WooCommerce.get('products/tags', {
+        per_page: 100,
+        page: page,
+        caches: true
+      });
+
+      if (response.data && Array.isArray(response.data)) {
+        allTags = allTags.concat(response.data);
+      }
+
+      // Get total pages from headers on the first request
+      if (page === 1 && response.headers && response.headers['x-wp-totalpages']) {
+        totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
+      }
+
+      page++;
+    } while (page <= totalPages);
+
+    return allTags;
   } catch (error) {
     console.error("Error fetching tags:", error);
     return [];
@@ -188,3 +274,53 @@ export const getBrands = async (): Promise<ProductBrandType[]> => {
     return [];
   }
 }
+
+export const getStoreSettings = async (): Promise<StoreConfig | null> => {
+  try {
+    const { data: settings } = await WooCommerce.get("settings/general", { caches: true });
+
+    if (!settings || !Array.isArray(settings)) {
+      throw new Error("Invalid settings format received from API.");
+    }
+
+    // Helper to find a setting's value by its ID
+    const findSettingValue = (id: string, defaultValue: string | string[] = '') => {
+      const setting = settings.find((s) => s.id === id);
+      return setting ? setting.value : defaultValue;
+    };
+
+    // Find the currency symbol from the options list
+    const currencyCode = findSettingValue('woocommerce_currency');
+    const currencyOptions = settings.find(s => s.id === 'woocommerce_currency')?.options || {};
+    const currencyString = currencyOptions[currencyCode] || '';
+    // Extract symbol from string like "United States (US) dollar (&#36;) — USD"
+    const symbolMatch = currencyString.match(/\(([^)]+)\)/);
+    const currencySymbol = symbolMatch ? symbolMatch[1].replace(/&#x20b9;/g, '₹').replace(/&[a-z]+;/g, '') : '$';
+
+    const organizedSettings: StoreConfig = {
+      address: {
+        address1: findSettingValue('woocommerce_store_address'),
+        address2: findSettingValue('woocommerce_store_address_2'),
+        city: findSettingValue('woocommerce_store_city'),
+        postcode: findSettingValue('woocommerce_store_postcode'),
+        countryState: findSettingValue('woocommerce_default_country'),
+      },
+      currency: currencyCode,
+      currencySymbol: currencySymbol,
+      currencyPosition: findSettingValue('woocommerce_currency_pos'),
+      thousandSeparator: findSettingValue('woocommerce_price_thousand_sep'),
+      decimalSeparator: findSettingValue('woocommerce_price_decimal_sep'),
+      numberOfDecimals: parseInt(findSettingValue('woocommerce_price_num_decimals', '2'), 10),
+      isTaxesEnabled: findSettingValue('woocommerce_calc_taxes') === 'yes',
+      areCouponsEnabled: findSettingValue('woocommerce_enable_coupons') === 'yes',
+      sellingLocations: findSettingValue('woocommerce_specific_allowed_countries', []),
+      shippingLocations: findSettingValue('woocommerce_specific_ship_to_countries', []),
+    };
+
+    return organizedSettings;
+
+  } catch (error) {
+    console.error("Error fetching store settings:", error);
+    return null;
+  }
+};
