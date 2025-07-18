@@ -234,11 +234,9 @@
   &.style-4 {
     .list-size-block {
       border-radius: 0px 0px 8px 8px;
-      background: linear-gradient(
-        148deg,
-        rgba(255, 255, 255, 0.4) 0%,
-        rgba(255, 255, 255, 0.6) 100%
-      );
+      background: linear-gradient(148deg,
+          rgba(255, 255, 255, 0.4) 0%,
+          rgba(255, 255, 255, 0.6) 100%);
       backdrop-filter: blur(4px);
       transform: translateY(40px);
       transition: all ease 0.3s;
@@ -253,6 +251,36 @@
             .product-name {
               opacity: 0;
               visibility: hidden;
+            }
+
+            .product-name-only {
+              visibility: visible;
+              opacity: 100;
+            }
+
+            .list-color,
+            .list-color-image {
+              opacity: 1;
+            }
+
+            .product-price-block {
+              transform: translateY(14px);
+            }
+          }
+        }
+      }
+
+      @media (min-width: 736px) {
+        .product-main {
+          .product-infor {
+            .product-name {
+              opacity: 0;
+              visibility: hidden;
+            }
+
+            .product-name-only {
+              visibility: visible;
+              opacity: 100;
             }
 
             .list-color,
@@ -284,6 +312,7 @@
         @media (min-width: 1024px) {
           .product-main {
             .product-infor {
+
               .add-cart-btn,
               .quick-shop-btn {
                 transform: translateY(14px);
@@ -313,6 +342,7 @@
 
     &:hover {
       .list-action {
+
         .add-wishlist-btn,
         .quick-view-btn,
         .add-cart-btn,
@@ -425,6 +455,7 @@
 }
 
 .show-product-sold {
+
   .product-item .product-main .product-infor .list-color,
   .product-item .product-main .product-infor .list-color-image {
     top: 52px;
@@ -434,6 +465,7 @@
 .hide-color .product-item {
   .product-main {
     .product-infor {
+
       .list-color,
       .list-color-image {
         display: none;
@@ -471,12 +503,14 @@
 }
 
 .tab-features-block.style-watch {
+
   .product-name,
   .product-price {
     color: var(--white);
   }
 
   .section-swiper-navigation {
+
     .swiper-button-prev,
     .swiper-button-next {
       &:hover {
@@ -685,6 +719,7 @@
   &.out-of-stock {
     .product-infor {
       &.style-out-of-stock {
+
         .color-item,
         .size-item {
           filter: grayscale(0.9);
@@ -738,6 +773,7 @@
 
 html,
 body {
+
   &:has(.product-detail.grouped),
   &:has(.product-detail.sale) {
     overflow-x: unset;
@@ -785,9 +821,12 @@ body {
   /* Use a highly readable, modern sans-serif font for body text. */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
-  color: #34495e; /* A soft, dark slate color instead of pure black. */
-  line-height: 1.7; /* Generous line height for readability. */
-  font-size: 1.1rem; /* A slightly larger base font size for comfort. */
+  color: #34495e;
+  /* A soft, dark slate color instead of pure black. */
+  line-height: 1.7;
+  /* Generous line height for readability. */
+  font-size: 1.1rem;
+  /* A slightly larger base font size for comfort. */
 }
 
 /*
@@ -803,18 +842,32 @@ body {
   font-family: "Georgia", "Times New Roman", serif;
   font-weight: 600;
   line-height: 1.3;
-  color: #2c3e50; /* A slightly darker, richer color for headings. */
+  color: #2c3e50;
+  /* A slightly darker, richer color for headings. */
   margin-top: 2.5em;
   margin-bottom: 1em;
 }
 
-.parsed-html h1 { font-size: 2.8em; letter-spacing: -1px; }
-.parsed-html h2 { font-size: 2.2em; letter-spacing: -0.5px; }
-.parsed-html h3 { font-size: 1.8em; }
-.parsed-html h4 { font-size: 1.5em; }
+.parsed-html h1 {
+  font-size: 2.8em;
+  letter-spacing: -1px;
+}
+
+.parsed-html h2 {
+  font-size: 2.2em;
+  letter-spacing: -0.5px;
+}
+
+.parsed-html h3 {
+  font-size: 1.8em;
+}
+
+.parsed-html h4 {
+  font-size: 1.5em;
+}
 
 /* Remove top margin from the very first element to avoid extra space */
-.parsed-html > *:first-child {
+.parsed-html>*:first-child {
   margin-top: 0;
 }
 
@@ -841,7 +894,8 @@ body {
  * The underline appears only on hover.
  */
 .parsed-html a {
-  color: #3498db; /* A soft, elegant blue. */
+  color: #3498db;
+  /* A soft, elegant blue. */
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: all 0.3s ease;
@@ -858,8 +912,10 @@ body {
 .parsed-html blockquote {
   margin: 2em 0;
   padding-left: 1.5em;
-  border-left: 3px solid #bdc3c7; /* A thinner, softer border. */
-  color: #7f8c8d; /* Muted text color. */
+  border-left: 3px solid #bdc3c7;
+  /* A thinner, softer border. */
+  color: #7f8c8d;
+  /* Muted text color. */
   font-style: italic;
 }
 
@@ -870,8 +926,10 @@ body {
   max-width: 100%;
   height: auto;
   display: block;
-  margin: 2.5em auto; /* Center images and give them vertical space. */
-  border-radius: 8px; /* Slightly larger radius for a modern feel. */
+  margin: 2.5em auto;
+  /* Center images and give them vertical space. */
+  border-radius: 8px;
+  /* Slightly larger radius for a modern feel. */
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05), 0 3px 6px rgba(0, 0, 0, 0.08);
 }
 
@@ -887,7 +945,8 @@ body {
 
 .parsed-html th,
 .parsed-html td {
-  border-bottom: 1px solid #ecf0f1; /* Only horizontal lines for a clean look. */
+  border-bottom: 1px solid #ecf0f1;
+  /* Only horizontal lines for a clean look. */
   padding: 1em;
   text-align: left;
 }
@@ -905,7 +964,8 @@ body {
 .parsed-html code {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
   background-color: #f2f4f6;
-  color: #c0392b; /* A muted red for code text. */
+  color: #c0392b;
+  /* A muted red for code text. */
   padding: 0.2em 0.4em;
   font-size: 0.9em;
   border-radius: 4px;
