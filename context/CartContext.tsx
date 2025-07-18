@@ -31,7 +31,7 @@ type CartAction =
         }
     }
     | { type: 'UPDATE_QUANTITY'; payload: { itemId: string; quantity: number } }
-    | { type: 'REMOVE_FROM_CART'; payload: string }
+    | { type: 'REMOVE_FROM_CART'; payload: { itemId: string, variation_id?: string } }
     | { type: 'LOAD_CART'; payload: CartItem[] }
     | { type: 'CLEAR_CART' };
 
@@ -46,7 +46,7 @@ interface CartContextProps {
         variation_id?: string,
         selectedVariation?: VariationProduct
     ) => void;
-    removeFromCart: (itemId: string) => void;
+    removeFromCart: (itemId: string, variation_id?: string) => void;
     updateCart: (itemId: string, quantity: number) => void;
     clearCart: () => void;
 }
@@ -89,7 +89,15 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
             };
         }
         case 'REMOVE_FROM_CART':
-            return { ...state, cartArray: state.cartArray.filter((item) => item.id.toString() !== action.payload) };
+            return {
+                ...state, cartArray: state.cartArray.filter((item) => {
+                    if (item.id.toString() !== action.payload.itemId) return true;
+                    if (action.payload.variation_id && item.variation_id) {
+                        if (item.variation_id !== action.payload.variation_id) return true;
+                    }
+                    return false;
+                })
+            };
 
         case 'LOAD_CART':
             return { ...state, cartArray: action.payload };
@@ -141,8 +149,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         dispatch({ type: 'ADD_OR_UPDATE_CART', payload: { product, quantity, selectedSize, selectedColor, variation_id, selectedVariation } });
     };
 
-    const removeFromCart = (itemId: string) => {
-        dispatch({ type: 'REMOVE_FROM_CART', payload: itemId });
+    const removeFromCart = (itemId: string, variation_id?: string) => {
+        dispatch({ type: 'REMOVE_FROM_CART', payload: { itemId, variation_id } });
     };
 
     const updateCart = (itemId: string, quantity: number) => {
