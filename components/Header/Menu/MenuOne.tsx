@@ -321,7 +321,7 @@ const MenuOne: React.FC<Props> = ({ props, categories }) => {
                 </div>
             </div>
 
-            <div className="menu_bar fixed bg-white bottom-0 left-0 w-full h-[70px] sm:hidden z-[101]">
+            <div className="menu_bar fixed bg-white bottom-0 left-0 w-full h-[70px] sm:hidden z-[60]">
                 <div className="menu_bar-inner grid grid-cols-4 items-center h-full">
                     <Link href={PATH.HOME} className='menu_bar-link flex flex-col items-center gap-1'>
                         <Icon.HouseIcon weight='bold' className='text-2xl' />
