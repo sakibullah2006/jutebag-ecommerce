@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { OrderType } from '@/types/order-type'
 import { formatDistanceToNow } from 'date-fns'
 import { useAppData } from '../../context/AppDataContext'
+import Link from 'next/link'
 
 interface OrderHistoryProps {
     orders: OrderType[]
@@ -62,12 +63,12 @@ const OrderHistory = ({ orders, customerId }: OrderHistoryProps) => {
                         <div className="text-6xl text-gray-300 mb-4">📦</div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
                         <p className="text-gray-500 mb-6">You haven&apos;t placed any orders yet.</p>
-                        <a
+                        <Link
                             href="/shop"
                             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-black hover:bg-gray-800 transition-colors"
                         >
                             Start Shopping
-                        </a>
+                        </Link>
                     </div>
                 </div>
             </div>

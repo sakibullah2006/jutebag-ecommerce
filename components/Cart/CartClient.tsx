@@ -9,6 +9,7 @@ import { CartItem, useCart } from '@/context/CartContext'
 import { useAppData } from '@/context/AppDataContext'
 import { calculatePrice, cn, decodeHtmlEntities } from '@/lib/utils'
 import { validateCoupon } from '@/actions/coupon'
+import { PATH } from '../../constant/pathConstants'
 
 interface CouponData {
     id: string
@@ -108,7 +109,7 @@ const CartClient = () => {
 
 
     const redirectToCheckout = () => {
-        router.push(`/checkout?appliedCoupon=${appliedCoupon ? appliedCoupon.code : ''}`);
+        router.push(`/checkout?${appliedCoupon ? ("appliedCoupon=" + appliedCoupon.code) : ''}`);
     }
 
     return (
@@ -182,7 +183,7 @@ const CartClient = () => {
                                                                     handleQuantityChange(product.id.toString(), product.quantity - 1)
                                                                 }
                                                             }}
-                                                            className={`text-base max-md:text-sm ${product.quantity === 1 ? 'disabled' : ''}`}
+                                                            className={`text - base max - md: text - sm ${product.quantity === 1 ? 'disabled' : ''} `}
                                                         />
                                                         <div className="text-button quantity">{product.quantity}</div>
                                                         <Icon.PlusIcon
@@ -238,7 +239,7 @@ const CartClient = () => {
                         </div>
                         {/* <div className="list-voucher flex items-center gap-5 flex-wrap sm:mt-7 mt-5">
                             {coupons.map((coupon) => (
-                                <div key={coupon.id} className={`item ${applyCode === coupon.minValue ? 'bg-green' : ''} border border-line rounded-lg py-2`}>
+                                <div key={coupon.id} className={`item ${ applyCode === coupon.minValue ? 'bg-green' : '' } border border - line rounded - lg py - 2`}>
                                     <div className="top flex gap-10 justify-between px-3 pb-2 border-b border-dashed border-line">
                                         <div className="left">
                                             <div className="caption1">Discount</div>
@@ -270,7 +271,7 @@ const CartClient = () => {
                             </div>
                             <div className="discount-block py-5 flex justify-between border-b border-line">
                                 <div className="text-title flex gap-2 justify-center items-center">Discounts {appliedCoupon && (<div className='bg-yellow/30 p-2 rounded-xl text-[15px] font-bold'>Coupon Applied</div>)}</div>
-                                <div className="text-title"><span className="discount">{discountCart && `-${decodeHtmlEntities(currentCurrency?.symbol || '')}${discountCart.toFixed(2)}`}</span></div>
+                                <div className="text-title"><span className="discount">{discountCart && `- ${decodeHtmlEntities(currentCurrency?.symbol || '')}${discountCart.toFixed(2)} `}</span></div>
                             </div>
                             <div className="ship-block py-5 flex justify-between border-b border-line">
                                 <div className="text-title flex justify-between">Shipping</div>
@@ -288,7 +289,7 @@ const CartClient = () => {
                             </div>
                             <div className="block-button flex flex-col items-center gap-y-4 mt-5">
                                 <div className="checkout-btn button-main text-center w-full" onClick={redirectToCheckout}>Process To Checkout</div>
-                                <Link className="text-button hover-underline" href={"/shop/breadcrumb1"}>Continue shopping</Link>
+                                <Link className="text-button hover-underline" href={PATH.SHOP}>Continue shopping</Link>
                             </div>
                         </div>
                     </div>

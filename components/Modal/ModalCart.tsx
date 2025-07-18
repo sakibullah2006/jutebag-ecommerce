@@ -91,8 +91,8 @@ const ModalCart = () => {
                             ))}
                         </div>
                     </div> */}
-                    <div className="right cart-block !w-full py-6 relative overflow-hidden">
-                        <div className="heading px-6 pb-3 flex items-center justify-between relative">
+                    <div className="cart-block  !w-full py-5 pb-0 mb-0 flex flex-col justify-between overflow-auto">
+                        <div className="heading px-6 pb-3 relative ">
                             <div className="heading5">Shopping Cart</div>
                             <div
                                 className="close-btn absolute right-6 top-0 w-6 h-6 rounded-full bg-surface flex items-center justify-center duration-300 cursor-pointer hover:bg-black hover:text-white"
@@ -101,86 +101,52 @@ const ModalCart = () => {
                                 <Icon.X size={14} />
                             </div>
                         </div>
-                        {/* <div className="time px-6">
-                            <div className=" flex items-center gap-3 px-5 py-3 bg-green rounded-lg">
-                                <p className='text-3xl'>🔥</p>
-                                <div className="caption1">Your cart will expire in <span className='text-red caption1 font-semibold'>{timeLeft.minutes}:
-                                    {timeLeft.seconds < 10 ? `0${timeLeft.seconds}` : timeLeft.seconds}</span> minutes!<br />
-                                    Please checkout now before your items sell out!</div>
-                            </div>
-                        </div> */}
-                        {/* <div className="heading banner mt-3 px-6">
-                            <div className="text">Buy <span className="text-button"> $<span className="more-price">{moneyForFreeship - totalCart > 0 ? (<>{moneyForFreeship - totalCart}</>) : (0)}</span>.00 </span>
-                                <span>more to get </span>
-                                <span className="text-button">freeship</span></div>
-                            <div className="tow-bar-block mt-3">
-                                <div
-                                    className="progress-line"
-                                    style={{ width: totalCart <= moneyForFreeship ? `${(totalCart / moneyForFreeship) * 100}%` : `100%` }}
-                                ></div>
-                            </div>
-                        </div> */}
-                        <div className="list-product px-6 overflow-y-auto ">
-                            {cartState.cartArray.map((product) => (
-                                <div key={product.id} className='item py-5 flex items-center justify-between gap-3 border-b border-line'>
-                                    <div className="infor flex items-center gap-3 w-full">
-                                        <div className="bg-img w-[100px] aspect-square flex-shrink-0 rounded-lg overflow-hidden">
-                                            <Image
-                                                src={product.images[0].src}
-                                                width={300}
-                                                height={300}
-                                                alt={product.name}
-                                                className='w-full h-full'
-                                            />
-                                        </div>
-                                        <div className='w-full'>
-                                            <div className="flex items-center justify-between w-full">
-                                                <div className="name text-button">{product.name}</div>
-                                                <div
-                                                    className="remove-cart-btn caption1 font-semibold text-red underline cursor-pointer"
-                                                    onClick={() => removeFromCart(product.id.toString())}
-                                                >
-                                                    Remove
-                                                </div>
+
+                        <div className=" px-6 flex-1 flex-col overflow-y-auto">
+                            {cartState.cartArray.length === 0 ? (
+                                <div className="empty-cart flex flex-col items-center justify-center h-full">
+                                    <Icon.Handbag size={64} className="text-gray-300" />
+                                    <p className="mt-4 text-lg text-gray-500">Your cart is empty</p>
+                                </div>
+                            ) : (
+                                cartState.cartArray.map((product) => (
+                                    <div key={product.id} className='item py-5 flex items-center justify-between gap-3 border-b border-line'>
+                                        <div className="infor flex items-center gap-3 w-full">
+                                            <div className="bg-img w-[100px] aspect-square flex-shrink-0 rounded-lg overflow-hidden">
+                                                <Image
+                                                    src={product.images[0].src}
+                                                    width={300}
+                                                    height={300}
+                                                    alt={product.name}
+                                                    className='w-full h-full'
+                                                />
                                             </div>
-                                            <div className="flex items-center justify-between gap-2 mt-3 w-full">
-                                                <div className="flex items-center text-secondary2 capitalize">
-                                                    {product.selectedColor ?? ''}{product.attributes.length > 1 ? "/" : ""}{(product.selectedSize ?? '')}
-                                                    {/* {product.selectedSize || product.default_attributes.map(attr => attr.name.toLowerCase() === "size" ? attr.option : "")}/{product.selectedSize || product.default_attributes.map(attr => attr.name.toLowerCase() === "color" ? attr.option : "")} */}
+                                            <div className='w-full'>
+                                                <div className="flex items-center justify-between w-full">
+                                                    <div className="name text-button">{product.name}</div>
+                                                    <div
+                                                        className="remove-cart-btn caption1 font-semibold text-red underline cursor-pointer"
+                                                        onClick={() => removeFromCart(product.id.toString())}
+                                                    >
+                                                        Remove
+                                                    </div>
                                                 </div>
-                                                <div className="product-price text-title">
-                                                    {decodeHtmlEntities(currentCurrency!.symbol)}{calculatePrice(product).toFixed(2)}
+                                                <div className="flex items-center justify-between gap-2 mt-3 w-full">
+                                                    <div className="flex items-center text-secondary2 capitalize">
+                                                        {product.selectedColor ?? ''}{product.attributes.length > 1 ? "/" : ""}{(product.selectedSize ?? '')}
+                                                    </div>
+                                                    <div className="product-price text-title">
+                                                        {decodeHtmlEntities(currentCurrency!.symbol)}{calculatePrice(product).toFixed(2)}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
-                        <div className="footer-modal bg-white absolute bottom-0 left-0 w-full">
-                            {/* <div className="flex items-center justify-center lg:gap-14 gap-8 px-6 py-4 border-b border-line">
-                                <div
-                                    className="item flex items-center gap-3 cursor-pointer"
-                                    onClick={() => handleActiveTab('note')}
-                                >
-                                    <Icon.NotePencil className='text-xl' />
-                                    <div className="caption1">Note</div>
-                                </div>
-                                <div
-                                    className="item flex items-center gap-3 cursor-pointer"
-                                    onClick={() => handleActiveTab('shipping')}
-                                >
-                                    <Icon.Truck className='text-xl' />
-                                    <div className="caption1">Shipping</div>
-                                </div>
-                                <div
-                                    className="item flex items-center gap-3 cursor-pointer"
-                                    onClick={() => handleActiveTab('coupon')}
-                                >
-                                    <Icon.Tag className='text-xl' />
-                                    <div className="caption1">Coupon</div>
-                                </div>
-                            </div> */}
+                        <div className="footer-modal bg-white h-fit w-full ">
+
                             <div className="flex items-center justify-between pt-6 px-6">
                                 <div className="heading5">Subtotal</div>
                                 <div className="heading5">{decodeHtmlEntities(currentCurrency?.symbol || '')}{Number(totalCart).toFixed(2)}</div>

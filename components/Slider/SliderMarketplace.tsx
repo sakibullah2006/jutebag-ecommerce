@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import React from 'react'
 
 const SliderMarketplace = () => {
@@ -12,9 +13,9 @@ const SliderMarketplace = () => {
                                 <div className="text-content md:pl-16 pl-5 basis-1/2 relative z-[1]">
                                     <div className="text-sub-display text-white">BEST SELLING</div>
                                     <div className="heading2 text-white md:mt-5 mt-2">Step Into New Worlds</div>
-                                    <a href='/shop/breadcrumb-img'
+                                    <Link href='/shop/breadcrumb-img'
                                         className="button-main bg-white text-black hover:bg-green md:mt-8 mt-3">Shop Now
-                                    </a>
+                                    </Link>
                                 </div>
                                 <div className="sub-img absolute top-0 left-0 w-full h-full">
                                     <Image
