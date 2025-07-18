@@ -199,7 +199,7 @@ const CartClient = () => {
                                                     <Icon.XCircleIcon
                                                         className='text-xl max-md:text-base text-red cursor-pointer hover:text-black duration-500'
                                                         onClick={() => {
-                                                            removeFromCart(product.id.toString())
+                                                            removeFromCart(product.id.toString(), product.variation_id ? product.variation_id : undefined)
                                                         }}
                                                     />
                                                 </div>

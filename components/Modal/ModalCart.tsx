@@ -126,7 +126,7 @@ const ModalCart = () => {
                                                     <div className="name text-button">{product.name}</div>
                                                     <div
                                                         className="remove-cart-btn caption1 font-semibold text-red underline cursor-pointer"
-                                                        onClick={() => removeFromCart(product.id.toString())}
+                                                        onClick={() => removeFromCart(product.id.toString(), product.variation_id ? product.variation_id : undefined)}
                                                     >
                                                         Remove
                                                     </div>
