@@ -628,9 +628,9 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     </div>
                                 </div>
                             </div>
-                            <div className={`product-name text-title duration-300`}>{data.name}</div>
+                            <div className={` text-title duration-300 ${data.attributes.some(attr => attr.name.toLowerCase().includes("color")) ? "product-name" : "product-name-only"} `}>{data.name}</div>
                             {data.attributes?.length > 0 ? (
-                                <div className="list-color py-2 max-md:hidden flex items-center gap-2 flex-wrap duration-500">
+                                <div className=" list-color py-2 !max-lg:hidden flex items-center gap-2 flex-wrap duration-500">
                                     {data.attributes.find(item => item.name.toLowerCase() === "color")?.options.map((item: string, index: number) => (
                                         <div
                                             key={index}
@@ -644,7 +644,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                         </div>
                                     ))}
                                 </div>
-                            ) : <div className='h-10 max-md:hidden'></div>
+                            ) : <></>
                             }
                             {/* {data.variation.length > 0 && data.action === 'quick shop' && (
                                 <div className="list-color-image max-md:hidden flex items-center gap-2 flex-wrap duration-500">
