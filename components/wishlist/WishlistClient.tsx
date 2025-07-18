@@ -82,7 +82,7 @@ const WishlistClient: React.FC<WishlistClientProps> = ({ tags }) => {
                 <div className="filter-heading flex items-center justify-between gap-5 flex-wrap">
                     <div className="left flex has-line items-center flex-wrap gap-5">
                         <div className="choose-layout flex items-center gap-2">
-                            {[3, 4, 5].map(col => (
+                            {[3, 4].map(col => (
                                 <div
                                     key={col}
                                     className={`item p-2 border border-line rounded flex items-center justify-center cursor-pointer ${layoutCol === col ? 'active' : ''}`}

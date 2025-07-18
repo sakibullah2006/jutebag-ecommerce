@@ -20,6 +20,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import Marquee from 'react-fast-marquee'
 import Rate from '../Other/Rate'
 import { useAppData } from '../../context/AppDataContext'
+import { QuickShopDrawer } from './QuickShopDrawer'
 
 interface ProductProps {
     data: ProductType
@@ -374,21 +375,23 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                 </div>
                             ) : <></>}
                             {style === 'style-1' || style === 'style-3' ?
-                                <div className={`list-action ${style === 'style-1' ? 'grid grid-cols-2 gap-3' : ''} px-5 absolute w-full bottom-5 max-lg:hidden`}>
+                                <div className={`list-action ${style === 'style-1' ? 'grid grid-cols-2 gap-3' : ''} px-5 absolute w-full bottom-5 max-md:hidden`}>
                                     {style === 'style-1' && (
                                         <div
-                                            className="quick-view-btn w-full text-button-uppercase py-2 text-center rounded-full duration-300 bg-white hover:bg-black hover:text-white"
+                                            className="quick-view-btn w-full text-button-uppercase py-2 align-middle text-center rounded-md duration-300 bg-white hover:bg-black hover:text-white"
                                             onClick={(e) => {
                                                 e.stopPropagation()
                                                 handleQuickviewOpen()
                                             }}
                                         >
-                                            Quick View
+                                            <span className='text-[11px] lg:text-xs '>
+                                                Quick View
+                                            </span>
                                         </div>
                                     )}
                                     {actionType === 'add to cart' ? (
                                         <button
-                                            className={`add-cart-btn w-full text-button-uppercase py-2 text-center rounded-full duration-500 
+                                            className={`add-cart-btn  w-full text-button-uppercase py-2 text-center rounded-md duration-500 
                                                 ${addToCartButtonClasses} disabled:opacity-100 disabled:pointer-events-none 
                                                  `}
                                             disabled={isAddToCartDisabled}
@@ -397,18 +400,22 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                 handleAddToCart()
                                             }}
                                         >
-                                            Add To Cart
+                                            <span className='text-[11px] lg:text-xs'>
+                                                Add To Cart
+                                            </span>
                                         </button>
                                     ) : (
                                         <>
                                             <div
-                                                className="quick-shop-btn text-button-uppercase py-2 text-center rounded-full duration-500 bg-white hover:bg-black hover:text-white"
+                                                className="quick-shop-btn text-button-uppercase  py-2 text-center rounded-md align-center duration-500 bg-white hover:bg-black hover:text-white"
                                                 onClick={e => {
                                                     e.stopPropagation();
                                                     setOpenQuickShop(!openQuickShop)
                                                 }}
                                             >
-                                                Quick Shop
+                                                <span className='text-[11px] lg:text-xs'>
+                                                    Quick Shop
+                                                </span>
                                             </div>
                                             <div
                                                 className={`quick-shop-block absolute left-5 right-5 bg-white p-5 rounded-[20px] ${openQuickShop ? 'open' : ''}`}
@@ -421,7 +428,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                         <div >Size : </div>
                                                         {data.attributes.find(item => item.name.toLowerCase() === "size")?.options.map((item: string, index: number) => (
                                                             <div
-                                                                className={`size-item w-10 h-10 px-3 py-3 text-sm rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeSize === item ? 'active' : ''}`}
+                                                                className={`size-item w-fit h-10 px-3 py-3 text-xs rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeSize === item ? 'active' : ''}`}
                                                                 key={index}
                                                                 onClick={() => handleActiveSize(item)}
                                                             >
@@ -435,7 +442,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                         <div >Color : </div>
                                                         {data.attributes.find(item => item.name.toLowerCase() === "color")?.options.map((item: string, index: number) => (
                                                             <div
-                                                                className={`size-item w-13 h-10 text-sm overflow-ellipsis py-4 px-3 rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeColor === item ? 'active' : ''}`}
+                                                                className={`size-item w-fit h-10 text-xs overflow-ellipsis py-4 px-3 rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeColor === item ? 'active' : ''}`}
                                                                 key={index}
                                                                 onClick={() => handleActiveColor(item)}
                                                             >
@@ -447,7 +454,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                 <button
                                                     type="button"
                                                     disabled={isAddToCartDisabled}
-                                                    onClick={handleAddToCart}
+                                                    onClick={() => { handleAddToCart(); setOpenQuickShop(false) }}
                                                     className={`
                                                         add-cart-btn w-full py-3 mt-2 items-center justify-center rounded-md 
                                                         text-sm font-medium transition-colors focus-visible:outline-none 
@@ -556,7 +563,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                 </> :
                                 <></>
                             }
-                            <div className="list-action-icon flex items-center justify-center gap-2 absolute w-full bottom-3 z-[1] lg:hidden">
+                            <div className="list-action-icon flex items-center justify-center gap-2 absolute w-full bottom-3 z-[1] md:hidden">
                                 <div
                                     className="quick-view-btn w-9 h-9 flex items-center justify-center rounded-lg duration-300 bg-white hover:bg-black hover:text-white"
                                     onClick={(e) => {
@@ -581,55 +588,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                         >
                                             <Icon.ShoppingBagOpenIcon className='text-lg' />
                                         </div>
-                                        <div
-                                            className={`quick-shop-block absolute left-5 right-5 bottom-10 bg-white p-5 rounded-[20px] ${openQuickShop ? 'open' : 'hidden'}`}
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                            }}
-                                        >
-                                            {data.attributes.some(item => item.name.toLowerCase() === "size") &&
-                                                <div className="list-size flex items-center  flex-wrap gap-2 border-b-line mb-2">
-                                                    <div >Size : </div>
-                                                    {data.attributes.find(item => item.name.toLowerCase() === "size")?.options.map((item: string, index: number) => (
-                                                        <div
-                                                            className={`size-item w-10 h-10 px-3 py-3 text-sm rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeSize === item ? 'active' : ''}`}
-                                                            key={index}
-                                                            onClick={() => handleActiveSize(item)}
-                                                        >
-                                                            {item}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            }
-                                            {data.attributes.some(item => item.name.toLowerCase() === "color") &&
-                                                <div className="list-size flex items-center  flex-wrap gap-2">
-                                                    <div >Color : </div>
-                                                    {data.attributes.find(item => item.name.toLowerCase() === "color")?.options.map((item: string, index: number) => (
-                                                        <div
-                                                            className={`size-item w-13 h-10 text-sm overflow-ellipsis py-4 px-3 rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeColor === item ? 'active' : ''}`}
-                                                            key={index}
-                                                            onClick={() => handleActiveColor(item)}
-                                                        >
-                                                            {item}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            }
-                                            <button
-                                                type="button"
-                                                disabled={isAddToCartDisabled}
-                                                onClick={() => { handleAddToCart(); setOpenQuickShop(false) }}
-                                                className={`
-                                                        add-cart-btn w-full py-3 mt-2 items-center justify-center rounded-md 
-                                                        text-sm font-medium transition-colors focus-visible:outline-none 
-                                                        focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 
-                                                        disabled:opacity-100 disabled:pointer-events-none 
-                                                        ${addToCartButtonClasses}
-                                                    `}
-                                            >
-                                                {addToCartButtonText}
-                                            </button>
-                                        </div>
+
                                     </>
                                 ) : (
                                     <div
@@ -782,7 +741,47 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
             )
             }
 
-
+            <QuickShopDrawer open={openQuickShop} onClose={() => setOpenQuickShop(false)}>
+                {/* This is your original quick shop content, now passed as children.
+              I've removed the outer div and its positioning classes.
+            */}
+                {data.attributes.some(item => item.name.toLowerCase() === "size") &&
+                    <div className="list-size flex items-center flex-wrap gap-2 border-b border-line pb-4 mb-4">
+                        <div>Size :</div>
+                        {data.attributes.find(item => item.name.toLowerCase() === "size")?.options.map((item: string, index: number) => (
+                            <button
+                                key={index}
+                                className={`size-item w-10 h-10 text-sm rounded-md flex items-center justify-center border ${activeSize === item ? 'bg-black text-white border-black' : 'bg-white border-line'}`}
+                                onClick={() => handleActiveSize(item)}
+                            >
+                                {item}
+                            </button>
+                        ))}
+                    </div>
+                }
+                {data.attributes.some(item => item.name.toLowerCase() === "color") &&
+                    <div className="list-color flex items-center flex-wrap gap-2">
+                        <div>Color :</div>
+                        {data.attributes.find(item => item.name.toLowerCase() === "color")?.options.map((item: string, index: number) => (
+                            <button
+                                key={index}
+                                className={`color-item px-4 h-10 text-sm rounded-md flex items-center justify-center border ${activeColor === item ? 'bg-black text-white border-black' : 'bg-white border-line'}`}
+                                onClick={() => handleActiveColor(item)}
+                            >
+                                {item}
+                            </button>
+                        ))}
+                    </div>
+                }
+                <button
+                    type="button"
+                    disabled={isAddToCartDisabled}
+                    onClick={() => { handleAddToCart(); setOpenQuickShop(false) }}
+                    className={`w-full py-3 mt-5 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${addToCartButtonClasses}`}
+                >
+                    {addToCartButtonText}
+                </button>
+            </QuickShopDrawer>
         </>
     )
 }
