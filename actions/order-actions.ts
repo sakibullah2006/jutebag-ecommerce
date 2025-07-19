@@ -139,7 +139,7 @@ export async function updateOrderStatus(orderId: number, status: string, transac
             transaction_id: transactionId,
             set_paid: paid,
             date_paid: date,
-            customer_note: `Payment completed via Stripe. Transaction ID: ${transactionId}`
+            // customer_note: `Payment completed via Stripe. Transaction ID: ${transactionId}`
         };
         await WooCommerce.put(`orders/${orderId}`, payload);
         return { success: true };
