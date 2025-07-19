@@ -61,6 +61,7 @@ const PaymentForm = ({
             const result = await updateOrderStatus(finalOrderId, 'processing', paymentIntent.id, true, new Date().toString());
             if (result.success) {
                 // Redirect to thank you page with orderId
+
                 // clearCart(); // Clear cart after successful payment
                 setMessage('Payment successful! Redirecting to thank you page...');
                 router.push(`/checkout/thank-you?orderId=${finalOrderId}`);
