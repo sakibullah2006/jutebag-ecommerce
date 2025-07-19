@@ -148,3 +148,34 @@ export async function updateOrderStatus(orderId: number, status: string, transac
         return { success: false, error: "Failed to update order status." };
     }
 }
+
+export interface CheckedOrder {
+    id: number;
+    status: string;
+    date_created: string;
+    is_paid: boolean;
+}
+
+
+export async function checkOrderExists(orderId: number): Promise<CheckedOrder | null> {
+    try {
+        const response = await WooCommerce.get(`orders/${orderId}`);
+        const order: OrderType = response.data;
+
+        // If the request succeeds, the order exists.
+        // We can determine the paid status by checking if 'date_paid' has a value.
+        const checkedOrder: CheckedOrder = {
+            id: order.id,
+            status: order.status,
+            date_created: order.date_created,
+            is_paid: !!order.date_paid, // Converts truthy (date string) or falsy (null/empty) to boolean
+        };
+
+        return checkedOrder;
+    } catch (error) {
+        // The API client throws an error for non-2xx responses, like a 404 Not Found.
+        // We'll treat any error as "order not found" and return null.
+        // console.error(`Order with ID ${orderId} not found or error fetching:`, error);
+        return null;
+    }
+}
