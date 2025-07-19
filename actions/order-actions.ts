@@ -5,7 +5,7 @@ import { LineItem, OrderType } from "@/types/order-type";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import Cookies from "js-cookie";
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 
 const WooCommerce = new WooCommerceRestApi({
@@ -37,7 +37,8 @@ export async function createOrder({
     const storedUser = (await cookies()).get("user")?.value
     // const email = JSON.parse(storedUser!).user_email
     const userId = storedUser ? (JSON.parse(storedUser).user_id || 0) : 0;
-
+    const headersList = await headers();
+    const ip = headersList.get('x-forwarded-for')
 
     // Construct the order payload
     const payload = {
@@ -45,6 +46,7 @@ export async function createOrder({
         customer_id: userId || 0,
         cart_tax,
         line_items: lineItems,
+        customer_ip_address: ip as string,
         set_paid: false, // COD orders are typically not paid upfront
         needs_payment: true,
         status: validatedData.payment_method === "cod" ? "processing" : "pending", // Set initial status (adjust as needed)
@@ -76,35 +78,58 @@ export async function getOrder(orderId: string): Promise<OrderType | null> {
     }
 }
 
-export async function fetchOrdersByUserId(userId: number): Promise<OrderType[]> {
+export const fetchOrdersByUserId = async ({
+    params,
+}: {
+    params: { userId: number };
+}): Promise<{
+    orders: OrderType[];
+    totalItems: number;
+    status: 'OK' | 'ERROR';
+}> => {
     let allOrders: OrderType[] = [];
     let page = 1;
-    const perPage = 50;
+    let totalPages = 1;
+    let totalItems = 0;
 
     try {
-        while (true) {
+        do {
             const response = await WooCommerce.get("orders", {
-                customer: userId,
-                per_page: perPage,
+                per_page: 100,
                 page: page,
+                customer: params.userId,
             });
 
-            const orders: OrderType[] = response.data;
-            allOrders = [...allOrders, ...orders];
-
-            if (orders.length < perPage) {
-                break; // Exit loop if fewer orders are fetched than perPage
+            if (response.data && Array.isArray(response.data)) {
+                allOrders = allOrders.concat(response.data);
             }
 
-            page++; // Increment page for the next fetch
-        }
+            if (page === 1 && response.headers) {
+                if (response.headers['x-wp-totalpages']) {
+                    totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
+                }
+                if (response.headers['x-wp-total']) {
+                    totalItems = parseInt(response.headers['x-wp-total'], 10);
+                }
+            }
 
-        return allOrders;
+            page++;
+        } while (page <= totalPages);
+
+        return {
+            orders: allOrders,
+            totalItems: totalItems,
+            status: 'OK',
+        };
     } catch (error) {
-        console.error("Error fetching orders:", error);
-        return [];
+        console.error(`Error fetching orders for user ${params.userId}:`, error);
+        return {
+            orders: [],
+            totalItems: 0,
+            status: 'ERROR',
+        };
     }
-}
+};
 
 
 export async function updateOrderStatus(orderId: number, status: string, transactionId: string, paid: boolean, date: string) {
