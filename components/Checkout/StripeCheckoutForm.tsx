@@ -56,7 +56,7 @@ const PaymentForm = ({
                 throw new Error('Order ID not available from props or payment intent metadata');
             }
 
-            console.log('Updating order status for orderId:', finalOrderId, 'with paymentIntent:', paymentIntent.id);
+            // console.log('Updating order status for orderId:', finalOrderId, 'with paymentIntent:', paymentIntent.id);
 
             const result = await updateOrderStatus(finalOrderId, 'processing', paymentIntent.id, true, new Date().toString());
             if (result.success) {
@@ -187,7 +187,7 @@ const PaymentForm = ({
             </button>
 
             {message && (
-                <div className={`p-3 rounded-lg text-center text-sm ${message.includes('succeeded')
+                <div className={`p-3 rounded-lg text-center text-sm ${message.includes('succeeded') || message.includes('successful')
                     ? 'bg-green-200 text-green-800 border border-green-200'
                     : 'bg-red-100 text-red-700 border border-red-200'
                     }`}>
