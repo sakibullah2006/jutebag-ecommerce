@@ -17,6 +17,7 @@ import { createOrder } from '../../actions/order-actions';
 import { createPaymentIntent } from '../../actions/stripePaymentIntentActions';
 import { OrderData } from '../../lib/validation';
 import { LineItem } from '../../types/order-type';
+import { PATH } from '../../constant/pathConstants';
 import StripeCheckout from './StripeCheckoutForm';
 
 
@@ -35,16 +36,20 @@ const checkoutSchema = z.object({
     zipcode: z.string().min(1, { message: "ZIP code is required." }),
     paymentMethod: z.enum(["cod", "stripe"]),
     useShippingAsBilling: z.boolean(),
+    customerNote: z.string().max(1000, { message: "Note is too long." }).optional(),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
+import { Address } from '@/types/customer-type';
+
 interface CheckoutClientProps {
-    countriesData: CountryDataType[]
-    taxesData: TaxDataType[]
-    shippingData: ShippingMethodDataType[]
-    shippingZones?: ShippingZoneDataType[]
-    appliedCouponProp?: string
+    countriesData: CountryDataType[];
+    taxesData: TaxDataType[];
+    shippingData: ShippingMethodDataType[];
+    shippingZones?: ShippingZoneDataType[];
+    appliedCouponProp?: string;
+    shippingAddress?: Address | null;
 }
 
 const CheckoutClient: React.FC<CheckoutClientProps> = ({
@@ -52,7 +57,8 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
     taxesData,
     shippingData,
     shippingZones = [],
-    appliedCouponProp
+    appliedCouponProp,
+    shippingAddress
 }) => {
     const { openModalCart } = useModalCartContext()
     const { currentCurrency } = useAppData()
@@ -83,6 +89,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
     const {
         register,
         handleSubmit,
+        setValue,
         watch,
         formState: { errors },
     } = useForm<CheckoutFormValues>({
@@ -99,6 +106,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
             zipcode: '',
             paymentMethod: 'cod',
             useShippingAsBilling: true,
+            customerNote: '',
         }
     });
 
@@ -383,7 +391,8 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                 state: formData.state,
                 postcode: formData.zipcode,
                 country: formData.country,
-            }
+            },
+            customer_note: formData.customerNote || '',
         };
 
         const lineItems: LineItem[] = cartState.cartArray.map(item => ({
@@ -434,8 +443,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                     // For Cash on Delivery, redirect to the thank you page
                     console.log("Order created with COD. Redirecting...");
                     // Redirect to thank you page with orderId
-                    clearCart(); // Clear cart after successful order creation
-                    router.push(`/checkout/thank-you?orderId=${result.order.id}`);
+                    router.push(`${PATH.THANKYOU}?orderId=${result.order.id}`);
                 } else if (formData.paymentMethod === 'stripe') {
                     // For Stripe, execute your payment processing code here
                     console.log("Order created. Proceeding to Stripe payment...");
@@ -473,7 +481,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                     <div className="container mx-auto h-full">
                         <div className="header-main flex items-center justify-between h-full">
                             <Link href={'/'} className='flex items-center'>
-                                <div className="heading4">SakibBaba</div>
+                                <div className="heading4">WooNex</div>
                             </Link>
                             <button className="max-md:hidden cart-icon flex items-center relative h-fit cursor-pointer" onClick={openModalCart}>
                                 <Icon.HandbagIcon size={24} color='black' />
@@ -493,9 +501,40 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                                 :
                                 (
                                     <form onSubmit={handleSubmit(onSubmit)} className="form-checkout">
+                                        <div className="mt-8">
+                                            <label htmlFor="customerNote" className="block mb-2 font-medium">Order Notes (optional)</label>
+                                            <textarea
+                                                id="customerNote"
+                                                className={`border-line px-4 py-3 w-full rounded-lg min-h-[80px] ${errors.customerNote ? 'border-red' : ''}`}
+                                                placeholder="Notes about your order, e.g. special instructions for delivery."
+                                                {...register("customerNote")}
+                                            />
+                                            {errors.customerNote && <p className="text-red text-sm mt-1">{errors.customerNote.message}</p>}
+                                        </div>
                                         <div className="login flex justify-between gap-4">
                                             <h4 className="heading4">Contact</h4>
-                                            <Link href={"/login"} className="text-button underline">Login here</Link>
+                                            {shippingAddress ? (
+                                                <button
+                                                    type="button"
+                                                    className="text-button underline"
+                                                    onClick={() => {
+                                                        setValue('email', shippingAddress.email || '');
+                                                        setValue('phone', shippingAddress.phone || '');
+                                                        setValue('country', shippingAddress.country || '');
+                                                        setValue('firstName', shippingAddress.first_name || '');
+                                                        setValue('lastName', shippingAddress.last_name || '');
+                                                        setValue('address', shippingAddress.address_1 || '');
+                                                        setValue('apartment', shippingAddress.address_2 || '');
+                                                        setValue('city', shippingAddress.city || '');
+                                                        setValue('state', shippingAddress.state || '');
+                                                        setValue('zipcode', shippingAddress.postcode || '');
+                                                    }}
+                                                >
+                                                    Fill with saved address
+                                                </button>
+                                            ) : (
+                                                <Link href={"/login"} className="text-button underline">Login here</Link>
+                                            )}
                                         </div>
                                         <div>
                                             <input type="email" className={`border-line mt-5 px-4 py-3 w-full rounded-lg ${errors.email ? 'border-red' : ''}`} placeholder="Email" {...register("email")} />
@@ -654,7 +693,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                                                             isSubmitting ? 'cursor-not-allowed opacity-50' : '',
                                                             watch("paymentMethod") === 'cod' ? 'bg-primary havor:bg-primary/90' : 'bg-primary hover:bg-primary/90'
                                                         )}
-                                                        disabled={isSubmitting}
+                                                        disabled={isSubmitting || !watch("paymentMethod") || !shippingCost || !selectedShippingMethod}
                                                     >
                                                         {isSubmitting ? 'Processing...' : watch("paymentMethod") === 'cod' ? 'Place Order' : 'Pay Now'}
                                                     </button>

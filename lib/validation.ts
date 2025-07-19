@@ -34,6 +34,7 @@ export const checkoutFormSchema = z.object({
     message: "You must agree to the terms and conditions",
   }),
   couponCode: z.string().optional(),
+  
 });
 
 export type FormValues = z.infer<typeof checkoutFormSchema>;
@@ -43,6 +44,7 @@ export type FormValues = z.infer<typeof checkoutFormSchema>;
 export const orderDataSchema = z.object({
   billing: deliverySchema,
   shipping: deliverySchema,
+  customer_note: z.string().optional(),
   payment_method: z.enum(["cod", "bacs", "paypal", "stripe"]),
   payment_method_title: z.enum(["Cash on Delivery", "Stripe", "PayPal", "Bank Transfer"]).optional(),
 });

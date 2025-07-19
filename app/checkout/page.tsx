@@ -1,3 +1,6 @@
+import { getCustomerInfo } from '@/actions/customer-action';
+import { User } from '@/actions/auth-actions';
+import { cookies } from 'next/headers';
 import React from 'react'
 import { getCountries, getTaxes, getShippingZones } from '@/actions/data-actions'
 import CheckoutClient from '@/components/Checkout/CheckoutClient'
@@ -18,13 +21,33 @@ interface CheckoutPageProps {
 }
 
 const Checkout = async ({ searchParams }: CheckoutPageProps) => {
-    const { appliedCoupon } = await searchParams
+    const { appliedCoupon } = await searchParams;
+
+    const cookieStore = await cookies()
+    const userCookie = cookieStore.get('user')
+    const tokenCookie = cookieStore.get('jwt_token')
+    let customer = null;
+
+    if (userCookie && tokenCookie) {
+        try {
+            const user: User = JSON.parse(userCookie.value);
+            if (user && user.user_id) {
+                const customerData = await getCustomerInfo(user.user_id);
+                if (customerData.success) {
+                    customer = customerData.data;
+                }
+            }
+        } catch (error) {
+            console.error('Failed to parse user cookie or fetch customer data', error);
+        }
+    }
 
     // Fetch all required data server-side
     const [countriesData, taxesData, shippingZones] = await Promise.all([
         getCountries(),
         getTaxes(),
         getShippingZones(),
+
     ])
 
     // Extract shipping methods from zones (for backward compatibility)
@@ -38,6 +61,7 @@ const Checkout = async ({ searchParams }: CheckoutPageProps) => {
                 shippingData={shippingData}
                 shippingZones={shippingZones}
                 appliedCouponProp={appliedCoupon || ''}
+                shippingAddress={customer?.shipping}
             />
             <Footer />
         </>
