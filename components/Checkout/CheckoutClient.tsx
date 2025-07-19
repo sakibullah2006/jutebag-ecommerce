@@ -81,7 +81,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
     const [selectedShippingMethod, setSelectedShippingMethod] = useState<string>('')
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
-    const [cleintSecret, setClientSecret] = useState<string | null>(null);
+    const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [paymentIntentOrderId, setPaymentIntentOrderId] = useState<number | null>(null)
     const router = useRouter();
 
@@ -364,6 +364,8 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
         setIsSubmitting(true);
         setSubmitError(null);
 
+        const temporaryCartItems = [...cartState.cartArray];
+
         // Prepare the data payload for the createOrder server action
         const orderPayload: OrderData = {
             payment_method: formData.paymentMethod,
@@ -395,7 +397,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
             customer_note: formData.customerNote || '',
         };
 
-        const lineItems: LineItem[] = cartState.cartArray.map(item => ({
+        const lineItems: LineItem[] = temporaryCartItems.map(item => ({
             product_id: item.id,
             variation_id: item.selectedVariation ? parseInt(item.selectedVariation?.id.toString()) : undefined,
             quantity: item.quantity,
@@ -469,7 +471,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
         }
     };
 
-    if (cartState.cartArray.length === 0 && !cleintSecret) {
+    if (cartState.cartArray.length === 0) {
         redirect('/cart'); // Redirect to cart if no items in cart
     }
 
@@ -495,8 +497,8 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                 <div className="content-main flex max-lg:flex-col-reverse justify-between">
                     <div className="left flex lg:justify-end w-full">
                         <div className="lg:max-w-[716px] flex-shrink-0 w-full lg:pt-20 pt-12 lg:pr-[70px] pl-[16px] max-lg:pr-[16px]">
-                            {cleintSecret !== null ? (
-                                <StripeCheckout clientSecret={cleintSecret} orderId={paymentIntentOrderId!} />
+                            {clientSecret !== null ? (
+                                <StripeCheckout clientSecret={clientSecret} orderId={paymentIntentOrderId!} />
                             )
                                 :
                                 (
@@ -518,8 +520,6 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                                                     type="button"
                                                     className="text-button underline"
                                                     onClick={() => {
-                                                        setValue('email', shippingAddress.email || '');
-                                                        setValue('phone', shippingAddress.phone || '');
                                                         setValue('country', shippingAddress.country || '');
                                                         setValue('firstName', shippingAddress.first_name || '');
                                                         setValue('lastName', shippingAddress.last_name || '');
@@ -693,7 +693,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                                                             isSubmitting ? 'cursor-not-allowed opacity-50' : '',
                                                             watch("paymentMethod") === 'cod' ? 'bg-primary havor:bg-primary/90' : 'bg-primary hover:bg-primary/90'
                                                         )}
-                                                        disabled={isSubmitting || !watch("paymentMethod") || !shippingCost || !selectedShippingMethod}
+                                                        disabled={isSubmitting}
                                                     >
                                                         {isSubmitting ? 'Processing...' : watch("paymentMethod") === 'cod' ? 'Place Order' : 'Pay Now'}
                                                     </button>

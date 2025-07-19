@@ -1,11 +1,13 @@
 import ThankYouClient from '@/components/ThankYou/ThankYouClient';
-import React from 'react';
-import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
 import { getProductCategories } from '@/actions/data-actions';
 import Footer from '@/components/Footer/Footer';
 import MenuOne from '@/components/Header/Menu/MenuOne';
 import TopNavOne from '@/components/Header/TopNav/TopNavOne';
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import * as Icon from '@phosphor-icons/react/dist/ssr';
+import React from 'react';
 
 interface ThankYouPageProps {
     searchParams: { orderId?: string };
@@ -45,11 +47,8 @@ const ThankYouPage = async ({ searchParams }: ThankYouPageProps) => {
                 <MenuOne props={"bg-transparent"} categories={categories} />
             </div>
 
-            <div className="thank-you-block relative pt-20 pb-20">
-                <div className="container mx-auto">
-                    <ThankYouClient orderId={orderId} />
-                </div>
-            </div>
+            <ThankYouClient orderId={orderId} />
+
             <Footer />
         </>
     );
