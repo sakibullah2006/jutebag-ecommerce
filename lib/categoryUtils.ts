@@ -13,9 +13,13 @@ type CategoryNode = CategorieType & { children: CategoryNode[] };
 
 
 export function generateMenuItems(categories: CategorieType[]): MenuItem[] {
+    if (!Array.isArray(categories) || categories.length === 0) {
+        return [];
+    }
+
     const finalMenu: MenuItem[] = [];
     const fashionCategory = categories.find(
-        (cat) => cat.slug.toLowerCase().includes("first_order") && cat.slug.toLowerCase().includes("fashion")
+        (cat) => cat.slug.toLowerCase().split("_").includes("first_order") && cat.slug.toLowerCase().includes("fashion")
     );
 
     if (!fashionCategory) {

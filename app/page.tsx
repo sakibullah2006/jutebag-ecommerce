@@ -54,8 +54,8 @@ export default async function HomeTwo() {
         <MenuOne props={'bg-transparent'} categories={categories} />
         <SliderTwo />
       </div>
-      <Collection props="pt-5" categories={categories} />
-      <WhatNewOne data={products} start={0} limit={8} categories={categories} />
+      <Collection props="pt-5" />
+      <WhatNewOne data={products} start={0} limit={8} />
       <Banner />
       <TabFeatures data={products} start={0} limit={8} />
       <Benefit props="md:mt-20 mt-10 py-10 px-2.5 bg-surface rounded-3xl" />

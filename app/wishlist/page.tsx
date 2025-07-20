@@ -6,9 +6,8 @@ import WishlistClient from '@/components/wishlist/WishlistClient'
 import { getProductCategories, getProductTags, } from '@/actions/data-actions'
 
 const WishlistPage = async () => {
-    const [categories, tags] = await Promise.all([
+    const [categories, ] = await Promise.all([
         getProductCategories(),
-        getProductTags()
     ])
 
     return (
@@ -19,7 +18,7 @@ const WishlistPage = async () => {
                 <Breadcrumb heading='Wishlist' subHeading='Wishlist' />
             </div>
             <div className="shop-product breadcrumb1 lg:py-20 md:py-14 py-10">
-                <WishlistClient tags={tags} />
+                <WishlistClient />
             </div>
             <Footer />
         </>

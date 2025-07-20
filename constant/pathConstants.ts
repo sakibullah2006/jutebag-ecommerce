@@ -3,7 +3,7 @@ export const PATH = {
     ABOUT: '/about',
     CONTACT: '/contact',
     SHOP: '/shop',
-    PRODUCTS: '/products',
+    PRODUCT: '/product',
     CART: '/cart',
     CHECKOUT: '/checkout',
     THANKYOU: '/checkout/thank-you',
@@ -12,14 +12,7 @@ export const PATH = {
     REGISTER: '/register',
     ForgotPassword: '/forgot-password',
     DASHBOARD: '/dashboard',
-    // PRODUCT_DETAIL: '/products/:id',
-    // CATEGORIES: '/categories',
-    // CATEGORY_DETAIL: '/categories/:id',
-    // ORDERS: '/orders',
-    // ORDER_DETAIL: '/orders/:id',
     WISHLIST: '/wishlist',
-    // BLOG: '/blog',
-    // BLOG_POST: '/blog/:id',
     PRIVACY_POLICY: '/privacy-policy',
     TERMS_CONDITIONS: '/terms-conditions'
 } as const;

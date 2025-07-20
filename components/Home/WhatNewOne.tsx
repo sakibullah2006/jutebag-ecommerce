@@ -9,15 +9,14 @@ import Product from '../Product/Product'
 import { useAppData } from '../../context/AppDataContext'
 
 interface Props {
-    categories?: ProductCategory[]
     data: ProductType[];
     start: number;
     limit: number;
 }
 
-const WhatNewOne: React.FC<Props> = ({ data, start, limit, categories }) => {
-    // const { categories } = useAppData()
-    const commonCategories = categories?.filter(cat => cat.slug.includes("common")).sort((a, b) => b.count - a.count)?.slice(0, 5)
+const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
+    const { categories } = useAppData()
+    const commonCategories = categories?.filter(cat => cat.slug.toLowerCase().split("_").includes("common")).sort((a, b) => b.count - a.count)?.slice(0, 5)
     const [activeTab, setActiveTab] = useState<string>(commonCategories && commonCategories[0]?.slug.trim() || 'All');
 
     const handleTabClick = (type: string) => {
@@ -32,10 +31,6 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit, categories }) => {
         }
     );
 
-
-    // useEffect(() => {
-    //     console.log('Active Tab:', activeTab);
-    // }, [activeTab])
 
     return (
         <>

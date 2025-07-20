@@ -38,9 +38,9 @@ const MenuOne: React.FC<Props> = ({ props, categories }) => {
     const { openModalWishlist } = useModalWishlistContext()
     const { openModalSearch } = useModalSearchContext()
     const { user, isAuthenticated, logout, loading } = useAuth()
-    const { tags } = useAppData()
+    const { categories: categoriesData } = useAppData()
 
-    const menuItems = generateMenuItems(categories)
+    const menuItems = generateMenuItems(categories || categoriesData)
 
     const handleOpenSubNavMobile = (index: number) => {
         setOpenSubNavMobile(openSubNavMobile === index ? null : index)
@@ -96,7 +96,8 @@ const MenuOne: React.FC<Props> = ({ props, categories }) => {
                                     <li className='h-full'>
                                         <Link
                                             href={PATH.SHOP}
-                                            className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes('/shop') ? 'active' : ''}`}
+                                            className={`text-button-uppercase duration-300 h-full flex items-center justify-center ${pathname.includes(PATH.SHOP) ? 'active' : ''}`}
+                                            prefetch
                                         >
                                             Shop
                                         </Link>
@@ -120,7 +121,7 @@ const MenuOne: React.FC<Props> = ({ props, categories }) => {
                                                                             {menuItem.subMenu?.slice(0, 5)?.map((subMenu) => (
                                                                                 <li key={subMenu.id}>
                                                                                     <Link
-                                                                                        href={`${PATH.SHOP}?category=${subMenu.slug}` + (subMenu.slug.includes("gender") ? `&gender=${subMenu.slug.split("_").reverse()[0]}` : '')}
+                                                                                        href={`${PATH.SHOP}?category=${subMenu.slug}` + (subMenu.slug.split("_").includes("gender") ? `&gender=${subMenu.slug.split("_").reverse()[0]}` : '')}
                                                                                         className={`link text-secondary duration-300 cursor-pointer`}
                                                                                     >
                                                                                         {subMenu.name}
@@ -135,6 +136,7 @@ const MenuOne: React.FC<Props> = ({ props, categories }) => {
                                                                                             <Link
                                                                                                 href={`${PATH.SHOP}?gender=${menuItem.genderCategory}`}
                                                                                                 className={`link text-secondary duration-300 cursor-pointer view-all-btn`}
+                                                                                                prefetch
                                                                                             >
                                                                                                 View All
                                                                                             </Link>
@@ -144,6 +146,7 @@ const MenuOne: React.FC<Props> = ({ props, categories }) => {
                                                                                             <Link
                                                                                                 href={`${PATH.SHOP}?category=${menuItem.slug}`}
                                                                                                 className={`link text-secondary duration-300 cursor-pointer view-all-btn`}
+                                                                                                prefetch
                                                                                             >
                                                                                                 View All
                                                                                             </Link>
@@ -182,15 +185,15 @@ const MenuOne: React.FC<Props> = ({ props, categories }) => {
                                     >
                                         {!isAuthenticated ? (
                                             <>
-                                                <Link href={PATH.LOGIN} className="button-main w-full text-center">Login</Link>
+                                                <Link href={PATH.LOGIN} className="button-main w-full text-center" prefetch>Login</Link>
                                                 <div className="text-secondary text-center mt-3 pb-4">Don’t have an account?
-                                                    <Link href={PATH.REGISTER} className='text-black pl-1 hover:underline'>Register</Link>
+                                                    <Link href={PATH.REGISTER} className='text-black pl-1 hover:underline' prefetch>Register</Link>
                                                 </div>
                                             </>
                                         ) : (
                                             <>
                                                 <div className="text-secondary text-center mt-3 pb-4">Hello, <span className='text-black'>{user?.user_display_name}</span></div>
-                                                <Link href={PATH.DASHBOARD} className="button-main bg-white text-black border border-black w-full text-center">Dashboard</Link>
+                                                <Link href={PATH.DASHBOARD} className="button-main bg-white text-black border border-black w-full text-center" prefetch>Dashboard</Link>
                                                 <div
                                                     className={`button-main w-full text-center mt-3 ${loading ? 'disabled' : ''} disabled:bg-gray-300`}
                                                     onClick={() => {

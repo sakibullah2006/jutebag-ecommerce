@@ -6,13 +6,13 @@ import { Product as ProductType } from '@/types/product-type'
 import Product from '@/components/Product/Product'
 import HandlePagination from '@/components/Other/HandlePagination'
 import { TagType } from '../../types/data-type'
+import { useAppData } from '../../context/AppDataContext'
 
-interface WishlistClientProps {
-    tags: TagType[];
-}
+type WishlistClientProps = object
 
-const WishlistClient: React.FC<WishlistClientProps> = ({ tags }) => {
+const WishlistClient: React.FC<WishlistClientProps> = ({ }) => {
     const { wishlistState } = useWishlist();
+    const { tags } = useAppData()
     const [sortOption, setSortOption] = useState('');
     const [layoutCol, setLayoutCol] = useState<number>(4);
     const [type, setType] = useState<string | undefined>();

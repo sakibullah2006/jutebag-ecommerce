@@ -3,7 +3,6 @@ import Footer from '@/components/Footer/Footer';
 import MenuOne from '@/components/Header/Menu/MenuOne';
 import TopNavOne from '@/components/Header/TopNav/TopNavOne';
 import ShopBreadCrumb1 from '@/components/Shop/ShopBreadCrumb';
-import { Product as ProductType } from '@/types/product-type';
 import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { getProductCategories } from '../../actions/data-actions';
@@ -39,7 +38,7 @@ export default async function BreadCrumb1({ searchParams }: BreadCrumb1Props) {
 
     return (
         <>
-            {/* <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" /> */}
+            <TopNavOne props="style-one bg-black" slogan="New customers save 10% with the code GET10" />
             <div id="header" className="relative w-full">
                 <MenuOne props="bg-transparent" categories={categories} />
             </div>
