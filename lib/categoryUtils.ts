@@ -19,7 +19,10 @@ export function generateMenuItems(categories: CategorieType[]): MenuItem[] {
 
     const finalMenu: MenuItem[] = [];
     const fashionCategory = categories.find(
-        (cat) => cat.slug.toLowerCase().split("_").includes("first_order") && cat.slug.toLowerCase().includes("fashion")
+        (cat) =>
+            (cat.slug.toLowerCase().includes("first_order") &&
+                cat.slug.toLowerCase().includes("fashion")) ||
+            cat.name.toLowerCase() === "fashion"
     );
 
     if (!fashionCategory) {

@@ -16,7 +16,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
-import { generateMenuItems } from '../../../lib/categoryUtils';
+import { generateMenuItems, MenuItem } from '../../../lib/categoryUtils';
 import { STOREINFO } from '../../../constant/storeConstants';
 import { CategorieType } from '../../../types/data-type';
 
@@ -39,8 +39,14 @@ const MenuOne: React.FC<Props> = ({ props, categories }) => {
     const { openModalSearch } = useModalSearchContext()
     const { user, isAuthenticated, logout, loading } = useAuth()
     const { categories: categoriesData } = useAppData()
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
-    const menuItems = generateMenuItems(categories || categoriesData)
+    useEffect(() => {
+        const data = categories || categoriesData;
+        if (data) {
+            setMenuItems(generateMenuItems(data));
+        }
+    }, [categories, categoriesData]);
 
     const handleOpenSubNavMobile = (index: number) => {
         setOpenSubNavMobile(openSubNavMobile === index ? null : index)
