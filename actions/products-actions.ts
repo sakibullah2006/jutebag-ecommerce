@@ -68,6 +68,7 @@ export const getAllProductsPaginated = async ({
       const response = await WooCommerce.get("products", {
         per_page: 100,
         page: page,
+        cache: "default", next: { revalidate: 100 },
         ...(params?.category && { category: params.category }),
         ...(params?.search && { search: params.search }),
         ...(params?.tag && { tag: params.tag }),
