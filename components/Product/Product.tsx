@@ -3,7 +3,6 @@
 import { getProductVariationsById } from '@/actions/products-actions'
 import { useCart } from '@/context/CartContext'
 import { useModalCartContext } from '@/context/ModalCartContext'
-import { useModalCompareContext } from '@/context/ModalCompareContext'
 import { useModalQuickviewContext } from '@/context/ModalQuickviewContext'
 import { useModalWishlistContext } from '@/context/ModalWishlistContext'
 import { useWishlist } from '@/context/WishlistContext'
@@ -15,10 +14,8 @@ import { isNull } from 'lodash'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import router from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import Marquee from 'react-fast-marquee'
-import Rate from '../Other/Rate'
 import { useAppData } from '../../context/AppDataContext'
 import { QuickShopDrawer } from './QuickShopDrawer'
 
@@ -53,8 +50,6 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     const { openModalCart } = useModalCartContext();
     const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist();
     const { openModalWishlist } = useModalWishlistContext()
-    // const { addToCompare, removeFromCompare, compareState } = useCompare();
-    const { openModalCompare } = useModalCompareContext()
     const { openQuickview } = useModalQuickviewContext()
     const [isloading, setIsLoading] = useState<boolean>(false)
     const isColorReq = data.attributes?.some(attr => attr.name.toLowerCase() === "color")
@@ -186,21 +181,21 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
         openModalWishlist();
     };
 
-    const handleAddToCompare = () => {
-        // if product existed in wishlit, remove from wishlist and set state to false
-        // if (compareState.compareArray.length < 3) {
-        //     if (compareState.compareArray.some(item => item.id === data.id)) {
-        //         removeFromCompare(data.id);
-        //     } else {
-        //         // else, add to wishlist and set state to true
-        //         addToCompare(data);
-        //     }
-        // } else {
-        //     alert('Compare up to 3 products')
-        // }
+    // const handleAddToCompare = () => {
+    // if product existed in wishlit, remove from wishlist and set state to false
+    // if (compareState.compareArray.length < 3) {
+    //     if (compareState.compareArray.some(item => item.id === data.id)) {
+    //         removeFromCompare(data.id);
+    //     } else {
+    //         // else, add to wishlist and set state to true
+    //         addToCompare(data);
+    //     }
+    // } else {
+    //     alert('Compare up to 3 products')
+    // }
 
-        // openModalCompare();
-    };
+    // openModalCompare();
+    // };
 
     const handleQuickviewOpen = () => {
         openQuickview(data)
@@ -250,7 +245,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
             {/* new Date(data.date_created) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); */}
             {type === "grid" ? (
                 <div className={`product-item grid-type ${style}`}>
-                    <div onClick={() => handleDetailProduct(data.id.toString())} className="product-main cursor-pointer block">
+                    <div className="product-main cursor-pointer block">
                         <div className="product-thumb bg-white relative overflow-hidden rounded-2xl">
                             {(data.tags.some(tag => tag.slug.includes("promotion_new-arrival")) &&
                                 <div className="product-tag text-button-uppercase bg-green px-3 py-0.5 inline-block rounded-full absolute top-3 left-3 z-[1]">
@@ -319,38 +314,41 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     ) : <></>} */}
                                 </div>
                             ) : <></>}
-                            <div className="product-img w-full h-full aspect-[3/4]">
-                                {activeColor ? (
-                                    <>
-                                        {selectedVariation?.image?.src && (
-                                            <Image
-                                                src={selectedVariation.image.src}
-                                                width={500}
-                                                height={500}
-                                                alt={data.name}
-                                                priority={true}
-                                                className="w-full h-full object-cover duration-700"
-                                            />
-                                        )}
-                                    </>
-                                ) : (
-                                    <>
-                                        {data.images.map((img, index) => (
-                                            img.src && (
+                            <Link href={`/product/${data.id}`} prefetch>
+                                <div className="product-img w-full h-full aspect-[3/4]">
+                                    {activeColor ? (
+                                        <>
+                                            {selectedVariation?.image?.src && (
                                                 <Image
-                                                    key={index}
-                                                    src={img.src}
+                                                    src={selectedVariation.image.src}
                                                     width={500}
                                                     height={500}
-                                                    priority={true}
                                                     alt={data.name}
+                                                    priority={true}
                                                     className="w-full h-full object-cover duration-700"
                                                 />
-                                            )
-                                        ))}
-                                    </>
-                                )}
-                            </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            {data.images.map((img, index) => (
+                                                img.src && (
+                                                    <Image
+                                                        key={index}
+                                                        src={img.src}
+                                                        width={500}
+                                                        height={500}
+                                                        priority={true}
+                                                        alt={data.name}
+                                                        className="w-full h-full object-cover duration-700"
+                                                    />
+                                                )
+                                            ))}
+                                        </>
+                                    )}
+                                </div>
+                            </Link>
+
                             {data.on_sale && Number(data.regular_price) !== Number(data.sale_price) && (
                                 <>
                                     <Marquee className='banner-sale-auto bg-black absolute bottom-0 left-0 w-full py-1.5'>

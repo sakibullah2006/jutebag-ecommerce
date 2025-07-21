@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import TopNavOne from '@/components/Header/TopNav/TopNavOne'
 import MenuOne from '@/components/Header/Menu/MenuOne'
 import Breadcrumb from '@/components/Breadcrumb/Breadcrumb'
@@ -6,9 +6,6 @@ import Footer from '@/components/Footer/Footer'
 import CartClient from '@/components/Cart/CartClient'
 import { Metadata } from 'next'
 import { getProductCategories } from '../../actions/data-actions'
-
-
-
 
 
 const Cart = async () => {
@@ -24,7 +21,9 @@ const Cart = async () => {
                 <MenuOne props="bg-transparent" categories={categories} />
                 <Breadcrumb heading='Shopping cart' subHeading='Shopping cart' />
             </div>
-            <CartClient />
+            <Suspense fallback={<div className='text-9xl heading1 animate-ping'>Loading</div>}>
+                <CartClient />
+            </Suspense>
             <Footer />
         </>
     )

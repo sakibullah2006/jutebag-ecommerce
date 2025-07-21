@@ -5,12 +5,12 @@
 import { useAppData } from "@/context/AppDataContext";
 import { COLORS } from "@/data/color-codes";
 import { decodeHtmlEntities } from "@/lib/utils";
-import { AttributesWithTermsType, CategorieType, CurrencyType, ProductBrandType, TagType } from "@/types/data-type";
 import { Product as ProductType } from "@/types/product-type";
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import Link from 'next/link';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
+import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import HandlePagination from '../Other/HandlePagination';
 import Product from '../Product/Product';
@@ -24,6 +24,7 @@ interface Props {
 }
 
 const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gender, category }) => {
+    const searchParams = useSearchParams()
     const [showOnlySale, setShowOnlySale] = useState(false)
     const [sortOption, setSortOption] = useState('');
     const [pageCount, setPageCount] = useState<number | null>(null);
@@ -45,6 +46,12 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
         const initialCount = Math.ceil(data.length / productsPerPage);
         setPageCount(initialCount);
     }, [])
+
+    // Sync selectedCategory with the 'category' query param
+    useEffect(() => {
+        const categoryParam = searchParams.get('category');
+        setSelectedCategory(categoryParam);
+    }, [searchParams]);
 
     useEffect(() => {
         if (pageCount === 0) {
@@ -112,7 +119,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
 
         let isDatagenderMatched = true;
         if (gender) {
-            isDatagenderMatched = product.categories.find(cat => cat.slug.includes("gender"))?.slug.includes(gender) || false;
+            isDatagenderMatched = product.categories.some(cat => cat.slug.toLowerCase().split("_").includes("gender") && cat.slug.toLowerCase().split("_").includes(gender.toLowerCase()));
         }
 
         let isDataCategoryMatched = true;
@@ -238,7 +245,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                 </div>
                             </div>
                             <div className="list-tab flex flex-wrap items-center justify-center gap-y-5 gap-8 lg:mt-[70px] mt-12 overflow-hidden">
-                                {categories && categories.filter(cat => cat.slug.includes("common")).sort((a, b) => b.count - a.count).slice(0, 5).map((item, index) => (
+                                {categories && categories.filter(cat => cat.slug.toLowerCase().split("_").includes("common")).sort((a, b) => b.count - a.count).slice(0, 5).map((item, index) => (
                                     <div
                                         key={index}
                                         className={`tab-item text-button-uppercase cursor-pointer has-line-before line-2px ${selectedCategory?.toLowerCase() === item.slug.toLowerCase() ? 'active' : ''}`}
@@ -260,7 +267,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                             <div className="filter-type pb-8 border-b border-line">
                                 <div className="heading6">Featured</div>
                                 <div className="list-type mt-4">
-                                    {tags && tags.filter(tag => tag.slug.includes("promotion")).sort((a, b) => b.count - a.count).map((item, index) => (
+                                    {tags && tags.filter(tag => tag.slug.toLowerCase().split("_").includes("promotion")).sort((a, b) => b.count - a.count).map((item, index) => (
                                         <div
                                             key={index}
                                             className={`item flex items-center justify-between cursor-pointer ${selectedType?.toLowerCase() === item.slug.toLowerCase() ? 'active' : ''}`}
@@ -280,7 +287,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                             <div className="filter-type pb-8 border-b border-line">
                                 <div className="heading6">Products Type</div>
                                 <div className="list-type mt-4">
-                                    {categories && categories.filter(cat => cat.slug.includes("common")).sort((a, b) => b.count - a.count).map((item, index) => (
+                                    {categories && categories.filter(cat => cat.slug.toLowerCase().split("_").includes("common")).sort((a, b) => b.count - a.count).map((item, index) => (
                                         <div
                                             key={index}
                                             className={`item flex items-center justify-between cursor-pointer ${selectedCategory?.toLowerCase() === item.slug.toLowerCase() ? 'active' : ''}`}
