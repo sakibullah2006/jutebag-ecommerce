@@ -35,14 +35,6 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     };
 }
 
-export async function generateStaticParams() {
-    // Fetch all products (you may want to paginate if you have many products)
-    const { products } = await getAllProductsPaginated();
-    return products.map((product: { id: number }) => ({
-        id: product.id.toString(),
-    }));
-}
-
 
 interface ProductDefaultProps {
     params: { id: string };
