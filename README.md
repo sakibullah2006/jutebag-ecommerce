@@ -1,237 +1,283 @@
-# Woo-Next-Store
+![GitHub license](https://img.shields.io/github/license/sakib-diu/woo-next-store)
+![GitHub issues](https://img.shields.io/github/issues/sakib-diu/woo-next-store)
+![GitHub stars](https://img.shields.io/github/stars/sakib-diu/woo-next-store)
 
-![Woo-Next-Store Logo](public/logo.svg)
+# WooNex Store
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38B2AC.svg)](https://tailwindcss.com/)
-[![WooCommerce](https://img.shields.io/badge/WooCommerce-6.0-96588A.svg)](https://woocommerce.com/)
-[![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-black.svg)](https://vercel.com/)
-
-**Woo-Next-Store** is a modern e-commerce storefront built with **Next.js 14** and **TypeScript**, integrated with the **WooCommerce REST API**. It provides a responsive, user-friendly shopping experience with product browsing, cart management, and cash-on-delivery (COD) checkout. Styled with **Tailwind CSS** and enhanced with **shadcn/ui** components, the app is deployed on **Vercel** for scalability.
+WooNex Store is a modern, performance-optimized e-commerce store built with [Next.js](https://nextjs.org/) and integrated with [WooCommerce](https://woocommerce.com/). It provides a fast, scalable, and customizable solution for developers and businesses aiming to create high-performance online stores with modern UI/UX design.
 
 ---
 
-## Screenshots
+## Table of Contents
 
-| **Product Grid** | **Cart** | **Checkout** |
-|------------------|----------|--------------|
-| ![Product Grid](screenshots/products-grid.png) | ![Cart](screenshots/cart.png) | ![Checkout](screenshots/checkout.png) |
+- [Features](#features)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
 
 ---
 
 ## Features
 
-- **Product Browsing**: Responsive product grid with pagination, fetching data from WooCommerce.
-- **Cart Management**: Add, update, or remove items, persisted in localStorage via `CartProvider`.
-- **Checkout**: Form-validated COD checkout using Zod for robust validation.
-- **Pagination**: Navigate product pages with shadcn/ui Pagination component.
-- **Responsive Design**: Mobile-first UI with Tailwind CSS.
-- **SEO Optimization**: Server-side rendering and dynamic metadata for product pages.
-- **WooCommerce API**: Secure product fetching and order creation via REST API.
-- **Vercel Deployment**: Hosted with environment variable management for production.
+- ⚡ **Performance Optimized**: Built with Next.js 15.3+ and Turbopack for lightning-fast development
+- 🛒 **WooCommerce Integration**: Seamless integration with WooCommerce REST API
+- 💳 **Stripe Payments**: Complete payment processing with Stripe integration
+- 🎨 **Modern UI**: Beautiful, responsive design with Tailwind CSS and custom SCSS
+- 📱 **Mobile-First**: Fully responsive design optimized for all devices
+- 🔐 **Authentication**: User registration, login, and account management
+- 🛍️ **Shopping Features**: Cart, wishlist, compare products, and checkout
+- 📊 **Dashboard**: Customer dashboard with order history and account management
+- 🔍 **Search & Filter**: Advanced product search and filtering capabilities
+- 🌙 **Dark Mode**: Theme switching support with next-themes
+- ♿ **Accessibility**: Built with accessibility best practices
 
-## Tech Stack
+---
 
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript 5
-- **Styling**: Tailwind CSS 4
-- **UI Components**: shadcn/ui (Pagination, Button, etc.)
-- **API Client**: `@woocommerce/woocommerce-rest-api`
-- **Form Validation**: Zod
-- **State Management**: React Context (`CartProvider`)
-- **Persistence**: localStorage for cart data
-- **Icons**: Lucide React
-- **Deployment**: Vercel
+## Installation
 
-## Prerequisites
+### Prerequisites
 
-- Node.js 18+ and npm/yarn
-- WooCommerce store (e.g., `https://axessories.store`)
-- WooCommerce REST API keys with Read/Write permissions
-- Vercel account for deployment
+Ensure you have the following installed:
 
-## Getting Started
+- [Node.js](https://nodejs.org/) (version 18.0.0 or higher recommended)
+- [pnpm](https://pnpm.io/) (preferred package manager)
+- A running [WooCommerce](https://woocommerce.com/) instance with REST API enabled
 
-### 1. Clone the Repository
+### Steps
 
-```bash
-git clone https://github.com/sakib-diu/woo-next-store.git
-cd woo-next-store
-```
-
-### 2. Install Dependencies
-
-```bash
-npm install
-```
-
-### 3. Configure Environment Variables
-
-Create a `.env.local` file in the root directory:
-
-```env
-NEXT_PUBLIC_WOOCOMMERCE_URL=https://axessories.store
-WOOCOMMERCE_CONSUMER_KEY=ck_your_consumer_key
-WOOCOMMERCE_CONSUMER_SECRET=cs_your_consumer_secret
-NEXT_PUBLIC_BASE_URL=http://localhost:3000
-```
-
-- Replace `ck_your_consumer_key` and `cs_your_consumer_secret` with your WooCommerce API keys.
-- Update `NEXT_PUBLIC_WOOCOMMERCE_URL` to your store’s URL.
-- Set `NEXT_PUBLIC_BASE_URL` to your Vercel deployment URL (e.g., `https://woo-next-store.vercel.app`) in production.
-
-**Generate API Keys**:
-1. Log in to your WordPress admin (`https://axessories.store/wp-admin`).
-2. Go to **WooCommerce > Settings > Advanced > REST API**.
-3. Click **Add Key**, select **Read/Write** permissions, and save.
-
-### 4. Run Locally
-
-```bash
-npm run dev
-```
-
-Visit `http://localhost:3000`. The `/products` page should display products fetched from your WooCommerce store.
-
-### 5. Build for Production
-
-```bash
-npm run build
-npm run start
-```
-
-## Deployment
-
-The app is deployed on **Vercel** for seamless hosting and scaling.
-
-### Deploy to Vercel
-
-1. **Install Vercel CLI**:
+1. **Clone the repository**:
 
    ```bash
-   npm install -g vercel
+   git clone https://github.com/sakib-diu/woo-next-store.git
+   cd woo-next-store
+   git checkout performance-optimization
    ```
 
-2. **Log in to Vercel**:
+2. **Install dependencies**:
+
+   Using pnpm (recommended):
 
    ```bash
-   vercel login
+   pnpm install
    ```
 
-3. **Deploy**:
+   Or using npm:
 
    ```bash
-   vercel
+   npm install
    ```
 
-4. **Set Environment Variables**:
-   - In Vercel Dashboard: **Project > Settings > Environment Variables**.
-   - Add:
-     - `NEXT_PUBLIC_WOOCOMMERCE_URL=https://axessories.store`
-     - `WOOCOMMERCE_CONSUMER_KEY=ck_your_key`
-     - `WOOCOMMERCE_CONSUMER_SECRET=cs_your_secret`
-     - `NEXT_PUBLIC_BASE_URL=https://woo-next-store.vercel.app`
-   - Redeploy:
-     ```bash
-     vercel --prod
-     ```
+3. **Set up environment variables**:
 
-5. **Verify Deployment**:
-   - Visit your Vercel URL (e.g., `https://woo-next-store.vercel.app/products`).
-   - Check **Functions** > `/api/woocommerce/products` logs for errors.
+   Create a `.env.local` file in the root directory and add your configuration:
 
+   ```env
+   # WordPress/WooCommerce Configuration
+   WORDPRESS_SITE_URL=https://your-wordpress-site.com
+   WC_CONSUMER_KEY=ck_your_consumer_key_here
+   WC_CONSUMER_SECRET=cs_your_consumer_secret_here
+   
+   # Stripe Configuration
+   STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+   STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+   
+   # Optional: For direct WooCommerce API calls (if different from WordPress URL)
+   WOOCOMMERCE_URL=https://your-woocommerce-site.com
+   WOOCOMMERCE_KEY=ck_your_consumer_key_here
+   WOOCOMMERCE_SECRET=cs_your_consumer_secret_here
+   ```
+
+4. **Start the development server**:
+
+   Using pnpm:
+
+   ```bash
+   pnpm dev
+   ```
+
+   Or using npm:
+
+   ```bash
+   npm run dev
+   ```
+
+5. **Access the store**:
+
+   Open your browser and visit `http://localhost:3000` to see the store in action.
+
+**Platform Notes**: These instructions work across Windows, macOS, and Linux, as Next.js is platform-agnostic.
+
+---
+
+## Configuration
+
+### Environment Variables
+
+The project uses environment variables for configuration. Here are the required variables:
+
+#### WordPress/WooCommerce API
+- `WORDPRESS_SITE_URL`: Your WordPress site URL (e.g., `https://yourstore.com`)
+- `WC_CONSUMER_KEY`: Your WooCommerce API consumer key
+- `WC_CONSUMER_SECRET`: Your WooCommerce API consumer secret
+
+#### Stripe Payment Processing
+- `STRIPE_SECRET_KEY`: Your Stripe secret key
+- `STRIPE_WEBHOOK_SECRET`: Your Stripe webhook secret
+
+### WooCommerce Setup
+
+1. **Enable REST API**: In your WooCommerce admin, go to WooCommerce > Settings > Advanced > REST API
+2. **Create API Keys**: Generate consumer key and secret with read/write permissions
+3. **Configure Permalinks**: Ensure WordPress permalinks are set to "Post name" or custom structure
+
+### Stripe Webhook Configuration
+
+For detailed Stripe webhook setup instructions, see [docs/stripe-webhook-setup.md](docs/stripe-webhook-setup.md).
+
+---
+
+## Usage
+
+Once the server is running, access the store at `http://localhost:3000`. Key features include:
+
+- **Homepage**: Featured products, categories, and promotional banners
+- **Shop**: Browse all products with filtering and sorting options
+- **Product Pages**: Detailed product information, variants, and reviews
+- **Cart**: Add/remove items, apply coupons, and proceed to checkout
+- **Checkout**: Secure payment processing with Stripe
+- **User Account**: Registration, login, order history, and profile management
+- **Dashboard**: Customer dashboard with order tracking and account settings
+
+### Example Routes
+
+- `/` - Homepage
+- `/shop` - Product listing with filters
+- `/product/[id]` - Individual product pages
+- `/cart` - Shopping cart
+- `/checkout` - Checkout process
+- `/dashboard` - Customer dashboard
+- `/login` - User login
+- `/register` - User registration
+
+---
 
 ## Project Structure
 
 ```
 woo-next-store/
-├── actions/
-│   └── products-actions.ts        # Logic for fetching products
-├── app/
-│   ├── api/
-│   │   └── woocommerce/[...path]/ # WooCommerce API proxy route
-│   ├── products/
-│   │   └── page.tsx              # Products page with pagination
-│   └── layout.tsx                # Root layout with CartProvider
-├── components/
-│   ├── ProductsGrid.tsx          # Product grid with pagination
-│   ├── CartProvider.tsx          # Cart context and localStorage
-│   └── ui/                      # shadcn/ui components (e.g., Pagination)
-├── lib/
-│   └── utils.ts                 # Utility functions (e.g., cn for Tailwind)
-├── types/
-│   └── woocommerce.ts           # TypeScript types for WooCommerce
-├── public/
-│   └── logo.png                 # Store logo
-├── screenshots/
-│   ├── products-grid.png        # Product grid screenshot
-│   ├── cart.png                 # Cart screenshot
-│   ├── checkout.png             # Checkout screenshot
-├── .env.local                   # Environment variables
-├── next.config.js               # Next.js configuration
-├── tsconfig.json                # TypeScript configuration
-└── package.json                 # Dependencies and scripts
+├── actions/                    # Server actions for data fetching
+│   ├── auth-actions.ts         # Authentication actions
+│   ├── products-actions.ts     # Product-related actions
+│   ├── order-actions.ts        # Order management actions
+│   └── ...
+├── app/                        # Next.js app router pages
+│   ├── shop/                 # Authentication pages
+│   ├── cart/                   # Shopping cart
+│   ├── checkout/               # Checkout process
+│   ├── dashboard/              # Customer dashboard
+│   ├── product/[id]/           # Dynamic product pages
+│   └── ...
+├── components/                 # Reusable React components
+│   ├── Cart/                   # Cart components
+│   ├── Header/                 # Header components
+│   ├── Product/                # Product-related components
+│   └── ...
+├── context/                    # React context providers
+├── lib/                        # Utility functions and configurations
+├── styles/                     # SCSS stylesheets
+├── types/                      # TypeScript type definitions
+└── public/                     # Static assets
+└── constant/                   # static data for the store/webiste
 ```
-
-## Key Components
-
-- **ProductsGrid**: Responsive grid displaying products with shadcn/ui Pagination.
-- **ProductCard**: Individual product cards with add-to-cart functionality.
-- **CartProvider**: Manages cart state, persisted in localStorage.
-- **getProducts**: Fetches paginated products with error handling and logging.
-- **createCODOrder**: Creates COD orders via WooCommerce API with Zod-validated forms.
-
-## API Integration
-
-The app uses the WooCommerce REST API (`@woocommerce/woocommerce-rest-api`) to:
-- Fetch products (`/wp-json/wc/v3/products`).
-- Create orders (`/wp-json/wc/v3/orders`).
-- Support pagination with `per_page` and `page` parameters, extracting `X-WP-Total` and `X-WP-TotalPages` headers.
-
-API requests are proxied through `/api/woocommerce/[...path]` to secure sensitive credentials.
-
-## Troubleshooting
-
-### Products Not Fetching
-- **Check Logs**: In Vercel, go to **Functions** > `/api/woocommerce/products`:
-  - Look for missing environment variables (e.g., `wooUrl: '[missing]'`).
-  - Check for API errors (e.g., `401 Unauthorized`, `Invalid API Key`).
-- **Verify Environment Variables**: Ensure `NEXT_PUBLIC_WOOCOMMERCE_URL`, `WOOCOMMERCE_CONSUMER_KEY`, `WOOCOMMERCE_CONSUMER_SECRET`, and `NEXT_PUBLIC_BASE_URL` are set in Vercel Dashboard > **Settings** > **Environment Variables**.
-- **Test API Directly**:
-  ```bash
-  curl -X GET "https://axessories.store/wp-json/wc/v3/products?consumer_key=ck_your_key&consumer_secret=cs_your_secret"
-  ```
-- **Redeploy**:
-  ```bash
-  vercel --prod
-  ```
-
-### Pagination Issues
-- Verify `X-WP-Total` and `X-WP-TotalPages` headers in API responses.
-- Check `getProducts` logs for `totalPages` and `productCount` values.
-
-### Cart or Checkout Issues
-- Ensure `CartProvider` wraps the app in `app/layout.tsx`.
-- Verify localStorage (`cartItems`) in DevTools > Application > Storage.
-- Check Zod validation in checkout form for errors.
-
-## Contributing
-
-1. Fork the repository: [sakib-diu/woo-next-store](https://github.com/sakib-diu/woo-next-store).
-2. Create a feature branch (`git checkout -b feature/your-feature`).
-3. Commit changes (`git commit -m "Add your feature"`).
-4. Push to the branch (`git push origin feature/your-feature`).
-5. Open a Pull Request.
-
-## License
-
-This project is licensed under the MIT License.
-
-## Contact
-
-For issues or feature requests, open a GitHub issue on [sakib-diu/woo-next-store](https://github.com/sakib-diu/woo-next-store) or contact **sakibullah.official.com**.
 
 ---
 
-Built with 🚀 by Sakib
+## Development
+
+### Scripts
+
+- `pnpm dev` - Start development server with Turbopack
+- `pnpm build` - Build production application
+- `pnpm start` - Start production server
+- `pnpm lint` - Run ESLint
+
+### Technology Stack
+
+- **Framework**: Next.js 15.3+ with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + Custom SCSS
+- **UI Components**: Custom components with Radix UI primitives
+- **Forms**: React Hook Form with Zod validation
+- **State Management**: React Context + Server Components
+- **Payment**: Stripe
+- **E-commerce**: WooCommerce REST API
+- **Package Manager**: pnpm
+
+### Styling
+
+The project uses a combination of:
+- **Tailwind CSS**: Utility-first CSS framework
+- **Custom SCSS**: Modular stylesheets in the `styles/` directory
+- **CSS Variables**: Custom properties for consistent theming
+
+---
+
+## Contributing
+
+We welcome contributions to WooNex Store! Here's how to get involved:
+
+1. **Set up the development environment**:
+   Follow the [Installation](#installation) steps above.
+
+2. **Coding Standards**:
+   - Use TypeScript for all new code
+   - Follow the existing code style and patterns
+   - Write descriptive commit messages
+   - Ensure ESLint passes: `pnpm lint`
+
+3. **Submitting Pull Requests**:
+   - Fork the repository
+   - Create a feature branch: `git checkout -b feature/your-feature`
+   - Commit your changes: `git commit -m "feat: add your feature"`
+   - Push to the branch: `git push origin feature/your-feature`
+   - Submit a pull request with a detailed description
+
+4. **Development Guidelines**:
+   - Use server components where possible for better performance
+   - Implement proper error handling and loading states
+   - Ensure responsive design across all screen sizes
+   - Test changes thoroughly before submitting
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for the full text.
+
+---
+
+## Contact
+
+For support, questions, or contributions:
+
+- **Issues**: [GitHub Issues](https://github.com/sakib-diu/woo-next-store/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/sakib-diu/woo-next-store/discussions)
+- **Email**: support@woonex.com
+
+---
+
+## Acknowledgments
+
+- Built with [Next.js](https://nextjs.org/)
+- Powered by [WooCommerce](https://woocommerce.com/)
+- Payments by [Stripe](https://stripe.com/)
+- Styled with [Tailwind CSS](https://tailwindcss.com/)
+
+---
+
+Thank you for choosing WooNex Store! We hope it helps you build amazing e-commerce experiences.
