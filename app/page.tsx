@@ -39,11 +39,16 @@ export const metadata: Metadata = {
 export default async function HomeTwo() {
 
   // const { products } = await getAllProductsPaginated();
-  const [{ products }, categories] = await Promise.all([
+  const [
+    productsResult,
+    categoriesResult
+  ] = await Promise.allSettled([
     getAllProductsPaginated(),
     getProductCategories()
-  ])
-  console.log("Fetch Products:", products.length);
+  ]);
+
+  const products = productsResult.status === 'fulfilled' ? productsResult.value.products : [];
+  const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : [];
 
 
 

@@ -86,7 +86,7 @@ export default async function RootLayout({
                             <ModalSearch />
                             <ModalCompare />
                             <ModalWishlist />
-                            <ModalCart />
+                            <ModalCart key={'cart'} />
                           </ModalQuickviewProvider>
                         </ModalSearchProvider>
                       </ModalCompareProvider>

@@ -21,9 +21,7 @@ const Cart = async () => {
                 <MenuOne props="bg-transparent" categories={categories} />
                 <Breadcrumb heading='Shopping cart' subHeading='Shopping cart' />
             </div>
-            <Suspense fallback={<div className='text-9xl heading1 animate-ping'>Loading</div>}>
-                <CartClient />
-            </Suspense>
+            <CartClient />
             <Footer />
         </>
     )
