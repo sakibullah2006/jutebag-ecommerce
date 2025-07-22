@@ -3,11 +3,30 @@ import * as Icon from "@phosphor-icons/react/dist/ssr";
 export default function SearchResultLoading() {
     return (
         <>
+            {/* TopNavOne Loading */}
+            <div className="top-nav md:h-[44px] h-[30px] style-one bg-black">
+                <div className="container mx-auto h-full">
+                    <div className="top-nav-main flex justify-between max-md:justify-center h-full">
+                        <div className="left-content flex items-center gap-5 max-md:hidden">
+                            {/* Language/Currency placeholders */}
+                        </div>
+                        <div className="text-center text-button-uppercase text-white flex items-center">
+                            <div className="h-4 bg-white/20 rounded w-64 animate-pulse"></div>
+                        </div>
+                        <div className="right-content flex items-center gap-5 max-md:hidden">
+                            {[...Array(5)].map((_, index) => (
+                                <div key={index} className="w-4 h-4 bg-white/20 rounded animate-pulse"></div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="header" className="relative w-full">
                 {/* Header Loading Skeleton */}
                 <div className="header-menu style-one absolute top-0 left-0 right-0 w-full md:h-[74px] h-[56px] bg-transparent">
                     <div className="container mx-auto h-full">
-                        <div className="header-main flex justify-between h-full">
+                        <div className="header-main flex items-center justify-between h-full">
                             <div className="menu-mobile-icon lg:hidden flex items-center">
                                 <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
                             </div>
@@ -35,6 +54,24 @@ export default function SearchResultLoading() {
                                     <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
                                     <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
                                     <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Breadcrumb Loading Skeleton */}
+            <div className="breadcrumb-block style-img">
+                <div className="breadcrumb-main bg-linear overflow-hidden">
+                    <div className="container lg:pt-[134px] pt-24 pb-10 relative">
+                        <div className="main-content w-full h-full flex flex-col items-center justify-center relative z-[1]">
+                            <div className="text-content">
+                                <div className="w-48 h-12 bg-white/20 rounded animate-pulse mx-auto"></div>
+                                <div className="flex items-center justify-center gap-1 mt-3">
+                                    <div className="w-12 h-4 bg-white/20 rounded animate-pulse"></div>
+                                    <Icon.CaretRightIcon size={14} className='text-secondary2' />
+                                    <div className="w-12 h-4 bg-white/20 rounded animate-pulse"></div>
                                 </div>
                             </div>
                         </div>

@@ -26,7 +26,7 @@ export default function ProductLoading() {
                 {/* Header Loading Skeleton */}
                 <div className="header-menu style-one absolute top-0 left-0 right-0 w-full md:h-[74px] h-[56px] bg-white">
                     <div className="container mx-auto h-full">
-                        <div className="header-main flex justify-between h-full">
+                        <div className="header-main flex items-center justify-between h-full">
                             <div className="menu-mobile-icon lg:hidden flex items-center">
                                 <div className="w-6 h-6 bg-gray-200 rounded animate-pulse"></div>
                             </div>
