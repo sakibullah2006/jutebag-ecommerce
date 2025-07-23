@@ -6,6 +6,7 @@ import ShopBreadCrumb1 from '@/components/Shop/ShopBreadCrumb';
 import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { getProductCategories } from '../../actions/data-actions';
+import { STOREINFO } from '../../constant/storeConstants';
 
 // Define props type for the component
 type BreadCrumb1Props = {
@@ -57,19 +58,19 @@ export default async function BreadCrumb1({ searchParams }: BreadCrumb1Props) {
 }
 
 export const metadata: Metadata = {
-    title: 'Shop - SakibBaba',
-    description: 'Discover our latest collection of products at SakibBaba. Browse through our wide selection of quality items with great prices.',
-    keywords: ['shop', 'products', 'SakibBaba', 'online store', 'fashion', 'clothing'],
+    title: `Shop - ${STOREINFO.name}`,
+    description: `Discover our latest collection of products at ${STOREINFO.name}. Browse through our wide selection of quality items with great prices.`,
+    keywords: ['shop', 'products', `${STOREINFO.name}`, 'online store', 'fashion', 'clothing'],
     openGraph: {
-        title: 'Shop - SakibBaba',
-        description: 'Discover our latest collection of products at SakibBaba. Browse through our wide selection of quality items with great prices.',
+        title: `Shop - ${STOREINFO.name}`,
+        description: `Discover our latest collection of products at ${STOREINFO.name}. Browse through our wide selection of quality items with great prices.`,
         type: 'website',
         url: '/shop',
-        siteName: 'SakibBaba',
+        siteName: `${STOREINFO.name}`,
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Shop - SakibBaba',
-        description: 'Discover our latest collection of products at SakibBaba. Browse through our wide selection of quality items with great prices.',
+        title: `Shop - ${STOREINFO.name}`,
+        description: `Discover our latest collection of products at ${STOREINFO.name}. Browse through our wide selection of quality items with great prices.`,
     },
 };
