@@ -19,11 +19,12 @@ import ModalWishlist from '@/components/Modal/ModalWishlist';
 import '@/styles/styles.scss';
 import { Instrument_Sans } from 'next/font/google';
 import { Metadata } from 'next';
+import { STOREINFO } from '../constant/storeConstants';
 
 const instrument = Instrument_Sans({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'SakibBaba Store',
+  title: `${STOREINFO.name} - Cutting edge Store`,
   description: 'Your online store built with Next.js and WooCommerce',
 };
 

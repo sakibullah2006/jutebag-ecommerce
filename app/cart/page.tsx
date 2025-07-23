@@ -6,6 +6,7 @@ import Footer from '@/components/Footer/Footer'
 import CartClient from '@/components/Cart/CartClient'
 import { Metadata } from 'next'
 import { getProductCategories } from '../../actions/data-actions'
+import { STOREINFO } from '../../constant/storeConstants'
 
 
 const Cart = async () => {
@@ -28,12 +29,12 @@ const Cart = async () => {
 }
 
 export const metadata: Metadata = {
-    title: 'Cart - SakibBaba Store',
-    description: 'View and manage your shopping cart at SakibBaba Store. Adjust quantities, remove items, and proceed to checkout.',
-    keywords: ['cart', 'shopping cart', 'SakibBaba Store', 'online store', 'checkout'],
+    title: `Cart - ${STOREINFO.name}`,
+    description: `View and manage your shopping cart at ${STOREINFO.name}. Adjust quantities, remove items, and proceed to checkout.`,
+    keywords: ['cart', 'shopping cart', `${STOREINFO.name}`, 'online store', 'checkout'],
     openGraph: {
-        title: 'Cart - SakibBaba Store',
-        description: 'View and manage your shopping cart at SakibBaba Store. Adjust quantities, remove items, and proceed to checkout.',
+        title: `Cart - ${STOREINFO.name}`,
+        description: `View and manage your shopping cart at ${STOREINFO.name}. Adjust quantities, remove items, and proceed to checkout.`,
         type: 'website',
         url: '/cart',
     },

@@ -32,7 +32,7 @@ export async function generateMetadata(
     }
 
     return {
-        title: `Order #${order.id} Confirmed - Woonex`,
+        title: `Order #${order.id} Confirmed - Vertex`,
         description: `Thank you for your order. Your order #${order.id} has been successfully placed.`,
         robots: { index: false, follow: false },
     };

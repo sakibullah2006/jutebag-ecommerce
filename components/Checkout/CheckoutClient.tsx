@@ -42,6 +42,7 @@ const checkoutSchema = z.object({
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
 import { Address } from '@/types/customer-type';
+import { STOREINFO } from '../../constant/storeConstants';
 
 interface CheckoutClientProps {
     countriesData: CountryDataType[];
@@ -483,7 +484,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                     <div className="container mx-auto h-full">
                         <div className="header-main flex items-center justify-between h-full">
                             <Link href={'/'} className='flex items-center'>
-                                <div className="heading4">WooNex</div>
+                                <div className="heading4">{STOREINFO.name}</div>
                             </Link>
                             <button className="max-md:hidden cart-icon flex items-center relative h-fit cursor-pointer" onClick={openModalCart}>
                                 <Icon.HandbagIcon size={24} color='black' />

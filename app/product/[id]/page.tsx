@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     }
 
     return {
-        title: product.name + " | WooNex Store",
+        title: product.name + " | Vertex Store",
         description: product.short_description || "View details about this product.",
         openGraph: {
             title: product.name,

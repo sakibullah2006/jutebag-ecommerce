@@ -2,9 +2,9 @@
 ![GitHub issues](https://img.shields.io/github/issues/sakib-diu/woo-next-store)
 ![GitHub stars](https://img.shields.io/github/stars/sakib-diu/woo-next-store)
 
-# WooNex Store
+# Vertex Store
 
-WooNex Store is a modern, performance-optimized e-commerce store built with [Next.js](https://nextjs.org/) and integrated with [WooCommerce](https://woocommerce.com/). It provides a fast, scalable, and customizable solution for developers and businesses aiming to create high-performance online stores with modern UI/UX design.
+Vertex Store is a modern, performance-optimized e-commerce store built with [Next.js](https://nextjs.org/) and integrated with [WooCommerce](https://woocommerce.com/). It provides a fast, scalable, and customizable solution for developers and businesses aiming to create high-performance online stores with modern UI/UX design.
 
 ---
 
@@ -229,7 +229,7 @@ The project uses a combination of:
 
 ## Contributing
 
-We welcome contributions to WooNex Store! Here's how to get involved:
+We welcome contributions to Vertex Store! Here's how to get involved:
 
 1. **Set up the development environment**:
    Follow the [Installation](#installation) steps above.
@@ -267,7 +267,7 @@ For support, questions, or contributions:
 
 - **Issues**: [GitHub Issues](https://github.com/sakib-diu/woo-next-store/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/sakib-diu/woo-next-store/discussions)
-- **Email**: support@woonex.com
+- **Email**: support@Vertex.com
 
 ---
 
@@ -280,4 +280,4 @@ For support, questions, or contributions:
 
 ---
 
-Thank you for choosing WooNex Store! We hope it helps you build amazing e-commerce experiences.
+Thank you for choosing Vertex Store! We hope it helps you build amazing e-commerce experiences.

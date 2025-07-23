@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
-  "name": "woonex-store",
+  "name": "vertex-store",
   "version": "0.1.0",
   "private": true,
   "scripts": {

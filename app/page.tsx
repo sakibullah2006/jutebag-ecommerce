@@ -14,22 +14,23 @@ import SliderTwo from '@/components/Slider/SliderTwo'
 import { Metadata } from 'next'
 import React from 'react'
 import MenuOne from '../components/Header/Menu/MenuOne'
+import { STOREINFO } from '../constant/storeConstants'
 
 
 export const metadata: Metadata = {
-  title: 'Home | SakibBaba Store',
-  description: 'Discover the latest products and collections at SakibBaba Store. Shop now for exclusive deals and free shipping on orders over $50.',
+  title: `Home | ${STOREINFO.name} Store`,
+  description: `Discover the latest products and collections at ${STOREINFO.name} Store. Shop now for exclusive deals and free shipping on orders over $50.`,
   keywords: 'online store, shopping, products, collections, deals, free shipping',
   openGraph: {
-    title: 'Home | SakibBaba Store',
-    description: 'Discover the latest products and collections at SakibBaba Store. Shop now for exclusive deals and free shipping on orders over $50.',
+    title: `Home | ${STOREINFO.name} Store`,
+    description: `Discover the latest products and collections at ${STOREINFO.name} Store. Shop now for exclusive deals and free shipping on orders over $50.`,
     type: 'website',
     url: '/',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Home | SakibBaba Store',
-    description: 'Discover the latest products and collections at SakibBaba Store. Shop now for exclusive deals and free shipping on orders over $50.',
+    title: `Home | ${STOREINFO.name} Store`,
+    description: `Discover the latest products and collections at ${STOREINFO.name} Store. Shop now for exclusive deals and free shipping on orders over $50.`,
   },
 }
 
