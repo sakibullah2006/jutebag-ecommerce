@@ -29,7 +29,7 @@ Vertex Store is a modern, performance-optimized e-commerce store built with [Nex
 - 💳 **Stripe Payments**: Complete payment processing with Stripe integration
 - 🎨 **Modern UI**: Beautiful, responsive design with Tailwind CSS and custom SCSS
 - 📱 **Mobile-First**: Fully responsive design optimized for all devices
-- 🔐 **Authentication**: User registration, login, and account management
+- 🔐 **Authentication**: User registration, login, and account management, OTP-Based Password Reset.
 - 🛍️ **Shopping Features**: Cart, wishlist, compare products, and checkout
 - 📊 **Dashboard**: Customer dashboard with order history and account management
 - 🔍 **Search & Filter**: Advanced product search and filtering capabilities

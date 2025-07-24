@@ -2,12 +2,13 @@ import React from 'react'
 
 export default function DashboardLoading() {
     return (
-        <>
+        <div role="status" aria-busy="true" aria-label="Loading dashboard content">
+            <span className="sr-only">Loading dashboard, please wait...</span>
             {/* Top Nav Loading */}
-            <div className="w-full h-[44px] bg-gray-300 animate-pulse"></div>
+            <div className="w-full h-[44px] bg-gray-300 animate-pulse" aria-hidden="true"></div>
 
             {/* Header Section Loading */}
-            <div className="relative w-full">
+            <div className="relative w-full" aria-hidden="true">
                 {/* Menu Loading */}
                 <div className="h-[74px] bg-gray-200 animate-pulse">
                     <div className="container mx-auto h-full">
@@ -34,7 +35,7 @@ export default function DashboardLoading() {
                 </div>
 
                 {/* Breadcrumb Loading */}
-                <div className="bg-gradient-to-r from-gray-200 to-gray-300 animate-pulse">
+                <div className="bg-gradient-to-r from-gray-200 to-gray-300 animate-pulse" aria-hidden="true">
                     <div className="container lg:pt-[134px] pt-24 pb-10">
                         <div className="flex flex-col items-center justify-center">
                             <div className="h-10 w-48 bg-gray-400 rounded animate-pulse mb-3"></div>
@@ -49,7 +50,7 @@ export default function DashboardLoading() {
             </div>
 
             {/* Dashboard Content Loading */}
-            <div className="profile-block md:py-20 py-10">
+            <div className="profile-block md:py-20 py-10" aria-hidden="true">
                 <div className="container">
                     <div className="content-main flex gap-y-8 max-md:flex-col w-full">
                         {/* Left Sidebar Loading */}
@@ -150,7 +151,7 @@ export default function DashboardLoading() {
             </div>
 
             {/* Footer Loading */}
-            <div className="footer bg-surface animate-pulse">
+            <div className="footer bg-surface animate-pulse" aria-hidden="true">
                 <div className="container py-[60px]">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         {/* Company Info */}
@@ -187,6 +188,6 @@ export default function DashboardLoading() {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 }

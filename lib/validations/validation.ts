@@ -1,3 +1,4 @@
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { z } from "zod";
 
 // Define the schema for delivery information
@@ -14,16 +15,7 @@ export const deliverySchema = z.object({
     .string()
     .email("Invalid email address")
     .max(100, "Email cannot exceed 100 characters"),
-  phone: z
-    .string()
-    .regex(
-      /^[0-9+\-\s]*$/,
-      "Phone number can only contain digits, plus sign, spaces, or hyphens"
-    )
-    .min(7, "Phone number must be at least 7 digits")
-    .max(15, "Phone number cannot exceed 15 digits")
-    .optional()
-    .or(z.literal("")),
+  phone: z.string().refine(isValidPhoneNumber, { message: "A valid phone number is required." }),
 });
 
 // Define the schema for the entire form
@@ -60,8 +52,8 @@ export const addressSchema = z.object({
   last_name: z
     .string()
     .max(50, 'Last name cannot exceed 50 characters')
-    .regex(/^[A-Za-z\s\-']*$/, 'Last name can only contain letters, spaces, hyphens, or apostrophes')
-    .optional(),
+    .regex(/^[A-Za-z\s\-']*$/, 'Last name can only contain letters, spaces, hyphens, or apostrophes'),
+
   address_1: z
     .string()
     .min(1, 'Address is required')
@@ -94,13 +86,7 @@ export const addressSchema = z.object({
     .max(15, 'Phone number cannot exceed 15 digits')
     .optional()
     .or(z.literal('')),
-}).superRefine((data, ctx) => {
-  // Validate state if country has states
-  if (data.country && !data.state) {
-    // This requires country/state data to check if states are available
-    // Handled in component logic
-  }
-});
+})
 
 export type AddressFormValues = z.infer<typeof addressSchema>;
 

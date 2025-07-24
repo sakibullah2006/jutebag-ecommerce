@@ -84,7 +84,7 @@ export default function ProductLoading() {
                         <div className="list-img md:w-1/2 md:pr-[45px] w-full">
                             {/* Main Product Image */}
                             <div className="bg-img w-full aspect-[3/4] bg-gray-200 rounded-lg animate-pulse relative overflow-hidden mb-4">
-                                <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 -translate-x-full animate-[shimmer_1.5s_infinite]"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 -translate-x-full"></div>
                             </div>
 
                             {/* Thumbnail Images */}

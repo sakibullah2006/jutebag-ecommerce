@@ -255,13 +255,9 @@ export default function OtpPasswordReset() {
                                 <div className="heading4 mb-7">Set New Password</div>
                                 <form
                                     onSubmit={handleResetSubmit(async (data) => {
-                                        console.log('Form submitted with data:', data);
-                                        console.log('Email:', email, 'OTP:', otp);
                                         startResetTransition(async () => {
                                             try {
-                                                console.log('Calling resetPassword...');
                                                 const result = await resetPassword(email, otp, data.password);
-                                                console.log('Reset password result:', result);
                                                 if (result.success) {
                                                     setIsResetComplete(true);
                                                     setResetError(null);
@@ -272,7 +268,6 @@ export default function OtpPasswordReset() {
                                                     setResetError(errorMessage);
                                                 }
                                             } catch (error) {
-                                                console.error('Password reset error:', error);
                                                 setResetError('Password reset failed');
                                             }
                                         });
@@ -311,7 +306,6 @@ export default function OtpPasswordReset() {
                                         <button
                                             type="submit"
                                             disabled={isResetPending}
-                                            onClick={() => console.log('Reset password button clicked')}
                                             className={`button-main w-full disabled:opacity-100 disabled:pointer-events-none ${isResetPending ?
                                                 "bg-surface text-secondary2 border cursor-not-allowed disabled hover:normal-case"
                                                 : "bg-black text-white hover:bg-green-300"

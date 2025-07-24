@@ -5,7 +5,7 @@ import { useAppData } from '@/context/AppDataContext';
 import { useCart } from '@/context/CartContext';
 import { useModalCartContext } from '@/context/ModalCartContext';
 import { calculatePrice, cn, decodeHtmlEntities } from '@/lib/utils';
-import { CountryDataType, CouponDataType, ShippingMethodDataType, ShippingZoneDataType, StateDataType, TaxDataType } from '@/types/data-type';
+import { CountryDataType, ShippingMethodDataType, ShippingZoneDataType, StateDataType, TaxDataType } from '@/types/data-type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
@@ -550,7 +550,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                                                 <label htmlFor="emailOffers" className="pl-2 cursor-pointer">Email me with news and offers</label>
                                             </div>
 
-                                            <input type="tel" className={`border-line mt-5 px-4 py-3 w-full rounded-lg ${errors.phone ? 'border-red' : ''}`} placeholder="Phone" {...register("phone")} />
+                                            <input type="tel" className={`border-line mt-5 px-4 py-3 w-full rounded-lg ${errors.phone ? 'border-red' : ''}`} placeholder="+880 169 025 XXXX" {...register("phone")} />
                                             {errors.phone && <p className="text-red text-sm mt-1">{errors.phone.message}</p>}
                                         </div>
 

@@ -56,9 +56,6 @@ importers:
       html-react-parser:
         specifier: ^5.2.5
         version: 5.2.6(@types/react@19.1.8)(react@18.3.1)
-      i:
-        specifier: ^0.3.7
-        version: 0.3.7
       input-otp:
         specifier: ^1.4.2
         version: 1.4.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -83,9 +80,6 @@ importers:
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      npm:
-        specifier: ^11.4.2
-        version: 11.4.2
       nprogress:
         specifier: ^0.2.0
         version: 0.2.0
