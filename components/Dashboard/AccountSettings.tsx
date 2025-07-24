@@ -6,8 +6,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Customer } from '@/types/customer-type'
 import { useAuth } from '@/context/AuthContext'
 import { updateCustomerPersonalInfo } from '@/actions/customer-action'
-import { userResetPassword } from '@/actions/auth-actions'
-import { personalInfoSchema, type PersonalInfoFormValues } from '@/lib/validation'
+import { personalInfoSchema, type PersonalInfoFormValues } from '@/lib/validations/validation'
+import OtpPasswordReset from '../ForgotPassword/OtpPasswordReset'
+import * as Icon from "@phosphor-icons/react/dist/ssr"
+
 
 interface AccountSettingsProps {
     customer: Customer
@@ -89,24 +91,7 @@ const AccountSettings = ({ customer, customerId, onCustomerUpdate }: AccountSett
         })
     }
 
-    const handleResetPassword = async () => {
-        setIsLoading(true)
-        try {
-            const result = await userResetPassword(customerData.email)
 
-            if (result.success) {
-                setShowResetModal(false)
-                alert('Password reset email has been sent to your email address.')
-            } else {
-                alert(result.message || 'Failed to send reset email')
-            }
-        } catch (error) {
-            console.error('Error sending reset email:', error)
-            alert('An error occurred while sending the reset email')
-        } finally {
-            setIsLoading(false)
-        }
-    }
 
     const handleLogout = async () => {
         try {
@@ -305,45 +290,16 @@ const AccountSettings = ({ customer, customerId, onCustomerUpdate }: AccountSett
             {/* Password Reset Confirmation Modal */}
             {showResetModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-medium text-gray-900">Reset Password</h3>
-                            <button
-                                onClick={() => setShowResetModal(false)}
-                                className="text-gray-400 hover:text-gray-600"
-                                disabled={isLoading}
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
 
-                        <div className="mb-6">
-                            <p className="text-sm text-gray-600 mb-4">
-                                A password reset link will be sent to:
-                            </p>
-                            <p className="text-sm font-medium text-gray-900 bg-gray-50 p-3 rounded-md">
-                                {customerData.email}
-                            </p>
-                        </div>
-
-                        <div className="flex space-x-3">
-                            <button
-                                onClick={handleResetPassword}
-                                disabled={isLoading}
-                                className="flex-1 bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                            >
-                                {isLoading ? 'Sending...' : 'Send Reset Link'}
-                            </button>
-                            <button
+                    <div className='bg-white rounded-lg p-6 w-2/3'>
+                        <div className='w-full align-bottom flex justify-end'>
+                            <Icon.XIcon
                                 onClick={() => setShowResetModal(false)}
-                                disabled={isLoading}
-                                className="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                            >
-                                Cancel
-                            </button>
+                                className='cursor-pointer text-gray-500 hover:text-gray-700'
+                                size={20}
+                            />
                         </div>
+                        <OtpPasswordReset />
                     </div>
                 </div>
             )}

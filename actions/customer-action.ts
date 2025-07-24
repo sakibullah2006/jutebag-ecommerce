@@ -1,6 +1,6 @@
 "use server"
 
-import { AddressFormValues, PersonalInfoFormValues, personalInfoSchema } from "@/lib/validation";
+import { AddressFormValues, PersonalInfoFormValues, personalInfoSchema } from "@/lib/validations/validation";
 import { OrderType } from "@/types/order-type";
 import { Customer, DownloadData } from "@/types/customer-type";
 

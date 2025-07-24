@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Customer } from '@/types/customer-type'
 import { updateCustomerAddress } from '@/actions/customer-action'
-import { addressSchema, type AddressFormValues } from '@/lib/validation'
+import { addressSchema, type AddressFormValues } from '@/lib/validations/validation'
 
 interface AddressBookProps {
     customer: Customer

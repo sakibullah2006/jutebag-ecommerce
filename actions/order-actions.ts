@@ -1,6 +1,6 @@
 "use server"
 
-import { OrderData, orderDataSchema } from "@/lib/validation";
+import { OrderData, orderDataSchema } from "@/lib/validations/validation";
 import { LineItem, OrderType } from "@/types/order-type";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import Cookies from "js-cookie";

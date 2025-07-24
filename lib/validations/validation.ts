@@ -34,7 +34,7 @@ export const checkoutFormSchema = z.object({
     message: "You must agree to the terms and conditions",
   }),
   couponCode: z.string().optional(),
-  
+
 });
 
 export type FormValues = z.infer<typeof checkoutFormSchema>;
