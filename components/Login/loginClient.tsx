@@ -1,9 +1,5 @@
 'use client'
 
-import Breadcrumb from '@/components/Breadcrumb/Breadcrumb'
-import Footer from '@/components/Footer/Footer'
-import MenuOne from '@/components/Header/Menu/MenuOne'
-import TopNavOne from '@/components/Header/TopNav/TopNavOne'
 import { useAuth } from '@/context/AuthContext'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as Icon from "@phosphor-icons/react/dist/ssr"
@@ -68,7 +64,6 @@ const Login = () => {
 
     return (
         <>
-           
             <div className="login-block md:py-20 py-10">
                 <div className="container">
                     <div className="content-main flex gap-y-8 max-md:flex-col">

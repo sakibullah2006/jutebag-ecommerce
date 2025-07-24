@@ -13,7 +13,6 @@ import {
 
 // The data structure provided by the context
 interface AppData {
-    loading: boolean;
     countries: CountryDataType[];
     categories: CategorieType[];
     attributes: AttributesWithTermsType[];
@@ -51,7 +50,6 @@ export const AppDataProvider = ({
 
 
     const data: AppData = {
-        loading: false,
         countries: countries || [],
         categories: categories || [],
         attributes: attributes || [],

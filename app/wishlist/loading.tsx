@@ -3,7 +3,7 @@ import * as Icon from "@phosphor-icons/react/dist/ssr";
 
 export default function WishlistLoading() {
     return (
-        <>
+        <div role="status" aria-label="Loading wishlist content">
             {/* TopNavOne Loading */}
             <div className="top-nav md:h-[44px] h-[30px] style-one bg-black">
                 <div className="container mx-auto h-full">
@@ -129,7 +129,7 @@ export default function WishlistLoading() {
                                 <div key={index} className="product-item animate-pulse">
                                     {/* Product Image */}
                                     <div className="product-main bg-gray-200 rounded-lg aspect-[3/4] relative overflow-hidden mb-4">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 -translate-x-full animate-[shimmer_1.5s_infinite]"></div>
+                                        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 -translate-x-full "></div>
 
                                         {/* Quick Action Buttons */}
                                         <div className="absolute top-3 right-3 space-y-2">
@@ -267,6 +267,6 @@ export default function WishlistLoading() {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 }

@@ -1,9 +1,17 @@
 "use client";
-import { AuthResponse, User, userLogin, userLogout, userResetPassword, userSignup } from "@/actions/auth-actions";
+import {
+    AuthResponse,
+    User,
+    userLogin,
+    userLogout,
+    userSignup,
+    requestPasswordOtp,
+    verifyPasswordOtp,
+    resetPasswordWithOtp,
+    PasswordResetResponse
+} from "@/actions/auth-actions";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
 import React, { ReactNode, createContext, useContext, useEffect, useState } from "react";
-
 
 interface AuthContextType {
     user: User | null;
@@ -12,7 +20,9 @@ interface AuthContextType {
     login: (username: string, password: string) => Promise<AuthResponse>;
     signup: (username: string, email: string, password: string) => Promise<AuthResponse>;
     logout: () => Promise<AuthResponse>;
-    resetPassword: (email: string) => Promise<AuthResponse>;
+    requestOtp: (email: string) => Promise<PasswordResetResponse>;
+    verifyOtp: (email: string, otp: string) => Promise<PasswordResetResponse>;
+    resetPassword: (email: string, otp: string, password: string) => Promise<PasswordResetResponse>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,7 +31,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
-    // const router = useRouter();
 
     useEffect(() => {
         const token = Cookies.get("jwt_token");
@@ -71,13 +80,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return data;
     };
 
-    const resetPassword = async (email: string): Promise<AuthResponse> => {
-        const data = await userResetPassword(email);
-        return data;
+    // --- Implementation of new password reset functions ---
+
+    const requestOtp = async (email: string): Promise<PasswordResetResponse> => {
+        const formData = new FormData();
+        formData.append('email', email);
+        // The first argument to the action is `prevState`, which we can pass as null here.
+        return requestPasswordOtp(null, formData);
+    };
+
+    const verifyOtp = async (email: string, otp: string): Promise<PasswordResetResponse> => {
+        const formData = new FormData();
+        formData.append('email', email);
+        formData.append('otp', otp);
+        return verifyPasswordOtp(null, formData);
+    };
+
+    const resetPassword = async (email: string, otp: string, password: string): Promise<PasswordResetResponse> => {
+        const formData = new FormData();
+        formData.append('email', email);
+        formData.append('otp', otp);
+        formData.append('password', password);
+        return resetPasswordWithOtp(null, formData);
     };
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated, loading, login, signup, logout, resetPassword }}>
+        <AuthContext.Provider value={{
+            user,
+            isAuthenticated,
+            loading,
+            login,
+            signup,
+            logout,
+            // Expose new functions through the context
+            requestOtp,
+            verifyOtp,
+            resetPassword
+        }}>
             {children}
         </AuthContext.Provider>
     );

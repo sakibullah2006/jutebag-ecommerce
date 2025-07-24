@@ -64,7 +64,7 @@ export default function RegisterLoading() {
                 {/* Breadcrumb Loading Skeleton */}
                 <div className="breadcrumb-block style-shared">
                     <div className="breadcrumb-main bg-linear overflow-hidden">
-                        <div className="container lg:pt-[134px] pt-24 pb-10 relative">
+                        {/* <div className="container lg:pt-[134px] pt-24 pb-10 relative">
                             <div className="main-content w-full h-full flex flex-col items-center justify-center relative z-[1]">
                                 <div className="text-content">
                                     <div className="w-32 h-12 bg-white/20 rounded animate-pulse mx-auto"></div>
@@ -75,28 +75,11 @@ export default function RegisterLoading() {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
 
-            {/* Breadcrumb Loading */}
-            <div className="breadcrumb-block style-shared">
-                <div className="breadcrumb-main bg-linear overflow-hidden">
-                    {/* <div className="container lg:pt-[134px] pt-24 pb-10 relative">
-                        <div className="main-content w-full h-full flex flex-col items-center justify-center relative z-[1]">
-                            <div className="text-content">
-                                <div className="h-12 bg-white/20 rounded w-64 mx-auto animate-pulse"></div>
-                                <div className="flex items-center justify-center gap-1 mt-3">
-                                    <div className="h-4 bg-white/20 rounded w-16 animate-pulse"></div>
-                                    <div className="w-4 h-4 bg-white/20 rounded animate-pulse"></div>
-                                    <div className="h-4 bg-white/20 rounded w-20 animate-pulse"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div> */}
-                </div>
-            </div>
 
             {/* Register Form Loading */}
             <div className="register-block md:py-20 py-10">

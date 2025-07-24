@@ -2,7 +2,7 @@ import React from 'react'
 
 export default function CheckoutLoading() {
     return (
-        <>
+        <div role="status" aria-label="Loading checkout content">
             {/* Header Section Loading */}
             <div id="header" className="relative w-full">
                 <div className="header-menu style-one fixed top-0 left-0 right-0 w-full md:h-[74px] h-[56px] bg-gray-200 animate-pulse">
@@ -242,6 +242,6 @@ export default function CheckoutLoading() {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 }

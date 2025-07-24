@@ -9,6 +9,7 @@ import Default from '@/components/Product/Detail/Default';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getProductCategories } from '../../../actions/data-actions';
+import { STOREINFO } from '../../../constant/storeConstants';
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
     const { id } = await params;
@@ -22,7 +23,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     }
 
     return {
-        title: product.name + " | Vertex Store",
+        title: product.name + " | " + STOREINFO.name,
+
         description: product.short_description || "View details about this product.",
         openGraph: {
             title: product.name,

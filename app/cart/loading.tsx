@@ -2,7 +2,7 @@ import * as Icon from "@phosphor-icons/react/dist/ssr";
 
 export default function CartLoading() {
     return (
-        <>
+        <div role="status" aria-label="Loading cart content">
             {/* TopNavOne Loading */}
             <div className="top-nav md:h-[44px] h-[30px] style-one bg-black">
                 <div className="container mx-auto h-full">
@@ -112,7 +112,7 @@ export default function CartLoading() {
                                                 {/* Product Image & Info */}
                                                 <div className="col-span-6 flex items-center gap-4">
                                                     <div className="bg-img w-[100px] aspect-square bg-gray-200 rounded animate-pulse relative overflow-hidden">
-                                                        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 -translate-x-full animate-[shimmer_1.5s_infinite]"></div>
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 -translate-x-full"></div>
                                                     </div>
                                                     <div className="product-infor">
                                                         <div className="w-32 h-5 bg-gray-200 rounded animate-pulse mb-2"></div>
@@ -277,6 +277,6 @@ export default function CartLoading() {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 }

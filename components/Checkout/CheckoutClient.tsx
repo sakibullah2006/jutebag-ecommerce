@@ -1,10 +1,11 @@
 'use client'
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { validateCoupon } from '@/actions/coupon';
 import { useAppData } from '@/context/AppDataContext';
 import { useCart } from '@/context/CartContext';
 import { useModalCartContext } from '@/context/ModalCartContext';
 import { calculatePrice, cn, decodeHtmlEntities } from '@/lib/utils';
-import { CountryDataType, CouponDataType, ShippingMethodDataType, ShippingZoneDataType, StateDataType, TaxDataType } from '@/types/data-type';
+import { CountryDataType, ShippingMethodDataType, ShippingZoneDataType, StateDataType, TaxDataType } from '@/types/data-type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import Image from "next/image";
@@ -15,7 +16,7 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 import { createOrder } from '../../actions/order-actions';
 import { createPaymentIntent } from '../../actions/stripePaymentIntentActions';
-import { OrderData } from '../../lib/validation';
+import { OrderData } from '../../lib/validations/validation';
 import { LineItem } from '../../types/order-type';
 import { PATH } from '../../constant/pathConstants';
 import StripeCheckout from './StripeCheckoutForm';
@@ -25,7 +26,7 @@ import StripeCheckout from './StripeCheckoutForm';
 const checkoutSchema = z.object({
     email: z.string().email({ message: "A valid email is required." }),
     emailOffers: z.boolean().optional(),
-    phone: z.string().min(7, { message: "A valid phone number is required." }).max(15, { message: "Phone number is too long." }),
+    phone: z.string().refine(isValidPhoneNumber, { message: "A valid phone number is required." }),
     country: z.string().min(1, { message: "Country is required." }),
     firstName: z.string().min(1, { message: "Last name is required." }),
     lastName: z.string().min(1, { message: "Last name is required." }),
@@ -549,7 +550,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                                                 <label htmlFor="emailOffers" className="pl-2 cursor-pointer">Email me with news and offers</label>
                                             </div>
 
-                                            <input type="tel" className={`border-line mt-5 px-4 py-3 w-full rounded-lg ${errors.phone ? 'border-red' : ''}`} placeholder="Phone" {...register("phone")} />
+                                            <input type="tel" className={`border-line mt-5 px-4 py-3 w-full rounded-lg ${errors.phone ? 'border-red' : ''}`} placeholder="+880 169 025 XXXX" {...register("phone")} />
                                             {errors.phone && <p className="text-red text-sm mt-1">{errors.phone.message}</p>}
                                         </div>
 
