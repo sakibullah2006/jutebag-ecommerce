@@ -2,10 +2,9 @@
 
 import { AttributesWithTermsType, AttributeTermType, CategorieType, CountryDataType, CurrencyType, ProductAttributeType, ProductBrandType, ShippingLocationDataType, ShippingMethodDataType, ShippingZoneDataType, StoreConfig, TagType, TaxDataType, } from "@/types/data-type";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
-import { error } from "console";
 
 const WooCommerce = new WooCommerceRestApi({
-  url: process.env.WORDPRESS_SITE_URL || "https://axessories.store/headless",
+  url: process.env.WORDPRESS_SITE_URL as string,
   consumerKey: process.env.WC_CONSUMER_KEY! as string,
   consumerSecret: process.env.WC_CONSUMER_SECRET! as string,
   version: "wc/v3",

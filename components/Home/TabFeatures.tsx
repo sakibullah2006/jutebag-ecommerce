@@ -26,22 +26,23 @@ const TabFeatures: React.FC<Props> = ({ data, start, limit }) => {
             return data.filter(
                 (product) =>
                     product.on_sale
-                    && product.categories.some((category) => category.name.toLocaleLowerCase() === "fashion")
             )
         }
 
         if (activeTab === 'new arrivals') {
             return data
-                .filter((product) => product.categories.some((category) => category.name.toLocaleLowerCase() === "fashion"))
                 .slice()
-                .sort((a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime())
+                .filter(
+                    (product) => product.tags.some((tag) => tag.slug === 'promotion_new-arrival')
+                )
         }
 
         if (activeTab === 'best sellers') {
             return data
-                .filter((product) => product.categories.some((category) => category.name.toLocaleLowerCase() === "fashion"))
                 .slice()
-                .sort((a, b) => b.total_sales - a.total_sales)
+                .filter(
+                    (product) => product.tags.some((tag) => tag.slug === 'promotion_new-arrival')
+                )
         }
 
         return data

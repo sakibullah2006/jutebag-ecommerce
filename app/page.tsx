@@ -15,6 +15,7 @@ import { Metadata } from 'next'
 import React from 'react'
 import MenuOne from '../components/Header/Menu/MenuOne'
 import { STOREINFO } from '../constant/storeConstants'
+import { getDeals } from '../actions/deal-actions'
 
 
 export const metadata: Metadata = {
@@ -42,14 +43,17 @@ export default async function HomeTwo() {
   // const { products } = await getAllProductsPaginated();
   const [
     productsResult,
-    categoriesResult
+    categoriesResult,
+    dealsResult
   ] = await Promise.allSettled([
     getAllProductsPaginated(),
-    getProductCategories()
+    getProductCategories(),
+    getDeals()
   ]);
 
   const products = productsResult.status === 'fulfilled' ? productsResult.value.products : [];
   const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : [];
+  const deals = dealsResult.status === 'fulfilled' ? dealsResult.value : [];
 
 
 
@@ -58,11 +62,15 @@ export default async function HomeTwo() {
       <TopNavOne props="style-one bg-black" slogan='Limited Offer: Free shipping on orders over $50' />
       <div id="header" className='relative w-full'>
         <MenuOne props={'bg-transparent'} categories={categories} />
-        <SliderTwo />
+        <SliderTwo deals={deals} />
       </div>
-      <Collection props="pt-5" />
+      <div className='max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12'>
+        <Collection props="pt-5" />
+      </div>
       <WhatNewOne data={products} start={0} limit={8} />
-      <Banner />
+      <div className='max-w-[1200px] mx-auto   '>
+        <Banner />
+      </div>
       <TabFeatures data={products} start={0} limit={8} />
       <Benefit props="md:mt-20 mt-10 py-10 px-2.5 bg-surface rounded-3xl" />
       {/* <Instagram /> */}

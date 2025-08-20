@@ -7,14 +7,32 @@ import { PATH } from "../constant/pathConstants";
 import { getProductCategories } from "../actions/data-actions";
 
 export default async function NotFound() {
-    const categories = await getProductCategories()
+    // const categories = await getProductCategories()
+
+    // For client-side navigation
+    // Use a client component for the button
+    // (Next.js 13+ allows client components in app/)
+    // We'll define a simple GoBackButton below
+
+    function GoBackButton() {
+        if (typeof window === 'undefined') return null;
+        return (
+            <button
+                className="button-main mt-4"
+                type="button"
+                onClick={() => window.history.back()}
+            >
+                Return Back
+            </button>
+        );
+    }
 
 
     return (
         <>
             <TopNavOne props="style-one bg-black" slogan="Limited Offer: Free shipping on orders over $50" />
             <div id="header" className="relative w-full">
-                <MenuOne props={"bg-transparent"} categories={categories} />
+                {/* <MenuOne props={"bg-transparent"} categories={categories} /> */}
             </div>
             <div className="not-found-block text-center">
                 <div className="container">
@@ -27,6 +45,7 @@ export default async function NotFound() {
                         <Link href={PATH.HOME} className="button-main mt-8" prefetch>
                             Go to Homepage
                         </Link>
+                        <GoBackButton />
                     </div>
                 </div>
             </div>

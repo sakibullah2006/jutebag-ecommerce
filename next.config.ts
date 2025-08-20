@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    domains: ['ecogoodsdirect.com'],
     remotePatterns: [
       {
         protocol: "https",

@@ -8,7 +8,6 @@ import { useCart } from '@/context/CartContext';
 import { useModalCartContext } from '@/context/ModalCartContext';
 import { useModalSearchContext } from '@/context/ModalSearchContext';
 import { useModalWishlistContext } from '@/context/ModalWishlistContext';
-import productData from '@/data/Product.json';
 import useLoginPopup from '@/store/useLoginPopup';
 import useMenuMobile from '@/store/useMenuMobile';
 import * as Icon from "@phosphor-icons/react/dist/ssr";

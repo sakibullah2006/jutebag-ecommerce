@@ -17,30 +17,17 @@ export function generateMenuItems(categories: CategorieType[]): MenuItem[] {
         return [];
     }
 
-    const finalMenu: MenuItem[] = [];
-    const fashionCategory = categories.find(
-        (cat) =>
-            (cat.slug.toLowerCase().includes("first_order") &&
-                cat.slug.toLowerCase().includes("fashion")) ||
-            cat.name.toLowerCase() === "fashion"
-    );
-
-    if (!fashionCategory) {
-        console.error("The root 'Fashion' category was not found.");
-        return [];
-    }
-
     // Filter out "Uncategorized" before processing
     const filteredCategories = categories.filter(
         (cat) => cat.slug !== 'uncategorized'
     );
 
     const categoryMap = new Map<number, CategoryNode>();
-
     filteredCategories.forEach((cat) => {
         categoryMap.set(cat.id, { ...cat, children: [] });
     });
 
+    // Attach children to their parents
     categoryMap.forEach((node) => {
         if (node.parent !== 0) {
             const parentNode = categoryMap.get(node.parent);
@@ -50,18 +37,14 @@ export function generateMenuItems(categories: CategorieType[]): MenuItem[] {
         }
     });
 
-    /**
-     * Helper function to convert a CategoryNode to a MenuItem,
-     * adding gender-specific properties where applicable.
-     */
+    // Helper to convert CategoryNode to MenuItem
     const convertNodeToMenuItem = (node: CategoryNode): MenuItem => {
         const menuItem: MenuItem = {
             id: node.id,
             name: node.name,
             slug: node.slug,
         };
-
-        // ✨ Add gender-specific labels
+        // Add gender-specific labels if needed (optional, keep if used elsewhere)
         if (node.slug === 'second_order_fashion_gender_men') {
             menuItem.isGenderCat = true;
             menuItem.genderCategory = 'men';
@@ -69,24 +52,23 @@ export function generateMenuItems(categories: CategorieType[]): MenuItem[] {
             menuItem.isGenderCat = true;
             menuItem.genderCategory = 'women';
         }
-
         if (node.children.length > 0) {
             menuItem.subMenu = node.children.map(convertNodeToMenuItem);
         }
         return menuItem;
     };
 
-    const fashionNode = categoryMap.get(fashionCategory.id);
-    if (fashionNode?.children) {
-        const fashionSubMenus = fashionNode.children.map(convertNodeToMenuItem);
-        finalMenu.push(...fashionSubMenus);
-    }
+    // Top categories: first_order
+    const topCategories = Array.from(categoryMap.values()).filter(
+        (cat) => cat.slug.toLowerCase().includes('first_order') && cat.parent === 0
+    );
 
-    categoryMap.forEach((node) => {
-        if (node.parent === 0 && node.id !== fashionCategory.id) {
-            finalMenu.push(convertNodeToMenuItem(node));
-        }
+    // Only attach second_order children
+    const menu: MenuItem[] = topCategories.map((topCat) => {
+        // Only keep children with 'second_order' in slug
+        topCat.children = topCat.children.filter(child => child.slug.toLowerCase().includes('second_order'));
+        return convertNodeToMenuItem(topCat);
     });
 
-    return finalMenu;
+    return menu;
 }
