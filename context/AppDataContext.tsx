@@ -14,6 +14,7 @@ import {
 // The data structure provided by the context
 interface AppData {
     countries: CountryDataType[];
+    allCountries: CountryDataType[];
     categories: CategorieType[];
     attributes: AttributesWithTermsType[];
     tags: TagType[];
@@ -28,6 +29,7 @@ const AppDataContext = createContext<AppData | null>(null);
 interface AppDataProviderProps {
     children: ReactNode;
     countries: CountryDataType[];
+    allCountries: CountryDataType[];
     categories: CategorieType[];
     attributes: AttributesWithTermsType[];
     tags: TagType[];
@@ -40,6 +42,7 @@ interface AppDataProviderProps {
 export const AppDataProvider = ({
     children,
     countries,
+    allCountries,
     categories,
     attributes,
     tags,
@@ -51,6 +54,7 @@ export const AppDataProvider = ({
 
     const data: AppData = {
         countries: countries || [],
+        allCountries: allCountries || [],
         categories: categories || [],
         attributes: attributes || [],
         tags: tags || [],

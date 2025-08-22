@@ -1,33 +1,11 @@
-
 import Footer from "@/components/Footer/Footer";
 import MenuOne from "@/components/Header/Menu/MenuOne";
 import TopNavOne from "@/components/Header/TopNav/TopNavOne";
-import Link from "next/link";
-import { PATH } from "../constant/pathConstants";
-import { getProductCategories } from "../actions/data-actions";
+import Link from 'next/link'; // Import Link for the homepage button
+import GoBackButton from "../components/extra/GoBackButton";
 
-export default async function NotFound() {
-    // const categories = await getProductCategories()
-
-    // For client-side navigation
-    // Use a client component for the button
-    // (Next.js 13+ allows client components in app/)
-    // We'll define a simple GoBackButton below
-
-    function GoBackButton() {
-        if (typeof window === 'undefined') return null;
-        return (
-            <button
-                className="button-main mt-4"
-                type="button"
-                onClick={() => window.history.back()}
-            >
-                Return Back
-            </button>
-        );
-    }
-
-
+export default function NotFound() {
+    // We no longer need to get the referer here for the back button
     return (
         <>
             <TopNavOne props="style-one bg-black" slogan="Limited Offer: Free shipping on orders over $50" />
@@ -42,10 +20,14 @@ export default async function NotFound() {
                         <div className="text-base mt-4">
                             The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
                         </div>
-                        <Link href={PATH.HOME} className="button-main mt-8" prefetch>
-                            Go to Homepage
-                        </Link>
-                        <GoBackButton />
+
+                        {/* --- CORRECTED PART --- */}
+                        <div className="flex items-center justify-center  gap-4 mt-8">
+                            <Link href="/" className="button-main">
+                                Go to Homepage
+                            </Link>
+                            <GoBackButton />
+                        </div>
                     </div>
                 </div>
             </div>

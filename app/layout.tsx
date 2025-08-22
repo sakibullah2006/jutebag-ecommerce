@@ -1,6 +1,6 @@
 // app/layout.tsx
 
-import { getProductCategories, getCountries, getAttributesWithTerms, getProductTags, getCurrentCurrency, getStoreSettings, getBrands } from '@/actions/data-actions';
+import { getProductCategories, getCountries, getAttributesWithTerms, getProductTags, getCurrentCurrency, getStoreSettings, getBrands, getAllCountries } from '@/actions/data-actions';
 import { AppDataProvider } from '@/context/AppDataContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
@@ -36,6 +36,7 @@ export default async function RootLayout({
 }) {
   const [
     countriesResult,
+    allCountriesResult,
     categoriesResult,
     attributesResult,
     tagsResult,
@@ -44,6 +45,7 @@ export default async function RootLayout({
     storeConfigResult
   ] = await Promise.allSettled([
     getCountries(),
+    getAllCountries(),
     getProductCategories(),
     getAttributesWithTerms(),
     getProductTags(),
@@ -53,6 +55,7 @@ export default async function RootLayout({
   ]);
 
   const countries = countriesResult.status === 'fulfilled' ? countriesResult.value : [];
+  const allCountries = allCountriesResult.status === 'fulfilled' ? allCountriesResult.value : [];
   const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : [];
   const attributes = attributesResult.status === 'fulfilled' ? attributesResult.value : [];
   const tags = tagsResult.status === 'fulfilled' ? tagsResult.value : [];
@@ -68,6 +71,7 @@ export default async function RootLayout({
           <CartProvider>
             <AppDataProvider
               countries={countries}
+              allCountries={allCountries}
               categories={categories}
               attributes={attributes}
               tags={tags}

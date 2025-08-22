@@ -42,6 +42,22 @@ export const getCountries = async (): Promise<CountryDataType[]> => {
   }
 }
 
+export const getAllCountries = async (): Promise<CountryDataType[]> => {
+  try {
+    const response = await WooCommerce.get("data/countries", { caches: true });
+
+    if (!response?.data) {
+      console.error("Could not retrieve country list.");
+      return [];
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching all countries:", error);
+    return [];
+  }
+}
+
 export const getTaxes = async (): Promise<TaxDataType[]> => {
   try {
     const response = await WooCommerce.get("taxes", { caches: true });
@@ -303,6 +319,7 @@ export const getStoreSettings = async (): Promise<StoreConfig | null> => {
         city: findSettingValue('woocommerce_store_city'),
         postcode: findSettingValue('woocommerce_store_postcode'),
         countryState: findSettingValue('woocommerce_default_country'),
+        countryCode: String(findSettingValue('woocommerce_default_country')).split(':')[0],
       },
       currency: currencyCode,
       currencySymbol: currencySymbol,

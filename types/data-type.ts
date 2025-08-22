@@ -216,6 +216,7 @@ export interface StoreAddress {
     city: string;
     postcode: string;
     countryState: string; // e.g., "US:NY"
+    countryCode: string // US 
 }
 
 export interface StoreConfig {

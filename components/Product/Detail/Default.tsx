@@ -23,6 +23,9 @@ import ReviewForm from '../ReviewForm'
 import { useCart } from '@/context/CartContext'
 import { useAppData } from '@/context/AppDataContext'
 import { useRouter } from 'next/navigation'
+import { getQuantityList } from '../../../lib/productUtils'
+import QuantitySelector from '../../extra/quantitySelector'
+import ModalPrintguide from '../../Modal/ModalPrintguide'
 
 
 
@@ -54,17 +57,21 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     const [selectedVariation, setSelectedVariation] = useState<VariationProduct | null>(() => {
         return null
     })
-    const { currentCurrency } = useAppData()
+    const [openSizeGuide, setOpenSizeGuide] = useState(false);
+    const { currentCurrency, allCountries, storeConfig } = useAppData()
     const { openModalCart } = useModalCartContext()
     const { addToCart, cartState } = useCart();
     const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist()
     const { openModalWishlist } = useModalWishlistContext()
-    const { addToCompare, removeFromCompare, compareState } = useCompare();
-    const { openModalCompare } = useModalCompareContext()
     const isColorReq = data.attributes?.some(attr => attr.name.toLowerCase() === "color")
     const router = useRouter();
+    const quantities = getQuantityList(
+        Number(data.production_details?.printScreenDetails?.[0]?.quantity) || 1,
+        Number(selectedVariation?.stock_quantity && selectedVariation?.stock_quantity || data.stock_quantity) || 0
+    )
 
-    // console.log('Raw HTML:', data.description);
+    console.log('country', storeConfig?.address.countryCode)
+
     useEffect(() => {
         let isMounted = true;
 
@@ -154,16 +161,12 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     };
 
 
-    const handleIncreaseQuantity = () => {
-        setQuantity(quantity + 1);
-        // updateCart(data.id, quantity + 1, activeSize, activeColor);
+    const handleOpenSizeGuide = () => {
+        setOpenSizeGuide(true);
     };
 
-    const handleDecreaseQuantity = () => {
-        if (quantity > 1) {
-            setQuantity(quantity - 1);
-            // updateCart(data.id, data.quantityPurchase - 1, activeSize, activeColor);
-        }
+    const handleCloseSizeGuide = () => {
+        setOpenSizeGuide(false);
     };
 
     const handleAddToCart = () => {
@@ -349,7 +352,43 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                     </>
                                 )}
 
-                                <div className='desc text-secondary parsed-html mt-3'>{parse(data.short_description || "")}</div>
+                                {/* 
+                                  ======== Description ==========
+                                 */}
+                                {/* <div className='desc text-secondary parsed-html mt-3'>{parse(data.short_description || "")}</div> */}
+
+                                <div className=' w-full my-3'>
+                                    <div className="item bg-surface flex items-center gap-8 py-3 px-10">
+                                        <div className="text-title sm:w-1/4 w-1/3">Fabric</div>
+                                        <div className="flex items-center gap-1">
+                                            <p>{data.production_details?.fabric || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="item flex items-center gap-8 py-3 px-10">
+                                        <div className="text-title sm:w-1/4 w-1/3">Handles</div>
+                                        <p>{data.production_details?.handles || 'N/A'}</p>
+                                    </div>
+                                    <div className="item bg-surface flex items-center gap-8 py-3 px-10">
+                                        <div className="text-title sm:w-1/4 w-1/3">Size</div>
+                                        <p>{data.production_details?.size || 'N/A'}</p>
+                                    </div>
+
+                                    <div className="item flex items-center gap-8 py-3 px-10">
+                                        <div className="text-title sm:w-1/4 w-fit">Manufacturer</div>
+                                        <p>{allCountries.find((con => con.code === data.production_details?.manufacturer?.countryCode))?.name}</p>
+                                    </div>
+
+                                    <div className="item bg-surface flex justify-center gap-8 pl-8 py-0">
+                                        <div className="text-title sm:w-1/4 w-1/3 py-3">Print Details</div>
+                                        <div
+                                            onClick={handleOpenSizeGuide}
+                                            className='flex w-full justify-center rounded-md cursor-pointer items-center  py-0 text-white bg-black'
+                                        >
+                                            See Details
+                                        </div>
+                                    </div>
+                                </div>
+                                <ModalPrintguide data={data} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
                             </div>
                             <div className="list-action mt-6">
                                 {data.attributes?.some(item => item.name.toLowerCase() === "color") && (
@@ -373,19 +412,13 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                 )}
                                 <div className="text-title mt-5">Quantity:</div>
                                 <div className="choose-quantity style-out-of-stock flex items-center lg:justify-between gap-5 gap-y-3 mt-3">
-                                    <div className="quantity-block md:p-3 max-md:py-1.5 max-md:px-3 flex items-center justify-between rounded-lg border border-line sm:w-[180px] w-[120px] flex-shrink-0">
-                                        <Icon.MinusIcon
-                                            size={20}
-                                            onClick={handleDecreaseQuantity}
-                                            className={`${quantity === 1 ? 'disabled' : ''} cursor-pointer`}
-                                        />
-                                        <div className="body1 font-semibold">{quantity}</div>
-                                        <Icon.PlusIcon
-                                            size={20}
-                                            onClick={handleIncreaseQuantity}
-                                            className={`${quantity === data.stock_quantity ? 'disabled' : ''} cursor-pointer`}
-                                        />
-                                    </div>
+                                    {/* <div className="quantity-block md:p-3 max-md:py-1.5 max-md:px-3 flex items-center justify-between rounded-lg border border-line sm:w-[180px] w-[120px] flex-shrink-0"> */}
+                                    <QuantitySelector
+                                        quantityList={quantities}
+                                        setQuantity={setQuantity}
+                                        quantity={quantity}
+                                    />
+                                    {/* </div> */}
 
                                     <button
                                         type="button"
@@ -649,28 +682,37 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                         <div className="item bg-surface flex items-center gap-8 py-3 px-10">
                                             <div className="text-title sm:w-1/4 w-1/3">Rating</div>
                                             <div className="flex items-center gap-1">
-                                                <Rate currentRate={Number(data.average_rating)} size={12} />
+                                                <Rate currentRate={Number(reviewsInfo.calculatedAverage_rating)} size={12} />
                                                 <p>({reviews.length})</p>
                                             </div>
                                         </div>
                                         <div className="item flex items-center gap-8 py-3 px-10">
-                                            <div className="text-title sm:w-1/4 w-1/3">Outer Shell</div>
-                                            <p>100% polyester</p>
+                                            <div className="text-title sm:w-1/4 w-1/3">Fabric</div>
+                                            <p>{data.production_details?.fabric}</p>
                                         </div>
                                         <div className="item bg-surface flex items-center gap-8 py-3 px-10">
-                                            <div className="text-title sm:w-1/4 w-1/3">Lining</div>
-                                            <p>100% polyurethane</p>
+                                            <div className="text-title sm:w-1/4 w-1/3">Handles</div>
+                                            <p>{data.production_details?.handles}</p>
                                         </div>
 
-
                                         {data.attributes?.some(att => att.name.toLowerCase() === "color") &&
-                                            <div className="item bg-surface flex items-center gap-8 py-3 px-10">
+                                            <div className="item flex items-center gap-8 py-3 px-10">
                                                 <div className="text-title sm:w-1/4 w-1/3">Colors</div>
                                                 <p>{data.attributes?.find(att => att.name.toLowerCase() === "color")?.options.map(c => c).join(", ")}</p>
                                             </div>
                                         }
 
+                                        <div className="item flex bg-surface items-center gap-8 py-3 px-10">
+                                            <div className="text-title sm:w-1/4 w-1/3">Size</div>
+                                            <p>{data.production_details?.size}</p>
+                                        </div>
+
                                         <div className="item flex items-center gap-8 py-3 px-10">
+                                            <div className="text-title sm:w-1/4 w-fit">Manufacturer</div>
+                                            <p>{allCountries.find((con => con.code === data.production_details?.manufacturer?.countryCode))?.name}</p>
+                                        </div>
+
+                                        <div className="item bg-surface flex items-center gap-8 py-3 px-10">
                                             <div className="text-title sm:w-1/4 w-1/3">Care</div>
                                             <div className="flex items-center gap-5">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">

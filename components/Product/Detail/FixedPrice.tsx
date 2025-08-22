@@ -1,6 +1,6 @@
 'use client'
 
-import ModalSizeguide from '@/components/Modal/ModalSizeguide'
+import ModalPrintguide from '@/components/Modal/ModalPrintguide'
 import Rate from '@/components/Other/Rate'
 import { useCart } from '@/context/CartContext'
 import { useCompare } from '@/context/CompareContext'
@@ -712,7 +712,7 @@ const FixedPrice: React.FC<Props> = ({ data, productId }) => {
                                             >
                                                 Size Guide
                                             </div>
-                                            <ModalSizeguide data={productMain} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
+                                            <ModalPrintguide data={productMain} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
                                         </div>
                                         <div className="list-size flex items-center gap-2 flex-wrap mt-3">
                                             {productMain.sizes.map((item, index) => (

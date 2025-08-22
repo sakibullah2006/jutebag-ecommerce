@@ -17,7 +17,7 @@ import * as Icon from "@phosphor-icons/react/dist/ssr";
 import Image from 'next/image';
 import React, { useState, useEffect, useCallback } from 'react';
 import Rate from '../Other/Rate';
-import ModalSizeguide from './ModalSizeguide';
+import ModalPrintguide from './ModalPrintguide';
 import VariationSkeleton from '../Other/VariationSkeleton';
 import parse from 'html-react-parser';
 import { useRouter } from 'next/navigation';
@@ -393,7 +393,7 @@ const ModalQuickview = () => {
                                                         >
                                                             Size Guide
                                                         </div>
-                                                        <ModalSizeguide data={selectedProduct} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
+                                                        <ModalPrintguide data={selectedProduct} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
                                                     </div>
                                                     <div className="list-size flex items-center gap-2 flex-wrap mt-3">
                                                         {selectedProduct?.attributes?.find(item => item.name.toLowerCase() === "size")?.options.map((item, index) => (
