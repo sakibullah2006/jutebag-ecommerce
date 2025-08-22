@@ -1,6 +1,5 @@
 'use client'
 
-import ModalSizeguide from '@/components/Modal/ModalSizeguide'
 import Rate from '@/components/Other/Rate'
 import { useCompare } from '@/context/CompareContext'
 import { useModalCartContext } from '@/context/ModalCartContext'
@@ -40,7 +39,6 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     const swiperRef = useRef<SwiperCore | null>(null);
     const [photoIndex, setPhotoIndex] = useState(0)
     const [openPopupImg, setOpenPopupImg] = useState(false)
-    const [openSizeGuide, setOpenSizeGuide] = useState<boolean>(false)
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperCore | null>(null);
     const [activeColor, setActiveColor] = useState<string>(() => {
         const attr = data.attributes?.find(attr => attr.name === "color")
@@ -50,14 +48,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
             return ''
         }
     })
-    const [activeSize, setActiveSize] = useState<string>(() => {
-        const attr = data.attributes?.find(attr => attr.name === "size")
-        if (attr) {
-            return attr.options[0]
-        } else {
-            return ''
-        }
-    })
+    // Removed size state, only color is used
     const [activeTab, setActiveTab] = useState<string>('description')
     const [quantity, setQuantity] = useState(1)
     const [selectedVariation, setSelectedVariation] = useState<VariationProduct | null>(() => {
@@ -71,7 +62,6 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     const { addToCompare, removeFromCompare, compareState } = useCompare();
     const { openModalCompare } = useModalCompareContext()
     const isColorReq = data.attributes?.some(attr => attr.name.toLowerCase() === "color")
-    const isSizeReq = data.attributes?.some(attr => attr.name.toLowerCase() === "size")
     const router = useRouter();
 
     // console.log('Raw HTML:', data.description);
@@ -119,40 +109,29 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
         };
     };
 
-    // Find matching variation based on activeColor or activeSize
+    // Find matching variation based on activeColor only
     const findMatchingVariation = useCallback(() => {
-        // If there are no variations loaded, we can't find a match.
         if (variations?.length === 0) return null;
-
-        // Check if the product is supposed to have color and size variations
         const hasColorAttribute = data.attributes?.some(attr => attr.name.toLowerCase() === 'color' && attr.variation);
-        const hasSizeAttribute = data.attributes?.some(attr => attr.name.toLowerCase() === 'size' && attr.variation);
-
-        // Find a variation where every required attribute matches the active state.
         const matchingVariant = variations?.find((variation) => {
-            // A variation is a match if its color and size match the active selection.
-            // If an attribute doesn't exist for variations (e.g., only color, no size), it's considered a match.
+            // A variation is a match if its color matches the active selection.
             const colorMatch = !hasColorAttribute || variation.attributes?.some(
                 attr => attr.name.toLowerCase() === 'color' && attr.option === activeColor
             );
-            const sizeMatch = !hasSizeAttribute || variation.attributes?.some(
-                attr => attr.name.toLowerCase() === 'size' && attr.option === activeSize
-            );
-            return colorMatch && sizeMatch;
+            return colorMatch;
         });
-
         return matchingVariant ?? null;
-    }, [variations, activeColor, activeSize, data.attributes]);
+    }, [variations, activeColor, data.attributes]);
 
     useEffect(() => {
-        // Find the variation that matches the active color and size
+        // Find the variation that matches the active color
         const matchingVariation = findMatchingVariation();
         if (matchingVariation) {
             setSelectedVariation(matchingVariation);
         } else {
             setSelectedVariation(null);
         }
-    }, [activeColor, activeSize, findMatchingVariation])
+    }, [activeColor, findMatchingVariation])
 
 
     const onReviewSubmitted = (review: ProductReview) => {
@@ -164,53 +143,14 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     const percentSale = Math.floor(100 - ((Number(data.sale_price || findMatchingVariation()?.sale_price) / Number(data.regular_price || findMatchingVariation()?.regular_price)) * 100))
 
 
-    const handleOpenSizeGuide = () => {
-        setOpenSizeGuide(true);
-    };
-
-    const handleCloseSizeGuide = () => {
-        setOpenSizeGuide(false);
-    };
-
     const handleSwiper = (swiper: SwiperCore) => {
         // Do something with the thumbsSwiper instance
         setThumbsSwiper(swiper);
     };
 
-    // This "smart" handler updates the color and ensures the selected size is still valid.
+    // Handler for color selection only
     const handleActiveColor = (newColor: string) => {
         setActiveColor(newColor);
-
-        // Find all sizes that are available with the newly selected color
-        const availableSizes = new Set(
-            variations?.filter(v => v.attributes?.some(a => a.name.toLowerCase() === 'color' && a.option === newColor))
-                .map(v => v.attributes?.find(a => a.name.toLowerCase() === 'size')?.option)
-                .filter((s): s is string => !!s)
-        );
-
-        // If the current size is not in the list of available sizes for the new color,
-        // automatically switch to the first available size.
-        if (availableSizes.size > 0 && !availableSizes.has(activeSize)) {
-            setActiveSize(Array.from(availableSizes)[0]);
-        }
-    };
-
-    // This "smart" handler updates the size and ensures the selected color is still valid.
-    const handleActiveSize = (newSize: string) => {
-        setActiveSize(newSize);
-
-        // Find all colors that are available with the newly selected size
-        const availableColors = new Set(
-            variations?.filter(v => v.attributes?.some(a => a.name.toLowerCase() === 'size' && a.option === newSize))
-                .map(v => v.attributes?.find(a => a.name.toLowerCase() === 'color')?.option)
-                .filter((c): c is string => !!c)
-        );
-
-        // If the current color is not in the list of available colors for the new size,
-        // automatically switch to the first available color.
-        if (availableColors.size > 0 && !availableColors.has(activeColor)) {
-            setActiveColor(Array.from(availableColors)[0]);
-        }
     };
 
 
@@ -227,35 +167,26 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     };
 
     const handleAddToCart = () => {
-        const cartVariation = findMatchingVariation()
-
-        // if ((isColorReq && activeColor) && (isSizeReq && activeSize))
-
+        const cartVariation = findMatchingVariation();
         addToCart(
-            data, // The base product data
+            data,
             quantity,
-            activeSize,
             activeColor,
             cartVariation?.id?.toString(),
             cartVariation ?? undefined
         );
-        openModalCart()
+        openModalCart();
     };
 
     const handleBuyNow = () => {
-        const cartVariation = findMatchingVariation()
-
-        // if ((isColorReq && activeColor) && (isSizeReq && activeSize))
-
+        const cartVariation = findMatchingVariation();
         addToCart(
-            data, // The base product data
+            data,
             quantity,
-            activeSize,
             activeColor,
             cartVariation?.id?.toString(),
             cartVariation ?? undefined
         );
-
         router.push("/checkout");
     };
 
@@ -269,8 +200,6 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
         }
         openModalWishlist();
     };
-
-
 
     const handleActiveTab = (tab: string) => {
         setActiveTab(tab)
@@ -426,7 +355,6 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                 {data.attributes?.some(item => item.name.toLowerCase() === "color") && (
                                     <div className="choose-color">
                                         <div className="text-title">Colors: <span className='text-title color'>{activeColor}</span></div>
-
                                         <div className="list-size flex items-center gap-2 flex-wrap mt-3">
                                             {data.attributes?.find(item => item.name.toLowerCase() === "color")?.options.map((item, index) => (
                                                 <div
@@ -436,31 +364,6 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                                     onClick={() => {
                                                         handleActiveColor(item)
                                                     }}
-                                                >
-                                                    {item}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                {data.attributes?.some(item => item.name.toLowerCase() === "size") && (
-                                    <div className="choose-size mt-5">
-                                        <div className="heading flex items-center justify-between">
-                                            <div className="text-title">Size: <span className='text-title size'>{activeSize}</span></div>
-                                            <div
-                                                className="caption1 size-guide text-red underline cursor-pointer"
-                                                onClick={handleOpenSizeGuide}
-                                            >
-                                                Size Guide
-                                            </div>
-                                            <ModalSizeguide data={data} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
-                                        </div>
-                                        <div className="list-size flex items-center gap-2 flex-wrap mt-3">
-                                            {data.attributes?.find(item => item.name.toLowerCase() === "size")?.options.map((item, index) => (
-                                                <div
-                                                    className={`size-item ${item === 'freesize' ? 'px-3 py-2' : 'w-12 h-12'} flex items-center justify-center text-button rounded-full bg-white border border-line ${activeSize === item ? 'active' : ''}`}
-                                                    key={index}
-                                                    onClick={() => handleActiveSize(item)}
                                                 >
                                                     {item}
                                                 </div>
@@ -486,9 +389,9 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
                                     <button
                                         type="button"
-                                        disabled={data.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)}
+                                        disabled={data.stock_status === "outofstock" || (isColorReq && activeColor.length === 0)}
                                         onClick={handleAddToCart}
-                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)
+                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable || (isColorReq && activeColor.length === 0)
                                             ? "bg-surface text-secondary2 border"
                                             : "bg-black text-white hover:bg-green-300"
                                             }`}
@@ -500,9 +403,9 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                 <div className="button-block mt-5">
                                     <button
                                         type="button"
-                                        disabled={data.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)}
+                                        disabled={data.stock_status === "outofstock" || (isColorReq && activeColor.length === 0)}
                                         onClick={handleBuyNow}
-                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)
+                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable || (isColorReq && activeColor.length === 0)
                                             ? "bg-surface text-secondary2 border"
                                             : "bg-black text-white hover:bg-green-300"
                                             }`}
@@ -758,12 +661,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                             <div className="text-title sm:w-1/4 w-1/3">Lining</div>
                                             <p>100% polyurethane</p>
                                         </div>
-                                        {data.attributes?.some(att => att.name.toLowerCase() === "size") &&
-                                            <div className="item flex items-center gap-8 py-3 px-10">
-                                                <div className="text-title sm:w-1/4 w-1/3">Size</div>
-                                                <p>{data.attributes?.find(att => att.name.toLowerCase() === "size")?.options.map(s => s).join(", ")}</p>
-                                            </div>
-                                        }
+
 
                                         {data.attributes?.some(att => att.name.toLowerCase() === "color") &&
                                             <div className="item bg-surface flex items-center gap-8 py-3 px-10">

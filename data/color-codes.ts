@@ -51,4 +51,5 @@ export const COLORS: { [key: string]: string } = {
   mustard: '#F0C05A',
   amber: '#FFC107',
   rosegold: '#B76E79',
+  natural: '#f6e4ca',
 };

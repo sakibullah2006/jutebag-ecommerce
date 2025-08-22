@@ -10,6 +10,8 @@ import { useAppData } from '@/context/AppDataContext'
 import { calculatePrice, cn, decodeHtmlEntities } from '@/lib/utils'
 import { validateCoupon } from '@/actions/coupon'
 import { PATH } from '../../constant/pathConstants'
+import QuantitySelector from '../extra/quantitySelector'
+import { getQuantityList } from '../../lib/productUtils'
 
 interface CouponData {
     id: string
@@ -39,6 +41,8 @@ const CartClient = () => {
     let [discountCart, setDiscountCart] = useState<number>(0)
     let { currentCurrency } = useAppData()
 
+    // console.log("CART STATE", cartState)
+
     useEffect(() => {
         if (appliedCoupon) {
             let discount = 0;
@@ -63,11 +67,20 @@ const CartClient = () => {
         }
     }, [appliedCoupon, totalCart, cartState.cartArray]);
 
-    const handleQuantityChange = (productId: string, newQuantity: number) => {
-        const itemToUpdate = cartState.cartArray.find((item) => item.id.toString() === productId);
+    const handleQuantityChange = (productId: string, newQuantity: number, variation_id?: string | undefined) => {
+
+        const itemToUpdate = cartState.cartArray.find((item) => {
+            if (variation_id) {
+                return item.id.toString() === productId && item.variation_id === variation_id
+            }
+            return item.id.toString() === productId
+        });
+        // console.log("In Cart \n")
+        // console.log("ITEM TO UPDATE", itemToUpdate)
+        // console.log('VariationID', variation_id)
 
         if (itemToUpdate) {
-            updateCart(productId, newQuantity);
+            updateCart(productId, newQuantity, variation_id);
         }
     };
 
@@ -148,7 +161,7 @@ const CartClient = () => {
                                                     <div className="flex items-center gap-6">
                                                         <div className="bg-img md:w-[100px] w-20 aspect-[3/4]">
                                                             <Image
-                                                                src={product.images[0].src}
+                                                                src={product.selectedVariation?.image.src || product.images[0].src}
                                                                 width={1000}
                                                                 height={1000}
                                                                 alt={product.name}
@@ -163,11 +176,6 @@ const CartClient = () => {
                                                                         <span className="font-bold">Color:</span> {product.selectedColor}
                                                                     </div>
                                                                 }
-                                                                {product.selectedSize &&
-                                                                    <div className="text-secondary text-sm">
-                                                                        <span className="font-bold">Size:</span> {product.selectedSize}
-                                                                    </div>
-                                                                }
                                                             </div>
                                                         </div>
                                                     </div>
@@ -176,7 +184,7 @@ const CartClient = () => {
                                                     <div className="text-title text-center">{decodeHtmlEntities(currentCurrency!.symbol)}{Number(calculatePrice(product)).toFixed(2)}</div>
                                                 </div>
                                                 <div className="w-1/6 flex items-center justify-center">
-                                                    <div className="quantity-block bg-surface md:p-3 p-2 flex items-center justify-between rounded-lg border border-line md:w-[100px] flex-shrink-0 w-20">
+                                                    {/* <div className="quantity-block bg-surface md:p-3 p-2 flex items-center justify-between rounded-lg border border-line md:w-[100px] flex-shrink-0 w-20">
                                                         <Icon.MinusIcon
                                                             onClick={() => {
                                                                 if (product.quantity > 1) {
@@ -190,7 +198,18 @@ const CartClient = () => {
                                                             onClick={() => handleQuantityChange(product.id.toString(), product.quantity + 1)}
                                                             className='text-base max-md:text-sm'
                                                         />
-                                                    </div>
+                                                    </div> */}
+
+                                                    <QuantitySelector
+                                                        quantityList={
+                                                            getQuantityList(
+                                                                Number(product.production_details?.printScreenDetails?.[0]?.quantity),
+                                                                Number(product?.selectedVariation && product?.selectedVariation.stock_quantity || product.stock_quantity)
+                                                            )
+                                                        }
+                                                        setQuantity={(qty) => handleQuantityChange(product.id.toString(), qty, product.variation_id ?? undefined)}
+                                                        quantity={product.quantity}
+                                                    />
                                                 </div>
                                                 <div className="w-1/6 flex total-price items-center justify-center">
                                                     <div className="text-title text-center">${(product.quantity * Number(calculatePrice(product))).toFixed(2)}</div>

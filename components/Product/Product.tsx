@@ -18,6 +18,8 @@ import React, { useCallback, useEffect, useState } from 'react'
 import Marquee from 'react-fast-marquee'
 import { useAppData } from '../../context/AppDataContext'
 import { QuickShopDrawer } from './QuickShopDrawer'
+import { getQuantityList } from '../../lib/productUtils'
+import QuantitySelector from '../extra/quantitySelector'
 
 interface ProductProps {
     data: ProductType
@@ -28,22 +30,27 @@ interface ProductProps {
 const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     const [variations, setVariations] = useState<VariationProduct[]>([])
     const [selectedVariation, setSelectedVariation] = useState<VariationProduct | null>(null);
-    const [actionType, setActionType] = useState<string>("add to cart")
-    const [mobileActionType, setMobileActionType] = useState<string>("add to cart")
+    const [actionType, setActionType] = useState<"add to cart" | "quick shop">("quick shop")
+    const [mobileActionType, setMobileActionType] = useState<"quick shop" | "add to cart">("quick shop")
     const [activeColor, setActiveColor] = useState<string>(() => {
-        const attr = data.attributes?.find(attr => attr.name === "color")
-        if (attr) {
+        const attr = data.attributes?.find(attr => attr.name.toLowerCase() === "color")
+        if (attr && attr.options && attr.options.length > 0) {
             return attr.options[0]
         }
         return ''
     })
-    const [activeSize, setActiveSize] = useState<string>(() => {
-        const attr = data.attributes?.find(attr => attr.name === "size")
-        if (attr) {
-            return attr.options[0]
+
+    // Ensure the first color is always selected when the component loads or when data changes
+    useEffect(() => {
+        const colorAttr = data.attributes?.find(attr => attr.name.toLowerCase() === "color");
+        if (colorAttr && colorAttr.options && colorAttr.options.length > 0) {
+            if (!activeColor || !colorAttr.options.includes(activeColor)) {
+                setActiveColor(colorAttr.options[0]);
+            }
         }
-        return ''
-    })
+    }, [data]);
+    // Removed size state, only color is used
+    const [quantity, setQuantity] = useState<number>(0);
     const [openQuickShop, setOpenQuickShop] = useState<boolean>(false)
     const { currentCurrency } = useAppData()
     const { addToCart, cartState } = useCart();
@@ -53,8 +60,11 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     const { openQuickview } = useModalQuickviewContext()
     const [isloading, setIsLoading] = useState<boolean>(false)
     const isColorReq = data.attributes?.some(attr => attr.name.toLowerCase() === "color")
-    const isSizeReq = data.attributes?.some(attr => attr.name.toLowerCase() === "size")
     const router = useRouter()
+    const quantities = getQuantityList(
+        Number(data.production_details?.printScreenDetails?.[0]?.quantity) || 1,
+        Number(selectedVariation?.stock_quantity && selectedVariation?.stock_quantity || data.stock_quantity) || 0
+    )
 
     useEffect(() => {
         let isMounted = true;
@@ -69,8 +79,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
             const matchingVariation = findMatchingVariation();
             setSelectedVariation(matchingVariation);
         }
-        // console.log(selectedVariation)
-    }, [activeColor, activeSize]);
+    }, [activeColor]);
 
 
     const fetchVariations = useCallback(async () => {
@@ -88,85 +97,35 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
 
     }, [])
 
-    // Find matching variation based on activeColor or activeSize
+    // Find matching variation based on activeColor only
     const findMatchingVariation = () => {
-        // If there are no variations loaded, we can't find a match.
         if (variations.length === 0) return null;
-
-        // Check if the product is supposed to have color and size variations
         const hasColorAttribute = data.attributes.some(attr => attr.name.toLowerCase() === 'color' && attr.variation);
-        const hasSizeAttribute = data.attributes.some(attr => attr.name.toLowerCase() === 'size' && attr.variation);
-
-        // Find a variation where every required attribute matches the active state.
         const matchingVariant = variations.find((variation) => {
-            // A variation is a match if its color and size match the active selection.
-            // If an attribute doesn't exist for variations (e.g., only color, no size), it's considered a match.
             const colorMatch = !hasColorAttribute || variation.attributes.some(
                 attr => attr.name.toLowerCase() === 'color' && attr.option === activeColor
             );
-            const sizeMatch = !hasSizeAttribute || variation.attributes.some(
-                attr => attr.name.toLowerCase() === 'size' && attr.option === activeSize
-            );
-            return colorMatch && sizeMatch;
+            return colorMatch;
         });
-
         return matchingVariant ?? null;
     };
 
     // console.log('Variations fetched:', variations);
 
-    // This "smart" handler updates the color and ensures the selected size is still valid.
+    // Handler for color selection only
     const handleActiveColor = (newColor: string) => {
         setActiveColor(newColor);
-
-        // Find all sizes that are available with the newly selected color
-        const availableSizes = new Set(
-            variations
-                .filter(v => v.attributes.some(a => a.name.toLowerCase() === 'color' && a.option === newColor))
-                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'size')?.option)
-                .filter((s): s is string => !!s)
-        );
-
-        // If the current size is not in the list of available sizes for the new color,
-        // automatically switch to the first available size.
-        if (availableSizes.size > 0 && !availableSizes.has(activeSize)) {
-            setActiveSize(Array.from(availableSizes)[0]);
-        }
-    };
-
-    // This "smart" handler updates the size and ensures the selected color is still valid.
-    const handleActiveSize = (newSize: string) => {
-        setActiveSize(newSize);
-
-        // Find all colors that are available with the newly selected size
-        const availableColors = new Set(
-            variations
-                .filter(v => v.attributes.some(a => a.name.toLowerCase() === 'size' && a.option === newSize))
-                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'color')?.option)
-                .filter((c): c is string => !!c)
-        );
-
-        // If the current color is not in the list of available colors for the new size,
-        // automatically switch to the first available color.
-        if (availableColors.size > 0 && !availableColors.has(activeColor)) {
-            setActiveColor(Array.from(availableColors)[0]);
-        }
     };
 
     const handleAddToCart = () => {
-        const cartVariation = findMatchingVariation()
-
-        // Call the single, updated function from the context
+        const cartVariation = findMatchingVariation();
         addToCart(
-            data, // The base product data
-            1,    // The quantity to add
-            activeSize,
+            data,
+            quantity,
             activeColor,
             cartVariation?.id?.toString(),
             cartVariation ?? undefined
         );
-
-        // Open the modal
         openModalCart();
     };
 
@@ -197,8 +156,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     const isAddToCartDisabled =
         data.stock_status === "outofstock" ||
         !data.purchasable ||
-        (isColorReq && !activeColor) ||
-        (isSizeReq && !activeSize);
+        (isColorReq && !activeColor);
 
     const addToCartButtonText = data.stock_status === "outofstock" ? "Out Of Stock" : "Add To Cart";
 
@@ -301,7 +259,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                             ) : <></>}
                             <Link href={`/product/${data.id}`} prefetch>
                                 <div className="product-img w-full h-full aspect-[3/4]">
-                                    {activeColor ? (
+                                    {activeColor && selectedVariation ? (
                                         <>
                                             {selectedVariation?.image?.src && (
                                                 <Image
@@ -350,13 +308,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     </Marquee>
                                 </>
                             )}
-                            {style === 'style-2' || style === 'style-4' ? (
-                                <div className="list-size-block flex items-center justify-center gap-4 absolute bottom-0 left-0 w-full h-8">
-                                    {data.attributes.find(item => item.name.toLowerCase() === "size")?.options.map((item: string, index: number) => (
-                                        <strong key={index} className="size-item text-xs font-bold uppercase">{item}</strong>
-                                    ))}
-                                </div>
-                            ) : <></>}
+                            {/* Removed size UI for style-2/style-4 */}
                             {style === 'style-1' || style === 'style-3' ?
                                 <div className={`list-action ${style === 'style-1' ? 'grid grid-cols-2 gap-3' : ''} px-5 absolute w-full bottom-5 max-md:hidden`}>
                                     {style === 'style-1' && (
@@ -397,7 +349,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                 }}
                                             >
                                                 <span className='text-[11px] lg:text-xs'>
-                                                    Quick Shop
+                                                    Add To Cart
                                                 </span>
                                             </div>
                                             <div
@@ -406,20 +358,15 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                     e.stopPropagation()
                                                 }}
                                             >
-                                                {data.attributes.some(item => item.name.toLowerCase() === "size") &&
-                                                    <div className="list-size flex items-center  flex-wrap gap-2 border-b-line mb-2">
-                                                        <div >Size : </div>
-                                                        {data.attributes.find(item => item.name.toLowerCase() === "size")?.options.map((item: string, index: number) => (
-                                                            <div
-                                                                className={`size-item w-fit h-10 px-3 py-3 text-xs rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeSize === item ? 'active' : ''}`}
-                                                                key={index}
-                                                                onClick={() => handleActiveSize(item)}
-                                                            >
-                                                                {item}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                }
+                                                {/* Dummy quantity selector for quick shop */}
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span>Quantity:</span>
+                                                    <QuantitySelector
+                                                        quantityList={quantities}
+                                                        setQuantity={setQuantity}
+                                                        quantity={quantity}
+                                                    />
+                                                </div>
                                                 {data.attributes.some(item => item.name.toLowerCase() === "color") &&
                                                     <div className="list-size flex items-center  flex-wrap gap-2">
                                                         <div >Color : </div>
@@ -516,7 +463,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                 }}
                                             >
                                                 <div className="list-size flex items-center justify-center flex-wrap gap-2">
-                                                    {data.attributes.find(item => item.name.toLowerCase() === "size")?.options.map((item: string, index: number) => (
+                                                    {/* {data.attributes.find(item => item.name.toLowerCase() === "size")?.options.map((item: string, index: number) => (
                                                         <div
                                                             className={`size-item w-10 h-10 rounded-full flex items-center justify-center text-button bg-white border border-line ${activeSize === item ? 'active' : ''}`}
                                                             key={index}
@@ -524,7 +471,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                         >
                                                             {item}
                                                         </div>
-                                                    ))}
+                                                    ))} */}
                                                 </div>
                                                 <button
                                                     type="button"
@@ -578,7 +525,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                         className="add-cart-btn  w-9 h-9 flex items-center justify-center rounded-lg duration-300 bg-white hover:bg-black hover:text-white"
                                         onClick={e => {
                                             e.stopPropagation();
-                                            if (mobileActionType === 'quick shop') {
+                                            if (mobileActionType.toString() === 'quick shop') {
                                                 setOpenQuickShop(!openQuickShop)
                                             } else {
                                                 handleAddToCart()
@@ -618,7 +565,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                         <div
                                             key={index}
                                             className={`color-item w-6 h-6 rounded-full duration-300 relative ${activeColor === item ? 'active' : ''}`}
-                                            style={{ backgroundColor: `${COLORS[item.toLowerCase().replace(" ", "")] ?? "#000000"}` }}
+                                            style={{ backgroundColor: `${COLORS[item.toLowerCase().replace(" ", "").replace("-", "")] ?? "#000000"}` }}
                                             onClick={(e) => {
                                                 e.stopPropagation()
                                                 handleActiveColor(item)
@@ -709,7 +656,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                 setOpenQuickShop(!openQuickShop)
                                             }}
                                         >
-                                            Quick Shop
+                                            Add To Cart
                                         </div>
                                     )}
                                 </>
@@ -728,20 +675,15 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                 {/* This is your original quick shop content, now passed as children.
               I've removed the outer div and its positioning classes.
             */}
-                {data.attributes.some(item => item.name.toLowerCase() === "size") &&
-                    <div className="list-size flex items-center flex-wrap gap-2 border-b border-line pb-4 mb-4">
-                        <div>Size :</div>
-                        {data.attributes.find(item => item.name.toLowerCase() === "size")?.options.map((item: string, index: number) => (
-                            <button
-                                key={index}
-                                className={`size-item w-10 h-10 text-sm rounded-md flex items-center justify-center border ${activeSize === item ? 'bg-black text-white border-black' : 'bg-white border-line'}`}
-                                onClick={() => handleActiveSize(item)}
-                            >
-                                {item}
-                            </button>
-                        ))}
-                    </div>
-                }
+                {/* Dummy quantity selector for quick shop drawer */}
+                <div className="flex items-center gap-2 mb-4">
+                    <span>Quantity:</span>
+                    <QuantitySelector
+                        quantityList={quantities}
+                        setQuantity={setQuantity}
+                        quantity={quantity}
+                    />
+                </div>
                 {data.attributes.some(item => item.name.toLowerCase() === "color") &&
                     <div className="list-color flex items-center flex-wrap gap-2">
                         <div>Color :</div>
@@ -760,7 +702,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                     type="button"
                     disabled={isAddToCartDisabled}
                     onClick={() => { handleAddToCart(); setOpenQuickShop(false) }}
-                    className={`w-full py-3 mt-5 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${addToCartButtonClasses}`}
+                    className={`w-full py-3 mt-5 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${addToCartButtonClasses} hover:bg-black hover:text-white hover:shadow-lg`}
                 >
                     {addToCartButtonText}
                 </button>

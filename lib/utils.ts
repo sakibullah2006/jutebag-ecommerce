@@ -56,11 +56,11 @@ export function formatPrice(price: number | string): string {
 export const calculatePrice = (product: CartItem) => {
   let price: string | number | undefined;
 
-  if (product.selectedColor || product.selectedSize) {
+  if (product.selectedColor) {
     if (product.selectedVariation?.on_sale) {
       price = product.selectedVariation.sale_price;
-    } else if ((product.selectedColor || product.selectedSize) && !product.selectedVariation) {
-      price = product.price
+    } else if (product.selectedColor && !product.selectedVariation) {
+      price = product.price;
     } else {
       price = product.selectedVariation?.regular_price ?? product.selectedVariation?.price;
     }

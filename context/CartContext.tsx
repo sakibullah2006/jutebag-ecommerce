@@ -7,7 +7,6 @@ import { getAllProductsPaginated } from '@/actions/products-actions';
 // --- Interfaces ---
 export interface CartItem extends ProductType {
     quantity: number;
-    selectedSize: string;
     selectedColor: string;
     variation_id?: string;
     selectedVariation?: VariationProduct;
@@ -24,13 +23,12 @@ type CartAction =
         payload: {
             product: ProductType;
             quantity: number;
-            selectedSize: string;
             selectedColor: string;
             variation_id?: string;
             selectedVariation?: VariationProduct;
         }
     }
-    | { type: 'UPDATE_QUANTITY'; payload: { itemId: string; quantity: number } }
+    | { type: 'UPDATE_QUANTITY'; payload: { itemId: string; quantity: number; variation_id?: string } }
     | { type: 'REMOVE_FROM_CART'; payload: { itemId: string, variation_id?: string } }
     | { type: 'LOAD_CART'; payload: CartItem[] }
     | { type: 'CLEAR_CART' };
@@ -41,13 +39,12 @@ interface CartContextProps {
     addToCart: (
         product: ProductType,
         quantity: number,
-        selectedSize: string,
         selectedColor: string,
         variation_id?: string,
         selectedVariation?: VariationProduct
     ) => void;
     removeFromCart: (itemId: string, variation_id?: string) => void;
-    updateCart: (itemId: string, quantity: number) => void;
+    updateCart: (itemId: string, quantity: number, variation_id?: string) => void;
     clearCart: () => void;
 }
 
@@ -64,7 +61,7 @@ const CartContext = createContext<CartContextProps | undefined>(undefined);
 const cartReducer = (state: CartState, action: CartAction): CartState => {
     switch (action.type) {
         case 'ADD_OR_UPDATE_CART': {
-            const { product, quantity, selectedSize, selectedColor, variation_id, selectedVariation } = action.payload;
+            const { product, quantity, selectedColor, variation_id, selectedVariation } = action.payload;
             const findIndex = state.cartArray.findIndex(item => item.id === product.id && (item.variation_id ?? null) === (variation_id ?? null));
 
             if (findIndex > -1) {
@@ -72,20 +69,39 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
                 newCartArray[findIndex].quantity += quantity;
                 return { ...state, cartArray: newCartArray };
             } else {
-                const newItem: CartItem = { ...product, quantity, selectedSize, selectedColor, variation_id, selectedVariation };
+                const newItem: CartItem = { ...product, quantity, selectedColor, variation_id, selectedVariation };
                 return { ...state, cartArray: [...state.cartArray, newItem] };
             }
         }
         case 'UPDATE_QUANTITY': {
-            const { itemId, quantity } = action.payload;
+            const { itemId, quantity, variation_id } = action.payload;
             if (quantity <= 0) {
-                return { ...state, cartArray: state.cartArray.filter(item => item.id.toString() !== itemId) };
+                return {
+                    ...state,
+                    cartArray: state.cartArray.filter(item => {
+                        if (item.id.toString() !== itemId) return true;
+                        if (variation_id && item.variation_id) {
+                            return item.variation_id !== variation_id;
+                        }
+                        return false;
+                    })
+                };
             }
             return {
                 ...state,
-                cartArray: state.cartArray.map(item =>
-                    item.id.toString() === itemId ? { ...item, quantity } : item
-                ),
+                cartArray: state.cartArray.map(item => {
+                    if (item.id.toString() === itemId) {
+                        if (variation_id) {
+                            if (item.variation_id === variation_id) {
+                                return { ...item, quantity };
+                            }
+                            return item;
+                        }
+                        // If no variation_id provided, update all with matching id
+                        return { ...item, quantity };
+                    }
+                    return item;
+                })
             };
         }
         case 'REMOVE_FROM_CART':
@@ -145,16 +161,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         refreshCartData();
     }, [isHydrated, cartState.cartArray]);
 
-    const addToCart = (product: ProductType, quantity: number, selectedSize: string, selectedColor: string, variation_id?: string, selectedVariation?: VariationProduct) => {
-        dispatch({ type: 'ADD_OR_UPDATE_CART', payload: { product, quantity, selectedSize, selectedColor, variation_id, selectedVariation } });
+    const addToCart = (product: ProductType, quantity: number, selectedColor: string, variation_id?: string, selectedVariation?: VariationProduct) => {
+        dispatch({ type: 'ADD_OR_UPDATE_CART', payload: { product, quantity, selectedColor, variation_id, selectedVariation } });
     };
 
     const removeFromCart = (itemId: string, variation_id?: string) => {
         dispatch({ type: 'REMOVE_FROM_CART', payload: { itemId, variation_id } });
     };
 
-    const updateCart = (itemId: string, quantity: number) => {
-        dispatch({ type: 'UPDATE_QUANTITY', payload: { itemId, quantity } });
+    const updateCart = (itemId: string, quantity: number, variation_id?: string) => {
+        dispatch({ type: 'UPDATE_QUANTITY', payload: { itemId, quantity, variation_id } });
     };
 
     const clearCart = () => {

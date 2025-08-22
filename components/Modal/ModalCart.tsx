@@ -114,7 +114,7 @@ const ModalCart = () => {
                                         <div className="infor flex items-center gap-3 w-full">
                                             <div className="bg-img w-[100px] aspect-square flex-shrink-0 rounded-lg overflow-hidden">
                                                 <Image
-                                                    src={product.images[0].src}
+                                                    src={product.selectedVariation?.image.src || product.images[0].src}
                                                     width={300}
                                                     height={300}
                                                     alt={product.name}
@@ -133,7 +133,7 @@ const ModalCart = () => {
                                                 </div>
                                                 <div className="flex items-center justify-between gap-2 mt-3 w-full">
                                                     <div className="flex items-center text-secondary2 capitalize">
-                                                        {product.selectedColor ?? ''}{product.attributes.length > 1 ? "/" : ""}{(product.selectedSize ?? '')}
+                                                        {product.selectedColor ?? ''}
                                                     </div>
                                                     <div className="product-price text-title">
                                                         {decodeHtmlEntities(currentCurrency!.symbol)}{calculatePrice(product).toFixed(2)}
