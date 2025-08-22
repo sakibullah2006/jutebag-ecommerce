@@ -9,8 +9,7 @@ import { useModalQuickviewContext } from '@/context/ModalQuickviewContext';
 import { useModalWishlistContext } from '@/context/ModalWishlistContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAppData } from '@/context/AppDataContext';
-import { ProductType } from '@/types/ProductType';
-import { Product as ProductType2, VariationProduct } from '@/types/product-type';
+import { Product, VariationProduct } from '@/types/product-type';
 import { decodeHtmlEntities } from '@/lib/utils';
 import { getProductVariationsById } from '@/actions/products-actions';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
@@ -21,6 +20,8 @@ import ModalPrintguide from './ModalPrintguide';
 import VariationSkeleton from '../Other/VariationSkeleton';
 import parse from 'html-react-parser';
 import { useRouter } from 'next/navigation';
+import { getQuantityList } from '@/lib/productUtils';
+import QuantitySelector from '../extra/quantitySelector';
 
 const ModalQuickview = () => {
     const [photoIndex, setPhotoIndex] = useState(0)
@@ -30,10 +31,9 @@ const ModalQuickview = () => {
     const [isLoadingVariations, setIsLoadingVariations] = useState(false)
     const { selectedProduct, closeQuickview } = useModalQuickviewContext()
     const [activeColor, setActiveColor] = useState<string>('')
-    const [activeSize, setActiveSize] = useState<string>('')
     const [quantity, setQuantity] = useState(1)
     const [selectedVariation, setSelectedVariation] = useState<VariationProduct | null>(null)
-    const { currentCurrency } = useAppData()
+    const { currentCurrency, allCountries } = useAppData()
     const { addToCart, updateCart, cartState } = useCart()
     const { openModalCart } = useModalCartContext()
     const { addToWishlist, removeFromWishlist, wishlistState } = useWishlist()
@@ -43,7 +43,11 @@ const ModalQuickview = () => {
     const router = useRouter()
 
     const isColorReq = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === "color") || false
-    const isSizeReq = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === "size") || false
+
+    const quantities = selectedProduct ? getQuantityList(
+        Number(selectedProduct.production_details?.printScreenDetails?.[0]?.quantity) || 1,
+        Number(selectedVariation?.stock_quantity && selectedVariation?.stock_quantity || selectedProduct.stock_quantity) || 0
+    ) : [1]
 
 
     // useEffect(() => {
@@ -93,10 +97,6 @@ const ModalQuickview = () => {
         if (selectedProduct) {
             const colorAttr = selectedProduct.attributes?.find(attr => attr.name.toLowerCase() === "color");
             setActiveColor(colorAttr?.options[0] || '');
-
-            const sizeAttr = selectedProduct.attributes?.find(attr => attr.name.toLowerCase() === "size");
-            setActiveSize(sizeAttr?.options[0] || '');
-
             setQuantity(1);
         }
 
@@ -105,46 +105,32 @@ const ModalQuickview = () => {
 
 
 
-    // Find matching variation based on activeColor or activeSize
+    // Find matching variation based on activeColor only
     const findMatchingVariation = useCallback(() => {
-        // If there are no variations loaded, we can't find a match.
-        if (!variations || variations?.length === 0) return null;
-
-        // Check if the product is supposed to have color and size variations
+        if (!variations || variations.length === 0) return null;
         const hasColorAttribute = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === 'color' && attr.variation);
-        const hasSizeAttribute = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === 'size' && attr.variation);
-
-        // Find a variation where every required attribute matches the active state.
-        const matchingVariant = variations?.find((variation) => {
-            // A variation is a match if its color and size match the active selection.
-            // If an attribute doesn't exist for variations (e.g., only color, no size), it's considered a match.
+        const matchingVariant = variations.find((variation) => {
             const colorMatch = !hasColorAttribute || variation.attributes.some(
                 attr => attr.name.toLowerCase() === 'color' && attr.option === activeColor
             );
-            const sizeMatch = !hasSizeAttribute || variation.attributes.some(
-                attr => attr.name.toLowerCase() === 'size' && attr.option === activeSize
-            );
-            return colorMatch && sizeMatch;
+            return colorMatch;
         });
-
         return matchingVariant ?? null;
-    }, [selectedProduct, activeColor, activeSize, variations]);
+    }, [selectedProduct, activeColor, variations]);
 
     useEffect(() => {
         if (!selectedProduct || !selectedProduct.variations || selectedProduct.variations.length === 0) {
             return;
         }
-        // Find the first variation that matches the active color and size
         if (variations && variations.length > 0) {
             const initialVariation = findMatchingVariation();
             if (initialVariation) {
                 setSelectedVariation(initialVariation);
             }
         }
-    }, [selectedProduct, findMatchingVariation, variations, activeColor, activeSize]);
+    }, [selectedProduct, findMatchingVariation, variations, activeColor]);
 
     useEffect(() => {
-        // Find the variation that matches the active color and size
         const matchingVariation = findMatchingVariation();
         if (matchingVariation) {
             setSelectedVariation(matchingVariation);
@@ -153,7 +139,16 @@ const ModalQuickview = () => {
         }
     }, [findMatchingVariation])
 
-    const percentSale = selectedProduct ? Math.floor(100 - ((Number(selectedProduct?.sale_price || findMatchingVariation()?.sale_price) / Number(selectedProduct?.regular_price || findMatchingVariation()?.regular_price)) * 100)) : 0
+    const percentSale = selectedProduct ? (() => {
+        const matchingVariation = findMatchingVariation();
+        const salePrice = Number(selectedProduct?.sale_price || matchingVariation?.sale_price);
+        const regularPrice = Number(selectedProduct?.regular_price || matchingVariation?.regular_price);
+
+        if (regularPrice && salePrice && regularPrice > salePrice) {
+            return Math.floor(100 - ((salePrice / regularPrice) * 100));
+        }
+        return 0;
+    })() : 0;
 
 
     // const handleOpenSizeGuide = () => {
@@ -164,85 +159,40 @@ const ModalQuickview = () => {
     //     setOpenSizeGuide(false);
     // };
 
-    // This "smart" handler updates the color and ensures the selected size is still valid.
+    // Handler for color selection only
     const handleActiveColor = (newColor: string) => {
         setActiveColor(newColor);
-
-        // Find all sizes that are available with the newly selected color
-        const availableSizes = new Set(
-            variations?.filter(v => v.attributes.some(a => a.name.toLowerCase() === 'color' && a.option === newColor))
-                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'size')?.option)
-                .filter((s): s is string => !!s)
-        );
-
-        // If the current size is not in the list of available sizes for the new color,
-        // automatically switch to the first available size.
-        if (availableSizes.size > 0 && !availableSizes.has(activeSize)) {
-            setActiveSize(Array.from(availableSizes)[0]);
-        }
-    };
-
-    // This "smart" handler updates the size and ensures the selected color is still valid.
-    const handleActiveSize = (newSize: string) => {
-        setActiveSize(newSize);
-
-        // Find all colors that are available with the newly selected size
-        const availableColors = new Set(
-            variations?.filter(v => v.attributes.some(a => a.name.toLowerCase() === 'size' && a.option === newSize))
-                .map(v => v.attributes.find(a => a.name.toLowerCase() === 'color')?.option)
-                .filter((c): c is string => !!c)
-        );
-
-        // If the current color is not in the list of available colors for the new size,
-        // automatically switch to the first available color.
-        if (availableColors.size > 0 && !availableColors.has(activeColor)) {
-            setActiveColor(Array.from(availableColors)[0]);
-        }
-    };
-
-    const handleIncreaseQuantity = () => {
-        setQuantity(quantity + 1);
-    };
-
-    const handleDecreaseQuantity = () => {
-        if (quantity > 1) {
-            setQuantity(quantity - 1);
-        }
     };
 
     const handleAddToCart = () => {
         if (selectedProduct) {
-            const cartVariation = findMatchingVariation()
-
+            const cartVariation = findMatchingVariation();
             addToCart(
-                selectedProduct as unknown as ProductType2, // The base product data
+                selectedProduct, // The base product data
                 quantity,
-                activeSize,
                 activeColor,
                 cartVariation?.id?.toString(),
                 cartVariation ?? undefined
             );
-            openModalCart()
-            closeQuickview()
+            openModalCart();
+            closeQuickview();
         }
     };
 
     const handleBuyNow = () => {
         if (selectedProduct) {
-            const cartVariation = findMatchingVariation()
-
+            const cartVariation = findMatchingVariation();
             addToCart(
-                selectedProduct as unknown as ProductType2, // The base product data
+                selectedProduct, // The base product data
                 quantity,
-                activeSize,
                 activeColor,
                 cartVariation?.id?.toString(),
                 cartVariation ?? undefined
             );
-            router.push("/checkout")
-            closeQuickview()
+            router.push("/checkout");
+            closeQuickview();
         }
-    }
+    };
 
     const handleAddToWishlist = () => {
         if (selectedProduct) {
@@ -251,7 +201,7 @@ const ModalQuickview = () => {
                 removeFromWishlist(selectedProduct.id.toString());
             } else {
                 // else, add to wishlist and set state to true
-                addToWishlist(selectedProduct as unknown as ProductType2);
+                addToWishlist(selectedProduct);
             }
             openModalWishlist();
         }
@@ -262,20 +212,13 @@ const ModalQuickview = () => {
         setVariations([]);
         setSelectedVariation(null);
         setActiveColor('');
-        setActiveSize('');
         setQuantity(1);
 
         // ✨ 3. Call the original context function to finish closing
         closeQuickview();
     };
 
-    const handleOpenSizeGuide = () => {
-        setOpenSizeGuide(true);
-    };
 
-    const handleCloseSizeGuide = () => {
-        setOpenSizeGuide(false);
-    };
 
     return (
         <>
@@ -349,7 +292,7 @@ const ModalQuickview = () => {
                                                     <div className="product-origin-price font-normal text-secondary2">
                                                         <del>
                                                             {currentCurrency ? decodeHtmlEntities(currentCurrency.symbol) : '$'}
-                                                            {Number(selectedVariation?.regular_price || selectedProduct?.regular_price || selectedProduct?.price).toFixed(2)}
+                                                            {Number(selectedVariation?.regular_price || selectedProduct?.regular_price).toFixed(2)}
                                                         </del>
                                                     </div>
                                                     <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
@@ -360,6 +303,39 @@ const ModalQuickview = () => {
                                         </>
                                     )}
                                     <div className='desc text-secondary parsed-html mt-3'>{selectedProduct?.short_description ? parse(selectedProduct.short_description) : parse(selectedProduct?.description.toString().slice(0, 200) + "...")}</div>
+
+                                    <div className=' w-full my-3'>
+                                        <div className="item bg-surface flex items-center gap-8 py-3 px-10">
+                                            <div className="text-title sm:w-1/4 w-1/3">Fabric</div>
+                                            <div className="flex items-center gap-1">
+                                                <p>{selectedProduct?.production_details?.fabric || 'N/A'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="item flex items-center gap-8 py-3 px-10">
+                                            <div className="text-title sm:w-1/4 w-1/3">Handles</div>
+                                            <p>{selectedProduct?.production_details?.handles || 'N/A'}</p>
+                                        </div>
+                                        <div className="item bg-surface flex items-center gap-8 py-3 px-10">
+                                            <div className="text-title sm:w-1/4 w-1/3">Size</div>
+                                            <p>{selectedProduct?.production_details?.size || 'N/A'}</p>
+                                        </div>
+
+                                        <div className="item flex items-center gap-8 py-3 px-10">
+                                            <div className="text-title sm:w-1/4 w-fit">Manufacturer</div>
+                                            <p>{allCountries.find((con => con.code === selectedProduct?.production_details?.manufacturer?.countryCode))?.name}</p>
+                                        </div>
+
+                                        <div className="item bg-surface flex justify-center gap-8 pl-8 py-0">
+                                            <div className="text-title sm:w-1/4 w-1/3 py-3">Print Details</div>
+                                            <div
+                                                onClick={() => setOpenSizeGuide(true)}
+                                                className='flex w-full justify-center rounded-md cursor-pointer items-center  py-0 text-white bg-black'
+                                            >
+                                                See Details
+                                            </div>
+                                        </div>
+                                        {selectedProduct && <ModalPrintguide data={selectedProduct} isOpen={openSizeGuide} onClose={() => setOpenSizeGuide(false)} />}
+                                    </div>
                                 </div>
                                 <div className="list-action mt-6">
                                     {isLoadingVariations && selectedProduct?.variations && selectedProduct.variations.length > 0 ? (
@@ -382,65 +358,35 @@ const ModalQuickview = () => {
                                                     </div>
                                                 </div>
                                             )}
-                                            {selectedProduct?.attributes?.some(item => item.name.toLowerCase() === "size") && (
-                                                <div className="choose-size mt-5">
-                                                    {/* <div className="text-title">Size: <span className='text-title size'>{activeSize}</span></div> */}
-                                                    <div className="heading flex items-center justify-between">
-                                                        <div className="text-title">Size: <span className='text-title size'>{activeSize}</span></div>
-                                                        <div
-                                                            className="caption1 size-guide text-red underline cursor-pointer"
-                                                            onClick={handleOpenSizeGuide}
-                                                        >
-                                                            Size Guide
-                                                        </div>
-                                                        <ModalPrintguide data={selectedProduct} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
-                                                    </div>
-                                                    <div className="list-size flex items-center gap-2 flex-wrap mt-3">
-                                                        {selectedProduct?.attributes?.find(item => item.name.toLowerCase() === "size")?.options.map((item, index) => (
-                                                            <div
-                                                                className={`size-item ${item === 'freesize' ? 'px-3 py-2' : 'w-12 h-12'} flex items-center justify-center text-button rounded-full bg-white border border-line ${activeSize === item ? 'active' : ''}`}
-                                                                key={index}
-                                                                onClick={() => handleActiveSize(item)}
-                                                            >
-                                                                {item}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
                                         </>
                                     )}
                                     <div className="text-title mt-5">Quantity:</div>
                                     <div className="choose-quantity flex items-center max-xl:flex-wrap lg:justify-between gap-5 mt-3">
-                                        <div className="quantity-block md:p-3 max-md:py-1.5 max-md:px-3 flex items-center justify-between rounded-lg border border-line sm:w-[180px] w-[120px] flex-shrink-0">
-                                            <Icon.Minus
-                                                onClick={!isLoadingVariations ? handleDecreaseQuantity : undefined}
-                                                className={`${quantity === 1 || isLoadingVariations ? 'disabled' : ''} cursor-pointer body1`}
-                                            />
-                                            <div className="body1 font-semibold">{quantity}</div>
-                                            <Icon.Plus
-                                                onClick={!isLoadingVariations ? handleIncreaseQuantity : undefined}
-                                                className={`${quantity === selectedProduct?.stock_quantity || isLoadingVariations ? 'disabled' : ''} cursor-pointer body1`}
-                                            />
-                                        </div>
+                                        <QuantitySelector
+                                            quantityList={quantities}
+                                            setQuantity={setQuantity}
+                                            quantity={quantity}
+                                        />
+
                                         <button
                                             type="button"
-                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)}
+                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0)}
                                             onClick={handleAddToCart}
-                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)
+                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0)
                                                 ? "bg-surface text-secondary2 border"
                                                 : "bg-white text-black border border-black"
                                                 }`}
                                         >
                                             {isLoadingVariations ? "Loading..." : (selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 ? "Out Of Stock" : "Add To Cart")}
                                         </button>
+
                                     </div>
                                     <div className="button-block mt-5">
                                         <button
                                             onClick={handleBuyNow}
                                             type="button"
-                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)}
-                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0) || (isSizeReq && activeSize.length === 0)
+                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0)}
+                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0)
                                                 ? "bg-surface text-secondary2 border"
                                                 : "bg-black text-white"
                                                 }`}

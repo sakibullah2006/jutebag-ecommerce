@@ -150,7 +150,15 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
         router.push(`/product/${productId}`);
     };
 
-    const percentSale = Math.floor(100 - ((Number(data.sale_price || selectedVariation?.sale_price) / Number(data.regular_price || selectedVariation?.regular_price)) * 100))
+    const percentSale = (() => {
+        const salePrice = Number(data.sale_price || selectedVariation?.sale_price);
+        const regularPrice = Number(data.regular_price || selectedVariation?.regular_price);
+
+        if (regularPrice && salePrice && regularPrice > salePrice) {
+            return Math.floor(100 - ((salePrice / regularPrice) * 100));
+        }
+        return 0;
+    })();
     const percentSold = Math.floor((data.total_sales / data.stock_quantity!) * 100)
 
     const isAddToCartDisabled =
@@ -603,9 +611,9 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                             {!isNull(selectedVariation) ?
                                 (<div className="product-price-block flex items-center gap-2 flex-wrap mt-1 duration-300 relative z-[1]">
                                     <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{selectedVariation.on_sale ? Number(selectedVariation.sale_price).toFixed(2) : Number(selectedVariation.price).toFixed(2)}</div>
-                                    {selectedVariation.on_sale && percentSale > 0 && (
+                                    {selectedVariation.on_sale && percentSale > 0 && selectedVariation.regular_price && (
                                         <>
-                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(selectedVariation.price).toFixed(2)}</del></div>
+                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(selectedVariation.regular_price).toFixed(2)}</del></div>
                                             <div className="product-sale caption1 font-medium bg-green px-3 py-0.5 inline-block rounded-full">
                                                 -{percentSale}%
                                             </div>
@@ -614,13 +622,13 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                 </div>) :
                                 (<div className="product-price-block flex items-center gap-2 flex-wrap mt-1 duration-300 relative z-[1]">
                                     {data.variations && data.variations.length > 0 ?
-                                        <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{data.on_sale ? Number(data.price).toFixed(2) : Number(data.price).toFixed(2)}</div>
+                                        <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{data.on_sale ? Number(data.sale_price).toFixed(2) : Number(data.price).toFixed(2)}</div>
                                         :
                                         <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{data.on_sale ? Number(data.sale_price).toFixed(2) : Number(data.price).toFixed(2)}</div>
                                     }
-                                    {data.on_sale && percentSale > 0 && (
+                                    {data.on_sale && percentSale > 0 && data.regular_price && (
                                         <>
-                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(data.price).toFixed(2)}</del></div>
+                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(data.regular_price).toFixed(2)}</del></div>
                                             <div className="product-sale caption1 font-medium bg-green px-3 py-0.5 inline-block rounded-full">
                                                 -{percentSale}%
                                             </div>

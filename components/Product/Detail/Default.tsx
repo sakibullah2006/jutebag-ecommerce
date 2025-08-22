@@ -147,7 +147,16 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
     const reviewsInfo = calculateReviews();
     // const percentSale = Math.floor(100 - ((data.price / data?.originPrice) * 100))
-    const percentSale = Math.floor(100 - ((Number(data.sale_price || findMatchingVariation()?.sale_price) / Number(data.regular_price || findMatchingVariation()?.regular_price)) * 100))
+    const percentSale = (() => {
+        const matchingVariation = findMatchingVariation();
+        const salePrice = Number(data.sale_price || matchingVariation?.sale_price);
+        const regularPrice = Number(data.regular_price || matchingVariation?.regular_price);
+
+        if (regularPrice && salePrice && regularPrice > salePrice) {
+            return Math.floor(100 - ((salePrice / regularPrice) * 100));
+        }
+        return 0;
+    })();
 
 
     const handleSwiper = (swiper: SwiperCore) => {
@@ -343,7 +352,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                         <div className="product-origin-price font-normal text-secondary2">
                                             <del>
                                                 {decodeHtmlEntities(currentCurrency!.symbol)}
-                                                {Number(selectedVariation?.regular_price || data.regular_price || data.price).toFixed(2)}
+                                                {Number(selectedVariation?.regular_price || data.regular_price).toFixed(2)}
                                             </del>
                                         </div>
                                         <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
