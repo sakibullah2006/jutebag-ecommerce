@@ -18,7 +18,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import Marquee from 'react-fast-marquee'
 import { useAppData } from '../../context/AppDataContext'
 import { QuickShopDrawer } from './QuickShopDrawer'
-import { getQuantityList } from '../../lib/productUtils'
+import { getAvailableQuantities, isValidQuantityForCart } from '../../lib/productUtils'
 import QuantitySelector from '../extra/quantitySelector'
 
 interface ProductProps {
@@ -61,7 +61,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     const [isloading, setIsLoading] = useState<boolean>(false)
     const isColorReq = data.attributes?.some(attr => attr.name.toLowerCase() === "color")
     const router = useRouter()
-    const quantities = getQuantityList(
+    const quantities = getAvailableQuantities(
         Number(data.production_details?.printScreenDetails?.[0]?.quantity) || 1,
         Number(selectedVariation?.stock_quantity && selectedVariation?.stock_quantity || data.stock_quantity) || 0
     )
@@ -80,6 +80,13 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
             setSelectedVariation(matchingVariation);
         }
     }, [activeColor]);
+
+    // Ensure quantity is set when quantities become available
+    useEffect(() => {
+        if (quantities.length > 0 && (quantity === 0 || !quantities.includes(quantity))) {
+            setQuantity(quantities[0]);
+        }
+    }, [quantities, quantity]);
 
 
     const fetchVariations = useCallback(async () => {
@@ -118,6 +125,11 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     };
 
     const handleAddToCart = () => {
+        // Additional validation before adding to cart
+        if (!isValidQuantityForCart(quantity, quantities)) {
+            return;
+        }
+
         const cartVariation = findMatchingVariation();
         addToCart(
             data,
@@ -164,9 +176,11 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     const isAddToCartDisabled =
         data.stock_status === "outofstock" ||
         !data.purchasable ||
-        (isColorReq && !activeColor);
+        (isColorReq && !activeColor) ||
+        !isValidQuantityForCart(quantity, quantities);
 
-    const addToCartButtonText = data.stock_status === "outofstock" ? "Out Of Stock" : "Add To Cart";
+    const addToCartButtonText = data.stock_status === "outofstock" ? "Out Of Stock" :
+        !isValidQuantityForCart(quantity, quantities) ? "Select Quantity" : "Add To Cart";
 
     const addToCartButtonClasses = isAddToCartDisabled
         ? "bg-surface text-secondary2 border"
@@ -380,7 +394,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                         <div>Color: </div>
                                                         {data.attributes.find(item => item.name.toLowerCase() === "color")?.options.map((item: string, index: number) => (
                                                             <div
-                                                                className={`color-item w-fit h-10 text-xs overflow-ellipsis py-4 px-3 rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeColor === item ? 'active' : ''}`}
+                                                                className={`color-item w-fit h-10 text-xs overflow-ellipsis py-4 px-3 rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeColor === item ? 'active bg-black-700 text-white' : ''}`}
                                                                 key={index}
                                                                 onClick={() => handleActiveColor(item)}
                                                             >

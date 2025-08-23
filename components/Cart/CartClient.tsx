@@ -12,7 +12,7 @@ import { calculatePrice, cn, decodeHtmlEntities } from '@/lib/utils'
 import { validateCoupon } from '@/actions/coupon'
 import { PATH } from '../../constant/pathConstants'
 import QuantitySelector from '../extra/quantitySelector'
-import { getQuantityList } from '../../lib/productUtils'
+import { getAvailableQuantities } from '../../lib/productUtils'
 
 interface CouponData {
     id: string
@@ -203,7 +203,7 @@ const CartClient = () => {
 
                                                     <QuantitySelector
                                                         quantityList={
-                                                            getQuantityList(
+                                                            getAvailableQuantities(
                                                                 Number(product.production_details?.printScreenDetails?.[0]?.quantity),
                                                                 Number(product?.selectedVariation && product?.selectedVariation.stock_quantity || product.stock_quantity)
                                                             )

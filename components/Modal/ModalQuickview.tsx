@@ -20,7 +20,7 @@ import ModalPrintguide from './ModalPrintguide';
 import VariationSkeleton from '../Other/VariationSkeleton';
 import parse from 'html-react-parser';
 import { useRouter } from 'next/navigation';
-import { getQuantityList } from '@/lib/productUtils';
+import { getAvailableQuantities, isValidQuantityForCart } from '@/lib/productUtils';
 import QuantitySelector from '../extra/quantitySelector';
 
 const ModalQuickview = () => {
@@ -45,7 +45,7 @@ const ModalQuickview = () => {
 
     const isColorReq = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === "color") || false
 
-    const quantities = selectedProduct ? getQuantityList(
+    const quantities = selectedProduct ? getAvailableQuantities(
         Number(selectedProduct.production_details?.printScreenDetails?.[0]?.quantity) || 1,
         Number(selectedVariation?.stock_quantity && selectedVariation?.stock_quantity || selectedProduct.stock_quantity) || 0
     ) : [1]
@@ -185,6 +185,13 @@ const ModalQuickview = () => {
         }
     }, [findMatchingVariation])
 
+    // Ensure quantity is set when quantities become available
+    useEffect(() => {
+        if (quantities.length > 0 && (quantity === 0 || !quantities.includes(quantity))) {
+            setQuantity(quantities[0]);
+        }
+    }, [quantities, quantity]);
+
     const percentSale = selectedProduct ? (() => {
         const matchingVariation = findMatchingVariation();
         const salePrice = Number(selectedProduct?.sale_price || matchingVariation?.sale_price);
@@ -212,6 +219,11 @@ const ModalQuickview = () => {
 
     const handleAddToCart = () => {
         if (selectedProduct) {
+            // Additional validation before adding to cart
+            if (!isValidQuantityForCart(quantity, quantities)) {
+                return;
+            }
+
             const cartVariation = findMatchingVariation();
             addToCart(
                 selectedProduct, // The base product data
@@ -227,6 +239,11 @@ const ModalQuickview = () => {
 
     const handleBuyNow = () => {
         if (selectedProduct) {
+            // Additional validation before buy now
+            if (!isValidQuantityForCart(quantity, quantities)) {
+                return;
+            }
+
             const cartVariation = findMatchingVariation();
             addToCart(
                 selectedProduct, // The base product data
@@ -419,14 +436,14 @@ const ModalQuickview = () => {
 
                                         <button
                                             type="button"
-                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0)}
+                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || !isValidQuantityForCart(quantity, quantities)}
                                             onClick={handleAddToCart}
-                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0)
+                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0) || !isValidQuantityForCart(quantity, quantities)
                                                 ? "bg-surface text-secondary2 border"
                                                 : "bg-white text-black border border-black"
                                                 }`}
                                         >
-                                            {isLoadingVariations ? "Loading..." : (selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 ? "Out Of Stock" : "Add To Cart")}
+                                            {isLoadingVariations ? "Loading..." : (selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 ? "Out Of Stock" : !isValidQuantityForCart(quantity, quantities) ? "Select Quantity" : "Add To Cart")}
                                         </button>
 
                                     </div>
@@ -434,13 +451,13 @@ const ModalQuickview = () => {
                                         <button
                                             onClick={handleBuyNow}
                                             type="button"
-                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0)}
-                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0)
+                                            disabled={isLoadingVariations || selectedProduct?.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || !isValidQuantityForCart(quantity, quantities)}
+                                            className={`button-main w-full text-center ${isLoadingVariations || selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 || !selectedProduct?.purchasable || (isColorReq && activeColor.length === 0) || !isValidQuantityForCart(quantity, quantities)
                                                 ? "bg-surface text-secondary2 border"
                                                 : "bg-black text-white"
                                                 }`}
                                         >
-                                            {isLoadingVariations ? "Loading..." : (selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 ? "Out Of Stock" : "Buy It Now")}
+                                            {isLoadingVariations ? "Loading..." : (selectedProduct?.stock_status === "outofstock" || selectedProduct?.stock_quantity === 0 ? "Out Of Stock" : !isValidQuantityForCart(quantity, quantities) ? "Select Quantity" : "Buy It Now")}
                                         </button>
                                     </div>
                                     <div className="flex items-center flex-wrap lg:gap-20 gap-8 gap-y-4 mt-5">

@@ -23,7 +23,7 @@ import ReviewForm from '../ReviewForm'
 import { useCart } from '@/context/CartContext'
 import { useAppData } from '@/context/AppDataContext'
 import { useRouter } from 'next/navigation'
-import { getQuantityList } from '../../../lib/productUtils'
+import { getAvailableQuantities, isValidQuantityForCart } from '../../../lib/productUtils'
 import QuantitySelector from '../../extra/quantitySelector'
 import ModalPrintguide from '../../Modal/ModalPrintguide'
 
@@ -65,7 +65,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     const { openModalWishlist } = useModalWishlistContext()
     const isColorReq = data.attributes?.some(attr => attr.name.toLowerCase() === "color")
     const router = useRouter();
-    const quantities = getQuantityList(
+    const quantities = getAvailableQuantities(
         Number(data.production_details?.printScreenDetails?.[0]?.quantity) || 1,
         Number(selectedVariation?.stock_quantity && selectedVariation?.stock_quantity || data.stock_quantity) || 0
     )
@@ -140,6 +140,13 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
         }
     }, [activeColor, findMatchingVariation])
 
+    // Ensure quantity is set when quantities become available
+    useEffect(() => {
+        if (quantities.length > 0 && (quantity === 0 || !quantities.includes(quantity))) {
+            setQuantity(quantities[0]);
+        }
+    }, [quantities, quantity]);
+
 
     const onReviewSubmitted = (review: ProductReview) => {
         setReviews((prevReviews) => [...prevReviews, review]);
@@ -179,6 +186,11 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     };
 
     const handleAddToCart = () => {
+        // Additional validation before adding to cart
+        if (!isValidQuantityForCart(quantity, quantities)) {
+            return;
+        }
+
         const cartVariation = findMatchingVariation();
         addToCart(
             data,
@@ -191,6 +203,11 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     };
 
     const handleBuyNow = () => {
+        // Additional validation before buy now
+        if (!isValidQuantityForCart(quantity, quantities)) {
+            return;
+        }
+
         const cartVariation = findMatchingVariation();
         addToCart(
             data,
@@ -431,28 +448,30 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
                                     <button
                                         type="button"
-                                        disabled={data.stock_status === "outofstock" || (isColorReq && activeColor.length === 0)}
+                                        disabled={data.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || !isValidQuantityForCart(quantity, quantities)}
                                         onClick={handleAddToCart}
-                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable || (isColorReq && activeColor.length === 0)
+                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable || (isColorReq && activeColor.length === 0) || !isValidQuantityForCart(quantity, quantities)
                                             ? "bg-surface text-secondary2 border"
                                             : "bg-black text-white hover:bg-green-300"
                                             }`}
                                     >
-                                        {data.stock_status === "outofstock" || data.stock_quantity === 0 ? "Out Of Stock" : "Add To Cart"}
+                                        {data.stock_status === "outofstock" || data.stock_quantity === 0 ? "Out Of Stock" :
+                                            !isValidQuantityForCart(quantity, quantities) ? "Select Quantity" : "Add To Cart"}
                                     </button>
 
                                 </div>
                                 <div className="button-block mt-5">
                                     <button
                                         type="button"
-                                        disabled={data.stock_status === "outofstock" || (isColorReq && activeColor.length === 0)}
+                                        disabled={data.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || !isValidQuantityForCart(quantity, quantities)}
                                         onClick={handleBuyNow}
-                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable || (isColorReq && activeColor.length === 0)
+                                        className={`button-main w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-100 disabled:pointer-events-none ${data.stock_status === "outofstock" || data.stock_quantity === 0 || !data.purchasable || (isColorReq && activeColor.length === 0) || !isValidQuantityForCart(quantity, quantities)
                                             ? "bg-surface text-secondary2 border"
                                             : "bg-black text-white hover:bg-green-300"
                                             }`}
                                     >
-                                        {data.stock_status === "outofstock" || data.stock_quantity === 0 ? "Out Of Stock" : "Buy It Now"}
+                                        {data.stock_status === "outofstock" || data.stock_quantity === 0 ? "Out Of Stock" :
+                                            !isValidQuantityForCart(quantity, quantities) ? "Select Quantity" : "Buy It Now"}
                                     </button>
                                 </div>
                                 <div className="flex items-center lg:gap-20 gap-8 mt-5 pb-6 border-b border-line">
