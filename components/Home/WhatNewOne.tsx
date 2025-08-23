@@ -18,25 +18,18 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
     const { categories } = useAppData()
     const commonCategories = categories?.filter(cat => cat.slug.toLowerCase().split("_").includes("common")).sort((a, b) => b.count - a.count)?.slice(0, 5)
     const [activeTab, setActiveTab] = useState<string>(commonCategories && commonCategories[0]?.slug.trim() || 'All');
-    const [filteredProducts, setFilteredProducts] = useState<ProductType[]>([]);
 
     const handleTabClick = (type: string) => {
         setActiveTab(type);
     };
 
-    const getFilterData = useMemo(() => {
+    const filteredProducts = useMemo(() => {
         if (activeTab === 'All') {
             return data;
         }
         return data.filter(
             (product) => product.categories.some((cat) => cat.slug === activeTab)
         );
-    }, [activeTab, data]);
-
-    useEffect(() => {
-        // setFilteredProducts([]);
-        const filtered = getFilterData;
-        setFilteredProducts(filtered);
     }, [activeTab, data]);
 
     return (
@@ -68,8 +61,7 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
 
                     <div className="list-product hide-product-sold grid lg:grid-cols-4 grid-cols-2 sm:gap-[30px] gap-[20px] md:mt-10 mt-6">
                         {filteredProducts.slice(start, limit).map((prd, index) => (
-                            <Product data={prd} type='grid' key={index} style='style-1' />
-                            // <>{index} <br /></>
+                            <Product data={prd} type='grid' key={`${activeTab}-${prd.id}-${index}`} style='style-1' />
                         ))}
                     </div>
                 </div>

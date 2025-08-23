@@ -13,7 +13,7 @@ import * as Icon from "@phosphor-icons/react/dist/ssr"
 import { isNull } from 'lodash'
 import Image from 'next/image'
 import Link from 'next/link'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useMemo } from 'react'
 import Marquee from 'react-fast-marquee'
 import { useAppData } from '../../context/AppDataContext'
 import { QuickShopDrawer } from './QuickShopDrawer'
@@ -66,6 +66,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
 
     useEffect(() => {
         let isMounted = true;
+        setIsLoading(true);
         if (isMounted) {
             fetchVariations()
             setIsLoading(false);
@@ -74,11 +75,11 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     }, []);
 
     useEffect(() => {
-        if (data.attributes?.length > 0) {
+        if (data.attributes?.length > 0 && variations.length > 0) {
             const matchingVariation = findMatchingVariation();
             setSelectedVariation(matchingVariation);
         }
-    }, [activeColor]);
+    }, [activeColor, variations]);
 
     // Ensure quantity is set when quantities become available
     useEffect(() => {
@@ -92,11 +93,21 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
         if (data.attributes?.length > 0) { setActionType("quick shop") };
         if (data.attributes?.length > 0) { setMobileActionType("quick shop") };
 
-
         if (data.attributes?.length > 0) {
             const response = await getProductVariationsById({ id: data.id.toString() });
             if (response.status === 'OK') {
                 setVariations(response.variations!);
+                // Immediately set selectedVariation when variations are loaded
+                if (response.variations && response.variations.length > 0) {
+                    const initialVariation = response.variations.find((variation) => {
+                        const hasColorAttribute = data.attributes.some(attr => attr.name.toLowerCase() === 'color' && attr.variation);
+                        const colorMatch = !hasColorAttribute || variation.attributes.some(
+                            attr => attr.name.toLowerCase() === 'color' && attr.option === activeColor
+                        );
+                        return colorMatch;
+                    });
+                    setSelectedVariation(initialVariation || response.variations[0]);
+                }
             }
         }
 
@@ -154,15 +165,16 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
         openQuickview(data)
     }
 
-    const percentSale = (() => {
-        const salePrice = Number(data.sale_price || selectedVariation?.sale_price);
-        const regularPrice = Number(data.regular_price || selectedVariation?.regular_price);
+    const percentSale = useMemo(() => {
+        // Prioritize selected variation prices, fallback to product prices
+        const salePrice = Number(selectedVariation?.sale_price || data.sale_price || 0);
+        const regularPrice = Number(selectedVariation?.regular_price || data.regular_price || data.price || 0);
 
         if (regularPrice && salePrice && regularPrice > salePrice) {
             return Math.floor(100 - ((salePrice / regularPrice) * 100));
         }
         return 0;
-    })();
+    }, [selectedVariation, data.sale_price, data.regular_price, data.price]);
     const percentSold = Math.floor((data.total_sales / data.stock_quantity!) * 100)
 
     const isAddToCartDisabled =
@@ -250,40 +262,31 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                             ) : null}
                             <Link href={`/product/${data.id}`}>
                                 <div className="product-img w-full h-full aspect-[3/4]">
-                                    {activeColor && selectedVariation ? (
-                                        <>
-                                            {selectedVariation?.image?.src && (
-                                                <Image
-                                                    src={selectedVariation.image.src}
-                                                    width={500}
-                                                    height={500}
-                                                    alt={data.name}
-                                                    priority={true}
-                                                    className="w-full h-full object-cover duration-700"
-                                                />
-                                            )}
-                                        </>
+                                    {selectedVariation?.image?.src ? (
+                                        <Image
+                                            src={selectedVariation.image.src}
+                                            width={500}
+                                            height={500}
+                                            alt={data.name}
+                                            priority={true}
+                                            className="w-full h-full object-cover duration-700"
+                                        />
                                     ) : (
-                                        <>
-                                            {data.images.map((img, index) => (
-                                                img.src && (
-                                                    <Image
-                                                        key={index}
-                                                        src={img.src}
-                                                        width={500}
-                                                        height={500}
-                                                        priority={true}
-                                                        alt={data.name}
-                                                        className="w-full h-full object-cover duration-700"
-                                                    />
-                                                )
-                                            ))}
-                                        </>
+                                        data.images.length > 0 && data.images[0]?.src && (
+                                            <Image
+                                                src={data.images[0].src}
+                                                width={500}
+                                                height={500}
+                                                priority={true}
+                                                alt={data.name}
+                                                className="w-full h-full object-cover duration-700"
+                                            />
+                                        )
                                     )}
                                 </div>
                             </Link>
 
-                            {data.on_sale && Number(data.regular_price) !== Number(data.sale_price) && (
+                            {data.on_sale && percentSale > 0 && (
                                 <>
                                     <Marquee className='banner-sale-auto bg-black absolute bottom-0 left-0 w-full py-1.5'>
                                         <div className={`caption2 font-semibold uppercase text-white px-2.5`}>Hot Sale {percentSale}% OFF</div>
