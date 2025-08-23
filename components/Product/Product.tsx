@@ -13,7 +13,6 @@ import * as Icon from "@phosphor-icons/react/dist/ssr"
 import { isNull } from 'lodash'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import React, { useCallback, useEffect, useState } from 'react'
 import Marquee from 'react-fast-marquee'
 import { useAppData } from '../../context/AppDataContext'
@@ -60,7 +59,6 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     const { openQuickview } = useModalQuickviewContext()
     const [isloading, setIsLoading] = useState<boolean>(false)
     const isColorReq = data.attributes?.some(attr => attr.name.toLowerCase() === "color")
-    const router = useRouter()
     const quantities = getAvailableQuantities(
         Number(data.production_details?.printScreenDetails?.[0]?.quantity) || 1,
         Number(selectedVariation?.stock_quantity && selectedVariation?.stock_quantity || data.stock_quantity) || 0
@@ -68,9 +66,10 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
 
     useEffect(() => {
         let isMounted = true;
-        fetchVariations()
-        // loadVariations();
-        setIsLoading(false);
+        if (isMounted) {
+            fetchVariations()
+            setIsLoading(false);
+        }
         return () => { isMounted = false; };
     }, []);
 
@@ -98,7 +97,6 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
             const response = await getProductVariationsById({ id: data.id.toString() });
             if (response.status === 'OK') {
                 setVariations(response.variations!);
-                // return response.variations;
             }
         }
 
@@ -117,7 +115,6 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
         return matchingVariant ?? null;
     };
 
-    // console.log('Variations fetched:', variations);
 
     // Handler for color selection only
     const handleActiveColor = (newColor: string) => {
@@ -156,11 +153,6 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
     const handleQuickviewOpen = () => {
         openQuickview(data)
     }
-
-    const handleDetailProduct = (productId: string) => {
-        // redirect to shop with category selected
-        router.push(`/product/${productId}`);
-    };
 
     const percentSale = (() => {
         const salePrice = Number(data.sale_price || selectedVariation?.sale_price);
@@ -207,7 +199,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
 
     return (
         <>
-            {/* new Date(data.date_created) >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000); */}
+
             {type === "grid" ? (
                 <div className={`product-item grid-type ${style}`}>
                     <div className="product-main cursor-pointer block">
@@ -254,32 +246,9 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                             </>
                                         )}
                                     </div>
-                                    {/* <div
-                                        className={`compare-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative mt-2 ${compareState.compareArray?.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            handleAddToCompare()
-                                        }}
-                                    >
-                                        <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">Compare Product</div>
-                                        <Icon.RepeatIcon size={18} className='compare-icon' />
-                                        <Icon.CheckCircleIcon size={20} className='checked-icon' />
-                                    </div> */}
-                                    {/* {style === 'style-3' || style === 'style-4' ? (
-                                        <div
-                                            className={`quick-view-btn w-[32px] h-[32px] flex items-center justify-center rounded-full bg-white duration-300 relative mt-2 ${compareState.compareArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                handleQuickviewOpen()
-                                            }}
-                                        >
-                                            <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">Quick View</div>
-                                            <Icon.EyeIcon size={20} />
-                                        </div>
-                                    ) : <></>} */}
                                 </div>
-                            ) : <></>}
-                            <Link href={`/product/${data.id}`} prefetch>
+                            ) : null}
+                            <Link href={`/product/${data.id}`}>
                                 <div className="product-img w-full h-full aspect-[3/4]">
                                     {activeColor && selectedVariation ? (
                                         <>
@@ -330,7 +299,6 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     </Marquee>
                                 </>
                             )}
-                            {/* Removed size UI for style-2/style-4 */}
                             {style === 'style-1' || style === 'style-3' ?
                                 <div className={`list-action ${style === 'style-1' ? 'grid grid-cols-2 gap-3' : ''} px-5 absolute w-full bottom-5 max-md:hidden`}>
                                     {style === 'style-1' && (
@@ -380,7 +348,6 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                     e.stopPropagation()
                                                 }}
                                             >
-                                                {/* Dummy quantity selector for quick shop */}
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <span>Quantity:</span>
                                                     <QuantitySelector
@@ -421,7 +388,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                         </>
                                     )}
                                 </div>
-                                : <></>
+                                : null
                             }
                             {style === 'style-2' || style === 'style-5' ?
                                 <>
@@ -456,27 +423,6 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                 </>
                                             )}
                                         </div>
-                                        {/* <div
-                                            className={`compare-btn w-9 h-9 flex items-center justify-center rounded-full bg-white duration-300 relative ${compareState.compareArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                handleAddToCompare()
-                                            }}
-                                        >
-                                            <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">Compare Product</div>
-                                            <Icon.RepeatIcon size={18} className='compare-icon' />
-                                            <Icon.CheckCircleIcon size={20} className='checked-icon' />
-                                        </div>
-                                        <div
-                                            className={`quick-view-btn w-9 h-9 flex items-center justify-center rounded-full bg-white duration-300 relative ${compareState.compareArray.some(item => item.id.toString() === data.id.toString()) ? 'active' : ''}`}
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                handleQuickviewOpen()
-                                            }}
-                                        >
-                                            <div className="tag-action bg-black text-white caption2 px-1.5 py-0.5 rounded-sm">Quick View</div>
-                                            <Icon.EyeIcon size={20} />
-                                        </div> */}
                                         {style === 'style-5' && actionType !== 'add to cart' && (
                                             <div
                                                 className={`quick-shop-block absolute left-5 right-5 bg-white p-5 rounded-[20px] ${openQuickShop ? 'open' : ''}`}
@@ -485,15 +431,6 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                 }}
                                             >
                                                 <div className="list-size flex items-center justify-center flex-wrap gap-2">
-                                                    {/* {data.attributes.find(item => item.name.toLowerCase() === "size")?.options.map((item: string, index: number) => (
-                                                        <div
-                                                            className={`size-item w-10 h-10 rounded-full flex items-center justify-center text-button bg-white border border-line ${activeSize === item ? 'active' : ''}`}
-                                                            key={index}
-                                                            onClick={() => handleActiveSize(item)}
-                                                        >
-                                                            {item}
-                                                        </div>
-                                                    ))} */}
                                                 </div>
                                                 <button
                                                     type="button"
@@ -512,8 +449,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                             </div>
                                         )}
                                     </div>
-                                </> :
-                                <></>
+                                </> : null
                             }
                             <div className="list-action-icon flex items-center justify-center gap-2 absolute w-full bottom-3 z-[1] md:hidden">
                                 <div
@@ -596,38 +532,14 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                         </div>
                                     ))}
                                 </div>
-                            ) : <></>
+                            ) : null
                             }
-                            {/* {data.variation.length > 0 && data.action === 'quick shop' && (
-                                <div className="list-color-image max-md:hidden flex items-center gap-2 flex-wrap duration-500">
-                                    {data.variation.map((item, index) => (
-                                        <div
-                                            className={`color-item w-8 h-8 rounded-lg duration-300 relative ${activeColor === item.color ? 'active' : ''}`}
-                                            key={index}
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                handleActiveColor(item.color)
-                                            }}
-                                        >
-                                            <Image
-                                                src={item.colorImage}
-                                                width={100}
-                                                height={100}
-                                                alt='color'
-                                                priority={true}
-                                                className='w-full h-full object-cover rounded-lg'
-                                            />
-                                            <div className="tag-action bg-black text-white caption2 capitalize px-1.5 py-0.5 rounded-sm">{item.color}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )} */}
                             {!isNull(selectedVariation) ?
                                 (<div className="product-price-block flex items-center gap-2 flex-wrap mt-1 duration-300 relative z-[1]">
-                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{selectedVariation.on_sale ? Number(selectedVariation.sale_price).toFixed(2) : Number(selectedVariation.price).toFixed(2)}</div>
+                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{selectedVariation.on_sale ? Number(selectedVariation.sale_price || 0).toFixed(2) : Number(selectedVariation.price || 0).toFixed(2)}</div>
                                     {selectedVariation.on_sale && percentSale > 0 && selectedVariation.regular_price && (
                                         <>
-                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(selectedVariation.regular_price).toFixed(2)}</del></div>
+                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(selectedVariation.regular_price || 0).toFixed(2)}</del></div>
                                             <div className="product-sale caption1 font-medium bg-green px-3 py-0.5 inline-block rounded-full">
                                                 -{percentSale}%
                                             </div>
@@ -636,13 +548,13 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                 </div>) :
                                 (<div className="product-price-block flex items-center gap-2 flex-wrap mt-1 duration-300 relative z-[1]">
                                     {data.variations && data.variations.length > 0 ?
-                                        <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{data.on_sale ? Number(data.sale_price).toFixed(2) : Number(data.price).toFixed(2)}</div>
+                                        <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{data.on_sale ? Number(data.sale_price || 0).toFixed(2) : Number(data.price || 0).toFixed(2)}</div>
                                         :
-                                        <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{data.on_sale ? Number(data.sale_price).toFixed(2) : Number(data.price).toFixed(2)}</div>
+                                        <div className="product-price text-title">{decodeHtmlEntities(currentCurrency?.symbol || "$")}{data.on_sale ? Number(data.sale_price || 0).toFixed(2) : Number(data.price || 0).toFixed(2)}</div>
                                     }
                                     {data.on_sale && percentSale > 0 && data.regular_price && (
                                         <>
-                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(data.regular_price).toFixed(2)}</del></div>
+                                            <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(data.regular_price || 0).toFixed(2)}</del></div>
                                             <div className="product-sale caption1 font-medium bg-green px-3 py-0.5 inline-block rounded-full">
                                                 -{percentSale}%
                                             </div>
@@ -697,7 +609,6 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                 {/* This is your original quick shop content, now passed as children.
               I've removed the outer div and its positioning classes.
             */}
-                {/* Dummy quantity selector for quick shop drawer */}
                 <div className="flex items-center gap-2 mb-4">
                     <span>Quantity:</span>
                     <QuantitySelector

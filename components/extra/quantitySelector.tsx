@@ -1,4 +1,5 @@
 import * as Icon from '@phosphor-icons/react'
+import { useEffect } from 'react'
 
 interface Props {
     quantityList: number[];
@@ -7,6 +8,13 @@ interface Props {
 }
 
 const QuantitySelector: React.FC<Props> = ({ quantityList, setQuantity, quantity }) => {
+    // Handle setting initial quantity in useEffect to avoid setState during render
+    useEffect(() => {
+        if (quantityList.length > 0 && (quantity === 0 || !quantityList.includes(quantity))) {
+            setQuantity(quantityList[0]);
+        }
+    }, [quantityList, quantity, setQuantity]);
+
     // Handle empty quantity list
     if (quantityList.length === 0) {
         return (
@@ -25,11 +33,6 @@ const QuantitySelector: React.FC<Props> = ({ quantityList, setQuantity, quantity
                 </div>
             </div>
         );
-    }
-
-    // Set initial quantity if current quantity is invalid
-    if (quantity === 0 || !quantityList.includes(quantity)) {
-        setQuantity(quantityList[0]);
     }
 
     return (

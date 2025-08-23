@@ -4,7 +4,7 @@ import { MotionDiv } from '@/types/montion-types'
 import { ProductCategory, Product as ProductType } from '@/types/product-type'
 // import { ProductType } from '@/types/ProductType'
 import { TagType } from '@/types/data-type'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Product from '../Product/Product'
 import { useAppData } from '../../context/AppDataContext'
 
@@ -18,19 +18,26 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
     const { categories } = useAppData()
     const commonCategories = categories?.filter(cat => cat.slug.toLowerCase().split("_").includes("common")).sort((a, b) => b.count - a.count)?.slice(0, 5)
     const [activeTab, setActiveTab] = useState<string>(commonCategories && commonCategories[0]?.slug.trim() || 'All');
+    const [filteredProducts, setFilteredProducts] = useState<ProductType[]>([]);
 
     const handleTabClick = (type: string) => {
         setActiveTab(type);
     };
 
-    const filteredProducts: ProductType[] = data.filter(
-        (product) => {
-            if (activeTab === 'All') return true;
-            return product.categories.some((cat) => cat.slug.toLowerCase() === activeTab.toLowerCase())
-            // product.categories.some((category) => category.name.toLowerCase() === "fashion")
+    const getFilterData = useMemo(() => {
+        if (activeTab === 'All') {
+            return data;
         }
-    );
+        return data.filter(
+            (product) => product.categories.some((cat) => cat.slug === activeTab)
+        );
+    }, [activeTab, data]);
 
+    useEffect(() => {
+        // setFilteredProducts([]);
+        const filtered = getFilterData;
+        setFilteredProducts(filtered);
+    }, [activeTab, data]);
 
     return (
         <>

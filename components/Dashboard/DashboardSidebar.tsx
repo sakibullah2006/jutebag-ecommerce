@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { Customer } from '@/types/customer-type'
 import * as Icon from "@phosphor-icons/react/dist/ssr"
@@ -15,13 +16,14 @@ interface DashboardSidebarProps {
 
 const DashboardSidebar = ({ customer, activeTab, setActiveTab }: DashboardSidebarProps) => {
     const { logout } = useAuth()
+    const router = useRouter()
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search)
         params.set('tab', activeTab)
         const newUrl = `${window.location.pathname}?${params.toString()}`
-        window.history.replaceState({}, '', newUrl)
-    }, [activeTab])
+        router.replace(newUrl)
+    }, [activeTab, router])
 
     const handleLogout = () => {
         logout()

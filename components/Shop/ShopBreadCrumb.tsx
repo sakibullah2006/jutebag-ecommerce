@@ -10,8 +10,8 @@ import * as Icon from "@phosphor-icons/react/dist/ssr";
 import Link from 'next/link';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
-import { useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import HandlePagination from '../Other/HandlePagination';
 import Product from '../Product/Product';
 
@@ -25,6 +25,7 @@ interface Props {
 
 const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gender, category }) => {
     const searchParams = useSearchParams()
+    const router = useRouter()
     const [showOnlySale, setShowOnlySale] = useState(false)
     const [sortOption, setSortOption] = useState('');
     const [pageCount, setPageCount] = useState<number | null>(null);
@@ -73,19 +74,22 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
         setCurrentPage(0);
     }
 
-    const handleCategory = (cat: string | null) => {
+    const handleCategory = useCallback((cat: string | null) => {
         const newCategory = selectedCategory === cat ? null : cat;
         setSelectedCategory(newCategory);
         setCurrentPage(0);
 
-        const params = new URLSearchParams(window.location.search);
+        // Use Next.js router for URL updates to prevent forced reflows
+        const params = new URLSearchParams(searchParams.toString());
         if (newCategory) {
             params.set('category', newCategory);
         } else {
             params.delete('category');
         }
-        window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
-    }
+
+        // Use replace to avoid adding to browser history
+        router.replace(`?${params.toString()}`, { scroll: false });
+    }, [selectedCategory, searchParams, router])
 
     const handleSize = (size: string) => {
         setSize((prevSize) => (prevSize === size ? null : size))
@@ -110,95 +114,121 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
     }
 
 
-    // Filter product
-    let filteredData = data.filter(product => {
-        let isShowOnlySaleMatched = true;
-        if (showOnlySale) {
-            isShowOnlySaleMatched = product.on_sale
+    // Filter product with memoization to prevent unnecessary recalculations
+    const filteredData = useMemo(() => {
+        return data.filter(product => {
+            let isShowOnlySaleMatched = true;
+            if (showOnlySale) {
+                isShowOnlySaleMatched = product.on_sale
+            }
+
+            let isDatagenderMatched = true;
+            if (gender) {
+                isDatagenderMatched = product.categories.some(cat => cat.slug.toLowerCase().split("_").includes("gender") && cat.slug.toLowerCase().split("_").includes(gender.toLowerCase()));
+            }
+
+            let isDataCategoryMatched = true;
+            if (selectedCategory) {
+                isDataCategoryMatched = product.categories.some(cat => cat.slug.toLowerCase() === selectedCategory.toLowerCase())
+            }
+
+            let isDataTypeMatched = true;
+            if (dataType) {
+                isDataTypeMatched = product.tags.some((tag) => tag.slug.toLowerCase() === dataType!.toLowerCase())
+            }
+
+            let isTypeMatched = true;
+            if (type) {
+                isTypeMatched = product.tags.some((tag) => tag.slug.toLowerCase() === type!.toLowerCase())
+            }
+
+            let isSizeMatched = true;
+            if (size) {
+                isSizeMatched = !!product.attributes.find((attr) => attr.name.toLowerCase() === "size")?.options.some((s) => s.toLowerCase() === size.toLowerCase());
+            }
+
+            let isPriceRangeMatched = true;
+            if (priceRange.min !== 0 || priceRange.max !== 1000) {
+                isPriceRangeMatched = Number(product.price) >= priceRange.min && Number(product.price) <= priceRange.max;
+            }
+
+            let isColorMatched = true;
+            if (color) {
+                isColorMatched = !!product.attributes.find((attr) => attr.name.toLowerCase() === "color")?.options.some((c) => c.toLowerCase() === color.toLowerCase());
+            }
+
+            let isBrandMatched = true;
+            if (brand) {
+                isBrandMatched = product.brands.some((b) => b.name.toLowerCase() === brand.toLowerCase());
+            }
+
+            return isShowOnlySaleMatched && isDatagenderMatched && isDataCategoryMatched && isDataTypeMatched && isTypeMatched && isSizeMatched && isColorMatched && isBrandMatched && isPriceRangeMatched
+        })
+    }, [data, showOnlySale, gender, selectedCategory, dataType, type, size, priceRange, color, brand]);
+
+    // Apply sorting to filtered data
+    const sortedData = useMemo(() => {
+        const dataToSort = [...filteredData];
+
+        if (sortOption === 'soldQuantityHighToLow') {
+            return dataToSort.sort((a, b) => b.total_sales - a.total_sales);
         }
 
-        let isDatagenderMatched = true;
-        if (gender) {
-            isDatagenderMatched = product.categories.some(cat => cat.slug.toLowerCase().split("_").includes("gender") && cat.slug.toLowerCase().split("_").includes(gender.toLowerCase()));
+        if (sortOption === 'discountHighToLow') {
+            return dataToSort
+                .filter(item => item.on_sale)
+                .sort((a, b) => (
+                    (Math.floor(100 - ((Number(b.sale_price) / Number(b.regular_price)) * 100))) - (Math.floor(100 - ((Number(a.sale_price) / Number(a.regular_price)) * 100)))
+                ));
         }
 
-        let isDataCategoryMatched = true;
-        if (selectedCategory) {
-            isDataCategoryMatched = product.categories.some(cat => cat.slug.toLowerCase() === selectedCategory.toLowerCase())
+        if (sortOption === 'priceHighToLow') {
+            return dataToSort.sort((a, b) => Number(b.price) - Number(a.price));
         }
 
-        let isDataTypeMatched = true;
-        if (dataType) {
-            isDataTypeMatched = product.tags.some((tag) => tag.slug.toLowerCase() === dataType!.toLowerCase())
+        if (sortOption === 'priceLowToHigh') {
+            return dataToSort.sort((a, b) => Number(a.price) - Number(b.price));
         }
 
-        let isTypeMatched = true;
-        if (type) {
-            dataType = type
-            isTypeMatched = product.tags.some((tag) => tag.slug.toLowerCase() === dataType!.toLowerCase())
-        }
+        return dataToSort;
+    }, [filteredData, sortOption]);
 
-        let isSizeMatched = true;
-        if (size) {
-            isSizeMatched = !!product.attributes.find((attr) => attr.name.toLowerCase() === "size")?.options.some((s) => s.toLowerCase() === size.toLowerCase());
-        }
+    // Memoize expensive filter operations for JSX
+    const memoizedCategoryTabs = useMemo(() => {
+        return categories && categories
+            .filter(cat => cat.slug.toLowerCase().split("_").includes("common"))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
+    }, [categories]);
 
-        let isPriceRangeMatched = true;
-        if (priceRange.min !== 0 || priceRange.max !== 1000) {
-            isPriceRangeMatched = Number(product.price) >= priceRange.min && Number(product.price) <= priceRange.max;
-        }
+    const memoizedPromotionTags = useMemo(() => {
+        return tags && tags
+            .filter(tag => tag.slug.toLowerCase().split("_").includes("promotion"))
+            .sort((a, b) => b.count - a.count);
+    }, [tags]);
 
-        let isColorMatched = true;
-        if (color) {
-            isColorMatched = !!product.attributes.find((attr) => attr.name.toLowerCase() === "color")?.options.some((c) => c.toLowerCase() === color.toLowerCase());
-        }
+    const memoizedCommonCategories = useMemo(() => {
+        return categories && categories
+            .filter(cat => cat.slug.toLowerCase().split("_").includes("common"))
+            .sort((a, b) => b.count - a.count);
+    }, [categories]);
 
-        let isBrandMatched = true;
-        if (brand) {
-            isBrandMatched = product.brands.some((b) => b.name.toLowerCase() === brand.toLowerCase());
-        }
+    const memoizedSizeAttributes = useMemo(() => {
+        return attributesData?.filter(attr => attr.attribute.name.toLowerCase() === "size");
+    }, [attributesData]);
 
-        return isShowOnlySaleMatched && isDatagenderMatched && isDataCategoryMatched && isDataTypeMatched && isTypeMatched && isSizeMatched && isColorMatched && isBrandMatched && isPriceRangeMatched
-    })
+    const memoizedColorAttributes = useMemo(() => {
+        return attributesData?.filter(attr => attr.attribute.name.toLowerCase() === "color");
+    }, [attributesData]);
 
-
-    // Create a copy array filtered to sort
-    let sortedData = [...filteredData];
-
-    if (sortOption === 'soldQuantityHighToLow') {
-        filteredData = sortedData.sort((a, b) => b.total_sales - a.total_sales)
-    }
-
-    if (sortOption === 'discountHighToLow') {
-        filteredData = sortedData
-            .filter(item => item.on_sale)
-            .sort((a, b) => (
-                (Math.floor(100 - ((Number(b.sale_price) / Number(b.regular_price)) * 100))) - (Math.floor(100 - ((Number(a.sale_price) / Number(a.regular_price)) * 100)))
-            ))
-    }
-
-    if (sortOption === 'priceHighToLow') {
-        filteredData = sortedData.sort((a, b) => Number(b.price) - Number(a.price))
-    }
-
-    if (sortOption === 'priceLowToHigh') {
-        filteredData = sortedData.sort((a, b) => Number(a.price) - Number(b.price))
-    }
-
-    const totalProducts = filteredData.length
+    const totalProducts = sortedData.length
     const selectedType = type
     const selectedSize = size
     const selectedColor = color
     const selectedBrand = brand
 
-
-    if (filteredData.length === 0) {
-        filteredData = [];
-    }
-
-
-    // Find page number base on filteredData
-    const filteredPageCount = Math.ceil(filteredData.length / productsPerPage);
+    // Find page number base on sortedData
+    const filteredPageCount = Math.ceil(sortedData.length / productsPerPage);
 
 
 
@@ -206,8 +236,8 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
     // Get product data for current page
     let currentProducts: ProductType[];
 
-    if (filteredData.length > 0) {
-        currentProducts = filteredData.slice(offset, offset + productsPerPage);
+    if (sortedData.length > 0) {
+        currentProducts = sortedData.slice(offset, offset + productsPerPage);
     } else {
         currentProducts = []
     }
@@ -245,7 +275,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                 </div>
                             </div>
                             <div className="list-tab flex flex-wrap items-center justify-center gap-y-5 gap-8 lg:mt-[70px] mt-12 overflow-hidden">
-                                {categories && categories.filter(cat => cat.slug.toLowerCase().split("_").includes("common")).sort((a, b) => b.count - a.count).slice(0, 5).map((item, index) => (
+                                {memoizedCategoryTabs && memoizedCategoryTabs.map((item, index) => (
                                     <div
                                         key={index}
                                         className={`tab-item text-button-uppercase cursor-pointer has-line-before line-2px ${selectedCategory?.toLowerCase() === item.slug.toLowerCase() ? 'active' : ''}`}
@@ -267,7 +297,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                             <div className="filter-type pb-8 border-b border-line">
                                 <div className="heading6">Featured</div>
                                 <div className="list-type mt-4">
-                                    {tags && tags.filter(tag => tag.slug.toLowerCase().split("_").includes("promotion")).sort((a, b) => b.count - a.count).map((item, index) => (
+                                    {memoizedPromotionTags && memoizedPromotionTags.map((item, index) => (
                                         <div
                                             key={index}
                                             className={`item flex items-center justify-between cursor-pointer ${selectedType?.toLowerCase() === item.slug.toLowerCase() ? 'active' : ''}`}
@@ -287,7 +317,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                             <div className="filter-type pb-8 border-b border-line">
                                 <div className="heading6">Products Type</div>
                                 <div className="list-type mt-4">
-                                    {categories && categories.filter(cat => cat.slug.toLowerCase().split("_").includes("common")).sort((a, b) => b.count - a.count).map((item, index) => (
+                                    {memoizedCommonCategories && memoizedCommonCategories.map((item, index) => (
                                         <div
                                             key={index}
                                             className={`item flex items-center justify-between cursor-pointer ${selectedCategory?.toLowerCase() === item.slug.toLowerCase() ? 'active' : ''}`}
@@ -307,7 +337,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                 <div className="heading6">Size</div>
                                 <div className="list-size flex items-center flex-wrap gap-3 gap-y-4 mt-4">
                                     {
-                                        attributesData?.filter(attr => attr.attribute.name.toLowerCase() === "size").map((item, index) => (
+                                        memoizedSizeAttributes && memoizedSizeAttributes.map((item, index) => (
                                             item.terms.map((term, termIndex) => (
                                                 // <div
                                                 //     key={termIndex}
@@ -363,7 +393,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                 <div className="heading6">colors</div>
                                 <div className="list-color flex items-center flex-wrap gap-3 gap-y-4 mt-4">
                                     {
-                                        attributesData!.filter(attr => attr.attribute.name.toLowerCase() === "color").map((item, index) => (
+                                        memoizedColorAttributes && memoizedColorAttributes.map((item, index) => (
                                             item.terms.map((term, termIndex) => (
                                                 // <div
                                                 //     key={termIndex}
@@ -532,7 +562,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                 )}
                             </div>
 
-                            {((filteredPageCount && filteredPageCount > 1) || (pageCount && pageCount > 1)) && (filteredData.length > 0) && (
+                            {((filteredPageCount && filteredPageCount > 1) || (pageCount && pageCount > 1)) && (sortedData.length > 0) && (
                                 <div className="list-pagination flex items-center md:mt-10 mt-7">
                                     <HandlePagination pageCount={filteredPageCount} onPageChange={handlePageChange} />
                                 </div>

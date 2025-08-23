@@ -110,7 +110,7 @@ const ModalCart = () => {
                                 </div>
                             ) : (
                                 cartState.cartArray.map((product) => (
-                                    <div key={product.id} className='item py-5 flex items-center justify-between gap-3 border-b border-line'>
+                                    <div key={`${product.id}-${product.variation_id || 'default'}`} className='item py-5 flex items-center justify-between gap-3 border-b border-line'>
                                         <div className="infor flex items-center gap-3 w-full">
                                             <div className="bg-img w-[100px] aspect-square flex-shrink-0 rounded-lg overflow-hidden">
                                                 <Image

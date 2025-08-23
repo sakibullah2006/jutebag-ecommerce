@@ -82,7 +82,6 @@ const ReviewForm = ({ productId, onReviewSubmitted }: ReviewFormProps) => {
     } finally {
       setIsSubmitting(false);
     }
-    console.log(data);
   };
 
   return (

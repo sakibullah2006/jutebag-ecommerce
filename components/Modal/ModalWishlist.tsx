@@ -50,12 +50,12 @@ const ModalWishlist = () => {
                                         <div className="flex items-center gap-2 mt-2">
                                             {product.on_sale && product.sale_price ? (
                                                 <>
-                                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency!.symbol)}{Number(product.sale_price).toFixed(2)}</div>
-                                                    <div className="product-origin-price text-title text-secondary2"><del>{decodeHtmlEntities(currentCurrency!.symbol)}{Number(product.price).toFixed(2)}</del></div>
+                                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency!.symbol)}{Number(product.sale_price || 0).toFixed(2)}</div>
+                                                    <div className="product-origin-price text-title text-secondary2"><del>{decodeHtmlEntities(currentCurrency!.symbol)}{Number(product.price || 0).toFixed(2)}</del></div>
                                                 </>
                                             ) : (
                                                 <>
-                                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency!.symbol)}{Number(product.price).toFixed(2)}</div>
+                                                    <div className="product-price text-title">{decodeHtmlEntities(currentCurrency!.symbol)}{Number(product.price || 0).toFixed(2)}</div>
                                                 </>
                                             )
                                             }

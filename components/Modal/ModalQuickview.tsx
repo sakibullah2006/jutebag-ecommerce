@@ -71,19 +71,15 @@ const ModalQuickview = () => {
                 return;
             }
 
-            console.log('Fetching variations for product:', selectedProduct.id);
             setIsLoadingVariations(true);
             try {
                 const result = await getProductVariationsById({ id: selectedProduct.id.toString() });
                 if (result.status === "OK" && result.variations) {
                     setVariations(result.variations);
-                    console.log('Fetched variations:', result.variations);
                 } else {
-                    console.log('Failed to fetch variations:', result.status);
                     setVariations([]); // Clear on failure to avoid stale data
                 }
             } catch (error) {
-                console.error('Error fetching variations:', error);
                 setVariations([]); // Also clear on error
             } finally {
                 // The loading state is set here or after variations are set in the next effect.
@@ -106,7 +102,6 @@ const ModalQuickview = () => {
                     setReviews([]);
                 }
             } catch (error) {
-                console.error('Error fetching reviews:', error);
                 setReviews([]);
             }
         };
@@ -350,7 +345,7 @@ const ModalQuickview = () => {
                                         <>
                                             <div className="product-price heading5">
                                                 {currentCurrency ? decodeHtmlEntities(currentCurrency.symbol) : '$'}
-                                                {Number(selectedVariation?.sale_price || selectedVariation?.price || selectedProduct?.sale_price || selectedProduct?.price).toFixed(2)}
+                                                {Number(selectedVariation?.sale_price || selectedVariation?.price || selectedProduct?.sale_price || selectedProduct?.price || 0).toFixed(2)}
                                             </div>
                                             {((selectedVariation?.on_sale || selectedProduct?.on_sale) && percentSale > 0) && (
                                                 <>
@@ -358,7 +353,7 @@ const ModalQuickview = () => {
                                                     <div className="product-origin-price font-normal text-secondary2">
                                                         <del>
                                                             {currentCurrency ? decodeHtmlEntities(currentCurrency.symbol) : '$'}
-                                                            {Number(selectedVariation?.regular_price || selectedProduct?.regular_price).toFixed(2)}
+                                                            {Number(selectedVariation?.regular_price || selectedProduct?.regular_price || 0).toFixed(2)}
                                                         </del>
                                                     </div>
                                                     <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">

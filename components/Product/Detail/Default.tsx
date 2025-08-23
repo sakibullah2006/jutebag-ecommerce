@@ -1,13 +1,10 @@
 'use client'
 
 import Rate from '@/components/Other/Rate'
-import { useCompare } from '@/context/CompareContext'
 import { useModalCartContext } from '@/context/ModalCartContext'
-import { useModalCompareContext } from '@/context/ModalCompareContext'
 import { useModalWishlistContext } from '@/context/ModalWishlistContext'
 import { useWishlist } from '@/context/WishlistContext'
-import { decodeHtmlEntities, formatDate, getRelativeTime } from '@/lib/utils'
-import { CurrencyType } from '@/types/data-type'
+import { decodeHtmlEntities, getRelativeTime } from '@/lib/utils'
 import { ProductReview, Product as ProductType, VariationProduct } from '@/types/product-type'
 import * as Icon from "@phosphor-icons/react/dist/ssr"
 import parse from 'html-react-parser'
@@ -40,7 +37,6 @@ interface Props {
 const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts, reviews: reviewData }) => {
     const [reviews, setReviews] = useState<ProductReview[]>(reviewData || [])
     const swiperRef = useRef<SwiperCore | null>(null);
-    const [photoIndex, setPhotoIndex] = useState(0)
     const [openPopupImg, setOpenPopupImg] = useState(false)
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperCore | null>(null);
     const [activeColor, setActiveColor] = useState<string>(() => {
@@ -51,7 +47,6 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
             return ''
         }
     })
-    // Removed size state, only color is used
     const [activeTab, setActiveTab] = useState<string>('description')
     const [quantity, setQuantity] = useState(1)
     const [selectedVariation, setSelectedVariation] = useState<VariationProduct | null>(() => {
@@ -69,8 +64,6 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
         Number(data.production_details?.printScreenDetails?.[0]?.quantity) || 1,
         Number(selectedVariation?.stock_quantity && selectedVariation?.stock_quantity || data.stock_quantity) || 0
     )
-
-    console.log('country', storeConfig?.address.countryCode)
 
     useEffect(() => {
         let isMounted = true;
@@ -361,7 +354,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                             <div className="flex items-center gap-3 flex-wrap mt-5 pb-6 border-b border-line">
                                 <div className="product-price heading5">
                                     {decodeHtmlEntities(currentCurrency!.symbol)}
-                                    {Number(selectedVariation?.sale_price || selectedVariation?.price || data.sale_price || data.price).toFixed(2)}
+                                    {Number(selectedVariation?.sale_price || selectedVariation?.price || data.sale_price || data.price || 0).toFixed(2)}
                                 </div>
                                 {((selectedVariation?.on_sale || data.on_sale) && percentSale > 0) && (
                                     <>
@@ -369,7 +362,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                         <div className="product-origin-price font-normal text-secondary2">
                                             <del>
                                                 {decodeHtmlEntities(currentCurrency!.symbol)}
-                                                {Number(selectedVariation?.regular_price || data.regular_price).toFixed(2)}
+                                                {Number(selectedVariation?.regular_price || data.regular_price || 0).toFixed(2)}
                                             </del>
                                         </div>
                                         <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
@@ -381,7 +374,6 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                 {/* 
                                   ======== Description ==========
                                  */}
-                                {/* <div className='desc text-secondary parsed-html mt-3'>{parse(data.short_description || "")}</div> */}
 
                                 <div className=' w-full my-3'>
                                     <div className="item bg-surface flex items-center gap-8 py-3 px-10">
@@ -438,14 +430,11 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                 )}
                                 <div className="text-title mt-5">Quantity:</div>
                                 <div className="choose-quantity style-out-of-stock flex items-center lg:justify-between gap-5 gap-y-3 mt-3">
-                                    {/* <div className="quantity-block md:p-3 max-md:py-1.5 max-md:px-3 flex items-center justify-between rounded-lg border border-line sm:w-[180px] w-[120px] flex-shrink-0"> */}
                                     <QuantitySelector
                                         quantityList={quantities}
                                         setQuantity={setQuantity}
                                         quantity={quantity}
                                     />
-                                    {/* </div> */}
-
                                     <button
                                         type="button"
                                         disabled={data.stock_status === "outofstock" || (isColorReq && activeColor.length === 0) || !isValidQuantityForCart(quantity, quantities)}
@@ -878,26 +867,6 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                             <div className="mt-8">
                                 <div className="heading flex items-center justify-between flex-wrap gap-4">
                                     <div className="heading4">{reviews.length.toString().padStart(2, '0')} Comments</div>
-                                    {/* <div className="right flex items-center gap-3">
-                                        <label htmlFor='select-filter' className="uppercase">Sort by:</label>
-                                        <div className="select-block relative">
-                                            <select
-                                                id="select-filter"
-                                                name="select-filter"
-                                                className='text-button py-2 pl-3 md:pr-14 pr-10 rounded-lg bg-white border border-line'
-                                                defaultValue={'Sorting'}
-                                            >
-                                                <option value="Sorting" disabled>Sorting</option>
-                                                <option value="newest">Newest</option>
-                                                <option value="5star">5 Star</option>
-                                                <option value="4star">4 Star</option>
-                                                <option value="3star">3 Star</option>
-                                                <option value="2star">2 Star</option>
-                                                <option value="1star">1 Star</option>
-                                            </select>
-                                            <Icon.CaretDown size={12} className='absolute top-1/2 -translate-y-1/2 md:right-4 right-2' />
-                                        </div>
-                                    </div> */}
                                 </div>
                                 <div className="list-review mt-6">
                                     {reviews.length > 0 ? (
@@ -955,108 +924,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                         </div>
                                     )}
 
-                                    {/* <div className="item mt-8">
-                                        <div className="heading flex items-center justify-between">
-                                            <div className="user-infor flex gap-4">
-                                                <div className="avatar">
-                                                    <Image
-                                                        src={'/images/avatar/2.png'}
-                                                        width={200}
-                                                        height={200}
-                                                        alt='img'
-                                                        className='w-[52px] aspect-square rounded-full'
-                                                    />
-                                                </div>
-                                                <div className="user">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="text-title">Guy Hawkins</div>
-                                                        <div className="span text-line">-</div>
-                                                        <Rate currentRate={4} size={12} />
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="text-secondary2">1 days ago</div>
-                                                        <div className="text-secondary2">-</div>
-                                                        <div className="text-secondary2"><span>Yellow</span> / <span>XL</span></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="more-action cursor-pointer">
-                                                <Icon.DotsThree size={24} weight='bold' />
-                                            </div>
-                                        </div>
-                                        <div className="mt-3">I can{String.raw`'t`} get enough of the fashion pieces from this brand. They have a great selection for every occasion and the prices are reasonable. The shipping is fast and the items always arrive in perfect condition.</div>
-                                        <div className="action mt-3">
-                                            <div className="flex items-center gap-4">
-                                                <div className="like-btn flex items-center gap-1 cursor-pointer">
-                                                    <Icon.HandsClapping size={18} />
-                                                    <div className="text-button">20</div>
-                                                </div>
-                                                <Link href={'#form-review'} className="reply-btn text-button text-secondary cursor-pointer hover:text-black">Reply</Link>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="item mt-8">
-                                        <div className="heading flex items-center justify-between">
-                                            <div className="user-infor flex gap-4">
-                                                <div className="avatar">
-                                                    <Image
-                                                        src={'/images/avatar/3.png'}
-                                                        width={200}
-                                                        height={200}
-                                                        alt='img'
-                                                        className='w-[52px] aspect-square rounded-full'
-                                                    />
-                                                </div>
-                                                <div className="user">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="text-title">John Smith</div>
-                                                        <div className="span text-line">-</div>
-                                                        <Rate currentRate={5} size={12} />
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="text-secondary2">1 days ago</div>
-                                                        <div className="text-secondary2">-</div>
-                                                        <div className="text-secondary2"><span>Yellow</span> / <span>XL</span></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="more-action cursor-pointer">
-                                                <Icon.DotsThree size={24} weight='bold' />
-                                            </div>
-                                        </div>
-                                        <div className="mt-3">I can{String.raw`'t`} get enough of the fashion pieces from this brand. They have a great selection for every occasion and the prices are reasonable. The shipping is fast and the items always arrive in perfect condition.</div>
-                                        <div className="action mt-3">
-                                            <div className="flex items-center gap-4">
-                                                <div className="like-btn flex items-center gap-1 cursor-pointer">
-                                                    <Icon.HandsClapping size={18} />
-                                                    <div className="text-button">20</div>
-                                                </div>
-                                                <Link href={'#form-review'} className="reply-btn text-button text-secondary cursor-pointer hover:text-black">Reply</Link>
-                                            </div>
-                                        </div>
-                                    </div> */}
                                 </div>
-                                {/* <div id="form-review" className='form-review pt-6'>
-                                    <div className="heading4">Leave A comment</div>
-                                    <form className="grid sm:grid-cols-2 gap-4 gap-y-5 md:mt-6 mt-3">
-                                        <div className="name ">
-                                            <input className="border-line px-4 pt-3 pb-3 w-full rounded-lg" id="username" type="text" placeholder="Your Name *" required />
-                                        </div>
-                                        <div className="mail ">
-                                            <input className="border-line px-4 pt-3 pb-3 w-full rounded-lg" id="email" type="email" placeholder="Your Email *" required />
-                                        </div>
-                                        <div className="col-span-full message">
-                                            <textarea className="border border-line px-4 py-3 w-full rounded-lg" id="message" name="message" placeholder="Your message *" required ></textarea>
-                                        </div>
-                                        <div className="col-span-full flex items-start -mt-2 gap-2">
-                                            <input type="checkbox" id="saveAccount" name="saveAccount" className='mt-1.5' />
-                                            <label className="" htmlFor="saveAccount">Save my name, email, and website in this browser for the next time I comment.</label>
-                                        </div>
-                                        <div className="col-span-full sm:pt-3">
-                                            <button className='button-main bg-white text-black border border-black'>Submit Reviews</button>
-                                        </div>
-                                    </form>
-                                </div> */}
                                 <ReviewForm productId={productId as string} onReviewSubmitted={onReviewSubmitted} />
                             </div>
                         </div>

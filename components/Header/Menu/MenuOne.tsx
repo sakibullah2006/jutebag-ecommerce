@@ -55,14 +55,22 @@ const MenuOne: React.FC<Props> = ({ props, categories }) => {
     const [lastScrollPosition, setLastScrollPosition] = useState(0);
 
     useEffect(() => {
+        let ticking = false;
+
         const handleScroll = () => {
-            const scrollPosition = window.scrollY;
-            setFixedHeader(scrollPosition > 0 && scrollPosition < lastScrollPosition);
-            setLastScrollPosition(scrollPosition);
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    const scrollPosition = window.scrollY;
+                    setFixedHeader(scrollPosition > 0 && scrollPosition < lastScrollPosition);
+                    setLastScrollPosition(scrollPosition);
+                    ticking = false;
+                });
+                ticking = true;
+            }
         };
 
         // Attach scroll event when component is mounted
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
 
         // Remove the event listener when the component is unmounted
         return () => {
@@ -118,11 +126,11 @@ const MenuOne: React.FC<Props> = ({ props, categories }) => {
                                                 <div className="flex justify-evenly py-8 w-ful">
                                                     <div className="nav-link basis-2/3 grid grid-cols-4 gap-y-8">
                                                         {menuItems && menuItems.map((menuItem, index) => (
-                                                            <>
+                                                            <React.Fragment key={menuItem.id}>
                                                                 {menuItem.subMenu && menuItem.subMenu.length > 0 && (
-                                                                    <div key={menuItem.id} className="nav-item justify-evenly" >
+                                                                    <div className="nav-item justify-evenly" >
                                                                         <div className="text-button-uppercase pb-2">{menuItem.name}</div>
-                                                                        <ul key={menuItem.id}>
+                                                                        <ul>
                                                                             {menuItem.subMenu?.slice(0, 5)?.map((subMenu) => (
                                                                                 <li key={subMenu.id}>
                                                                                     <Link
@@ -162,7 +170,7 @@ const MenuOne: React.FC<Props> = ({ props, categories }) => {
                                                                         </ul>
                                                                     </div>
                                                                 )}
-                                                            </>
+                                                            </React.Fragment>
                                                         ))}
 
 
