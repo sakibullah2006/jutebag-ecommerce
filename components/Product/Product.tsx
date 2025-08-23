@@ -83,7 +83,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
 
 
     const fetchVariations = useCallback(async () => {
-        if (data.attributes?.length > 1 || (data.attributes.some(attr => attr.name.toLowerCase().includes("size"))) && data.attributes?.length === 1) { setActionType("quick shop") };
+        if (data.attributes?.length > 0) { setActionType("quick shop") };
         if (data.attributes?.length > 0) { setMobileActionType("quick shop") };
 
 
@@ -376,11 +376,11 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                     />
                                                 </div>
                                                 {data.attributes.some(item => item.name.toLowerCase() === "color") &&
-                                                    <div className="list-size flex items-center  flex-wrap gap-2">
-                                                        <div >Color : </div>
+                                                    <div className="list-color flex items-center flex-wrap gap-2">
+                                                        <div>Color: </div>
                                                         {data.attributes.find(item => item.name.toLowerCase() === "color")?.options.map((item: string, index: number) => (
                                                             <div
-                                                                className={`size-item w-fit h-10 text-xs overflow-ellipsis py-4 px-3 rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeColor === item ? 'active' : ''}`}
+                                                                className={`color-item w-fit h-10 text-xs overflow-ellipsis py-4 px-3 rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeColor === item ? 'active' : ''}`}
                                                                 key={index}
                                                                 onClick={() => handleActiveColor(item)}
                                                             >

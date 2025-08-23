@@ -9,9 +9,9 @@ import { useModalQuickviewContext } from '@/context/ModalQuickviewContext';
 import { useModalWishlistContext } from '@/context/ModalWishlistContext';
 import { useWishlist } from '@/context/WishlistContext';
 import { useAppData } from '@/context/AppDataContext';
-import { Product, VariationProduct } from '@/types/product-type';
+import { Product, VariationProduct, ProductReview } from '@/types/product-type';
 import { decodeHtmlEntities } from '@/lib/utils';
-import { getProductVariationsById } from '@/actions/products-actions';
+import { getProductVariationsById, getProductReviews } from '@/actions/products-actions';
 import * as Icon from "@phosphor-icons/react/dist/ssr";
 import Image from 'next/image';
 import React, { useState, useEffect, useCallback } from 'react';
@@ -28,6 +28,7 @@ const ModalQuickview = () => {
     const [openPopupImg, setOpenPopupImg] = useState(false)
     const [openSizeGuide, setOpenSizeGuide] = useState<boolean>(false)
     const [variations, setVariations] = useState<VariationProduct[]>([])
+    const [reviews, setReviews] = useState<ProductReview[]>([])
     const [isLoadingVariations, setIsLoadingVariations] = useState(false)
     const { selectedProduct, closeQuickview } = useModalQuickviewContext()
     const [activeColor, setActiveColor] = useState<string>('')
@@ -91,7 +92,27 @@ const ModalQuickview = () => {
             }
         };
 
+        const fetchReviews = async () => {
+            if (!selectedProduct?.id) {
+                setReviews([]);
+                return;
+            }
+
+            try {
+                const result = await getProductReviews(selectedProduct.id);
+                if (result.success && result.reviews) {
+                    setReviews(result.reviews);
+                } else {
+                    setReviews([]);
+                }
+            } catch (error) {
+                console.error('Error fetching reviews:', error);
+                setReviews([]);
+            }
+        };
+
         fetchVariations();
+        fetchReviews();
 
         // Also, reset the active attributes and quantity when the product changes
         if (selectedProduct) {
@@ -102,7 +123,32 @@ const ModalQuickview = () => {
 
     }, [selectedProduct]);
 
+    const calculateReviews = () => {
+        let calculatedAverage_rating = 0;
+        const star_count = {
+            one: 0,
+            two: 0,
+            three: 0,
+            four: 0,
+            five: 0
+        };
 
+        reviews?.forEach((review) => {
+            if (review.rating === 1) star_count.one++;
+            else if (review.rating === 2) star_count.two++;
+            else if (review.rating === 3) star_count.three++;
+            else if (review.rating === 4) star_count.four++;
+            else if (review.rating === 5) star_count.five++;
+            calculatedAverage_rating += review.rating
+        });
+        calculatedAverage_rating = calculatedAverage_rating / reviews.length
+
+        return {
+            rating_count: reviews.length,
+            ...star_count,
+            calculatedAverage_rating: calculatedAverage_rating || 0,
+        };
+    };
 
 
     // Find matching variation based on activeColor only
@@ -213,10 +259,13 @@ const ModalQuickview = () => {
         setSelectedVariation(null);
         setActiveColor('');
         setQuantity(1);
+        setReviews([]);
 
         // ✨ 3. Call the original context function to finish closing
         closeQuickview();
     };
+
+    const reviewsInfo = calculateReviews();
 
 
 
@@ -272,8 +321,8 @@ const ModalQuickview = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center mt-3">
-                                    <Rate currentRate={Number(selectedProduct?.average_rating) || 0} size={14} />
-                                    <span className='caption1 text-secondary'>(1.234 reviews)</span>
+                                    <Rate currentRate={Number(reviewsInfo.calculatedAverage_rating)} size={14} />
+                                    <span className='caption1 text-secondary'>({reviews.length} review{reviews.length !== 1 ? "s" : ""})</span>
                                 </div>
                                 <div className="flex items-center gap-3 flex-wrap mt-5 pb-6 border-b border-line">
                                     {isLoadingVariations && selectedProduct?.variations && selectedProduct.variations.length > 0 ? (
@@ -302,7 +351,7 @@ const ModalQuickview = () => {
                                             )}
                                         </>
                                     )}
-                                    <div className='desc text-secondary parsed-html mt-3'>{selectedProduct?.short_description ? parse(selectedProduct.short_description) : parse(selectedProduct?.description.toString().slice(0, 200) + "...")}</div>
+                                    {/* <div className='desc text-secondary parsed-html mt-3'>{selectedProduct?.short_description ? parse(selectedProduct.short_description) : parse(selectedProduct?.description.toString().slice(0, 200) + "...")}</div> */}
 
                                     <div className=' w-full my-3'>
                                         <div className="item bg-surface flex items-center gap-8 py-3 px-10">
@@ -325,7 +374,7 @@ const ModalQuickview = () => {
                                             <p>{allCountries.find((con => con.code === selectedProduct?.production_details?.manufacturer?.countryCode))?.name}</p>
                                         </div>
 
-                                        <div className="item bg-surface flex justify-center gap-8 pl-8 py-0">
+                                        <div className="item bg-surface flex justify-center gap-8 pl-8 pr-2 py-2">
                                             <div className="text-title sm:w-1/4 w-1/3 py-3">Print Details</div>
                                             <div
                                                 onClick={() => setOpenSizeGuide(true)}

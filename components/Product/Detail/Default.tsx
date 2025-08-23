@@ -383,7 +383,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                     </div>
 
                                     <div className="item flex items-center gap-8 py-3 px-10">
-                                        <div className="text-title sm:w-1/4 w-fit">Manufacturer</div>
+                                        <div className="text-title sm:w-1/4 w-fit">Origin</div>
                                         <p>{allCountries.find((con => con.code === data.production_details?.manufacturer?.countryCode))?.name}</p>
                                     </div>
 
@@ -717,11 +717,16 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                         </div>
 
                                         <div className="item flex items-center gap-8 py-3 px-10">
-                                            <div className="text-title sm:w-1/4 w-fit">Manufacturer</div>
+                                            <div className="text-title sm:w-1/4 w-1/3">Unit Wight</div>
+                                            <p>{data.weight} lbs</p>
+                                        </div>
+
+                                        <div className="item flex bg-surface items-center gap-8 py-3 px-10">
+                                            <div className="text-title sm:w-1/4 w-fit">Origin</div>
                                             <p>{allCountries.find((con => con.code === data.production_details?.manufacturer?.countryCode))?.name}</p>
                                         </div>
 
-                                        <div className="item bg-surface flex items-center gap-8 py-3 px-10">
+                                        <div className="item  flex items-center gap-8 py-3 px-10">
                                             <div className="text-title sm:w-1/4 w-1/3">Care</div>
                                             <div className="flex items-center gap-5">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">

@@ -416,11 +416,6 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                     id: 1,
                     key: 'Color',
                     value: item.selectedColor
-                }] : []),
-                ...(item.selectedSize ? [{
-                    id: 2,
-                    key: 'Size',
-                    value: item.selectedSize
                 }] : [])
             ]
         }));
@@ -720,7 +715,7 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                                                     alt={item.name}
                                                     className="w-full h-full object-cover rounded-lg"
                                                 />
-                                                <span className="quantity flex items-center justify-center absolute -top-3 -right-3 w-7 h-7 rounded-full bg-black text-white">
+                                                <span className="quantity flex items-center justify-center absolute -top-3 -right-3 w-fit h-7 px-2 rounded-full bg-black text-white">
                                                     {item.quantity}
                                                 </span>
                                             </div>
@@ -735,16 +730,21 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                                                         )}
                                                     </span>
                                                 </div>
+                                                <div>
+                                                    {<span className="font-bold text-gray-500 text-sm">{decodeHtmlEntities(currentCurrency?.symbol || '$')}{Number(calculatePrice(item) || item.price).toFixed(2)}</span>}
+                                                </div>
+
                                             </div>
+
                                         </div>
                                         <div className="flex flex-col gap-1">
-                                            {item.on_sale && item.sale_price && (
+                                            {/* {item.on_sale && item.sale_price && (
                                                 <del className="caption1 text-secondary text-end org_price">
                                                     {decodeHtmlEntities(currentCurrency?.symbol || '$')}{Number(item.regular_price || item.price).toFixed(2)}
                                                 </del>
-                                            )}
+                                            )} */}
                                             <strong className="text-title price">
-                                                {decodeHtmlEntities(currentCurrency?.symbol || '$')}{Number(calculatePrice(item) || item.price).toFixed(2)}
+                                                {decodeHtmlEntities(currentCurrency?.symbol || '$')}{(Number(calculatePrice(item) || item.price) * item.quantity).toFixed(2)}
                                             </strong>
                                         </div>
                                     </div>
