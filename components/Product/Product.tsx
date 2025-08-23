@@ -394,7 +394,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                                         <div>Color: </div>
                                                         {data.attributes.find(item => item.name.toLowerCase() === "color")?.options.map((item: string, index: number) => (
                                                             <div
-                                                                className={`color-item w-fit h-10 text-xs overflow-ellipsis py-4 px-3 rounded-sm flex items-center justify-center text-button bg-white border border-line ${activeColor === item ? 'active bg-black-700 text-white' : ''}`}
+                                                                className={`color-item w-fit h-10 text-xs overflow-ellipsis py-4 px-3 rounded-sm flex items-center justify-center text-button  border border-line ${activeColor === item ? 'bg-black text-white border-black' : 'bg-white border-line'}`}
                                                                 key={index}
                                                                 onClick={() => handleActiveColor(item)}
                                                             >
