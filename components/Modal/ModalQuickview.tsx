@@ -356,7 +356,7 @@ const ModalQuickview = () => {
                                                             {Number(selectedVariation?.regular_price || selectedProduct?.regular_price || 0).toFixed(2)}
                                                         </del>
                                                     </div>
-                                                    <div className="product-sale caption2 font-semibold bg-green px-3 py-0.5 inline-block rounded-full">
+                                                    <div className="product-sale caption2 font-semibold bg-green-500 px-3 py-0.5 inline-block rounded-full">
                                                         -{percentSale}%
                                                     </div>
                                                 </>

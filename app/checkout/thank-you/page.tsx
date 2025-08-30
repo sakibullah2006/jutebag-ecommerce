@@ -3,11 +3,11 @@
 import { checkOrderExists } from '@/actions/order-actions'; // Adjust the import path as needed
 import { getProductCategories } from '@/actions/data-actions';
 import Footer from '@/components/Footer/Footer';
-import MenuOne from '@/components/Header/Menu/MenuOne';
 import TopNavOne from '@/components/Header/TopNav/TopNavOne';
 import ThankYouClient from '@/components/ThankYou/ThankYouClient';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import MenuEight from '../../../components/Header/Menu/MenuEight';
 
 interface ThankYouPageProps {
     searchParams: { orderId?: string };
@@ -60,7 +60,7 @@ const ThankYouPage = async ({ searchParams }: ThankYouPageProps) => {
         <>
             <TopNavOne props="style-one bg-black" slogan="Limited Offer: Free shipping on orders over $50" />
             <div id="header" className="relative w-full">
-                <MenuOne props={"bg-transparent"} categories={categories} />
+                <MenuEight props={"bg-transparent"} categories={categories} />
             </div>
 
             {/* <ThankYouClient orderId={orderId} /> */}

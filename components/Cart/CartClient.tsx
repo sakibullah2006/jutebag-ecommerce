@@ -254,7 +254,7 @@ const CartClient = () => {
                                 <div className='text-red text-sm bg-red/10 p-4 text-center font-bold mt-2'> {errorMessage}</div>
                             )}
                             {appliedCoupon && (
-                                <div className='text-green text-sm bg-green/30 p-4 text-center font-bold mt-2'>Coupon Code {appliedCoupon.code} Applied</div>
+                                <div className='text-green-500 text-sm bg-green-500/30 p-4 text-center font-bold mt-2'>Coupon Code {appliedCoupon.code} Applied</div>
                             )}
                         </div>
                         {/* <div className="list-voucher flex items-center gap-5 flex-wrap sm:mt-7 mt-5">

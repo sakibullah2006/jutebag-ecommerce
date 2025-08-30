@@ -14,5 +14,6 @@ export const PATH = {
     DASHBOARD: '/dashboard',
     WISHLIST: '/wishlist',
     PRIVACY_POLICY: '/privacy-policy',
-    TERMS_CONDITIONS: '/terms-conditions'
+    TERMS_CONDITIONS: '/terms-conditions',
+    OFFERS_INFO: '/information/offers'
 } as const;

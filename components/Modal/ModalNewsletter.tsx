@@ -32,7 +32,7 @@ const ModalNewsletter = () => {
                 >
                     <div className="main-content flex rounded-[20px] overflow-hidden w-full">
                         <div
-                            className="left lg:w-1/2 sm:w-2/5 max-sm:hidden bg-green flex flex-col items-center justify-center gap-5 py-14">
+                            className="left lg:w-1/2 sm:w-2/5 max-sm:hidden bg-green-500 flex flex-col items-center justify-center gap-5 py-14">
                             <div className="text-xs font-semibold uppercase text-center">Special Offer</div>
                             <div
                                 className="lg:text-[70px] text-4xl lg:leading-[78px] leading-[42px] font-bold uppercase text-center">

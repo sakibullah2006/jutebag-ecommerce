@@ -111,7 +111,7 @@ const Login = () => {
                                             <Icon.CheckSquareIcon
                                                 size={20}
                                                 weight="fill"
-                                                className="icon-checkbox text-gray-300 peer-checked:text-green"
+                                                className="icon-checkbox text-gray-300 peer-checked:text-green-500"
                                             />
                                         </div>
                                         <label htmlFor="remember" className="pl-2 cursor-pointer select-none">
