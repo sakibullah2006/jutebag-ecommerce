@@ -3,14 +3,23 @@ import MenuOne from "@/components/Header/Menu/MenuOne";
 import TopNavOne from "@/components/Header/TopNav/TopNavOne";
 import Link from 'next/link'; // Import Link for the homepage button
 import GoBackButton from "../components/extra/GoBackButton";
+import MenuEight from "../components/Header/Menu/MenuEight";
+import { getProductCategories } from "../actions/data-actions";
 
-export default function NotFound() {
-    // We no longer need to get the referer here for the back button
+export default async function NotFound() {
+
+    const [categoriesResult] = await Promise.allSettled([
+        getProductCategories(),
+    ]);
+
+    const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : [];
+
+
     return (
         <>
             <TopNavOne props="style-one bg-black" slogan="Limited Offer: Free shipping on orders over $50" />
-            <div id="header" className="relative w-full">
-                {/* <MenuOne props={"bg-transparent"} categories={categories} /> */}
+            <div id="header" className='relative w-full style-nine'>
+                <MenuEight props="bg-transparent" categories={categories} />
             </div>
             <div className="not-found-block text-center">
                 <div className="container">

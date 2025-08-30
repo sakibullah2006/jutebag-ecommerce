@@ -67,16 +67,16 @@ const SearchResult = ({ productData }: SearchResultProps) => {
     return (
         <>
 
-            <div className="shop-product breadcrumb1 lg:py-20 md:py-14 py-10">
+            <div className="shop-product breadcrumb1 lg:py-20 md:py-14 py-10 px-10">
                 <div className="container">
                     <div className="heading flex flex-col items-center">
-                        <div className="heading4 text-center">Found {filteredData.length} results for {String.raw`"`}{query}{String.raw`"`}</div>
+                        <div className="heading4 lg:text-3xl text-center">Found {filteredData.length} results for {String.raw`"`}{query}{String.raw`"`}</div>
                         <div className="input-block lg:w-1/2 sm:w-3/5 w-full md:h-[52px] h-[44px] sm:mt-8 mt-5">
                             <div className='w-full h-full relative'>
                                 <input
                                     type="text"
                                     placeholder='Search...'
-                                    className='caption1 w-full h-full pl-4 md:pr-[150px] pr-32 rounded-xl border border-line'
+                                    className='caption1 w-full h-full pl-4 md:pr-[150px] pr-32  rounded-2xl border border-line  focus:outline-none'
                                     value={searchKeyword}
                                     onChange={(e) => setSearchKeyword(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchKeyword)}

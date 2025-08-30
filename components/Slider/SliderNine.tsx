@@ -1,21 +1,24 @@
 'use client'
 
-import React, { Component } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
+import React from 'react'
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination } from 'swiper/modules';
+import { Autoplay, Navigation, Pagination } from 'swiper/modules';
 import 'swiper/css/bundle';
 import 'swiper/css/effect-fade';
+import { Deal } from '../../types/deal-type';
+import DealSlide from '../Home/DealSlide';
 
+interface SliderNineProps {
+    deals: Deal[]
+}
 
-const SliderNine = () => {
+const SliderNine = ({ deals }: SliderNineProps) => {
     return (
         <>
             <div className="slider-block style-nine lg:h-[480px] md:h-[400px] sm:h-[320px] h-[280px] w-full">
                 <div className="container lg:pt-5 flex justify-end h-full w-full">
                     <div className="slider-main lg:pl-5 h-full w-full">
-                        <Swiper
+                        {/* <Swiper
                             spaceBetween={0}
                             slidesPerView={1}
                             loop={true}
@@ -83,6 +86,23 @@ const SliderNine = () => {
                                     </div>
                                 </div>
                             </SwiperSlide>
+                        </Swiper> */}
+                        <Swiper
+                            spaceBetween={0}
+                            slidesPerView={1}
+                            loop={true}
+                            pagination={{ clickable: true }}
+                            modules={[Pagination, Autoplay]}
+                            className='h-full relative rounded-2xl overflow-hidden'
+                            autoplay={{
+                                delay: 4000,
+                            }}
+                        >
+                            {deals && deals.filter(deal => deal.landing_section).map((deal, index) => (
+                                <SwiperSlide key={deal.slug || index}>
+                                    <DealSlide deal={deal} isFirstSlide={index === 0} />
+                                </SwiperSlide>
+                            ))}
                         </Swiper>
                     </div>
                 </div>

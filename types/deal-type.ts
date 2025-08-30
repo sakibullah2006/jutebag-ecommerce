@@ -1,6 +1,8 @@
 export interface Deal {
     title: string;
+    slug: string;
     dealDescription: string;
+    markdownDetails: string;
     offerText: string;
     image: {
         id: number;
