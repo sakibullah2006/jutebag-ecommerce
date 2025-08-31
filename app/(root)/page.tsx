@@ -17,6 +17,7 @@ import { getDeals } from '../../actions/deal-actions'
 import MenuEight from '../../components/Header/Menu/MenuEight'
 import SliderNine from '../../components/Slider/SliderNine'
 import TrendingNow from '../../components/Home/TrendingNow'
+import { getBanners } from '../../actions/banner-actions'
 
 
 export const metadata: Metadata = {
@@ -44,14 +45,17 @@ export default async function HomeTwo() {
   // const { products } = await getAllProductsPaginated();
   const [
     productsResult,
-    dealsResult
+    dealsResult,
+    bannersResult
   ] = await Promise.allSettled([
     getAllProductsPaginated(),
-    getDeals()
+    getDeals(),
+    getBanners()
   ]);
 
   const products = productsResult.status === 'fulfilled' ? productsResult.value.products : [];
   const deals = dealsResult.status === 'fulfilled' ? dealsResult.value : [];
+  const banners = bannersResult.status === 'fulfilled' ? bannersResult.value : [];
 
 
 
@@ -66,7 +70,7 @@ export default async function HomeTwo() {
       </div>
       <div className='max-w-[1200px] 2xl:max-w-[80%] mx-auto'>
         <WhatNewOne data={products} start={0} limit={8} />
-        <Banner />
+        <Banner banners={banners} />
         <TabFeatures data={products} start={0} limit={8} />
         <Benefit props="md:mt-20 mt-10 py-10 px-2.5 bg-surface rounded-3xl" />
       </div>

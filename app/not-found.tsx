@@ -17,10 +17,6 @@ export default async function NotFound() {
 
     return (
         <>
-            <TopNavOne props="style-one bg-black" slogan="Limited Offer: Free shipping on orders over $50" />
-            <div id="header" className='relative w-full style-nine'>
-                <MenuEight props="bg-transparent" categories={categories} />
-            </div>
             <div className="not-found-block text-center">
                 <div className="container">
                     <div className="main-content-block">
