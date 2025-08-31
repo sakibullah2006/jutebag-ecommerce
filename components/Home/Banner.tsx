@@ -1,43 +1,60 @@
+import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import React from 'react'
 
 const Banner = () => {
     return (
         <>
-            <div className="banner-block style-one grid sm:grid-cols-2 gap-5 md:pt-20 pt-10 w-full">
-                <Link href={'/shop?type=promotion_bestseller'} className="banner-item relative block overflow-hidden duration-500">
-                    <div className="banner-img">
-                        <Image
-                            src={'/images/banner/best_seller.jpg'}
-                            width={2000}
-                            height={1300}
-                            alt='banner1'
-                            priority={true}
-                            className='duration-1000'
-                        />
+            <div className="banner-block md:pt-20 pt-10">
+                <div className="container">
+                    <div className="list-banner grid lg:grid-cols-3 md:grid-cols-2 lg:gap-[30px] gap-[20px]">
+                        <Link href={'/shop/breadcrumb-img'} className="banner-item relative block duration-500">
+                            <div className="banner-img w-full rounded-2xl overflow-hidden">
+                                <Image
+                                    src={'https://ecogoodsdirect.com/next/wp-content/uploads/2025/08/Untitled-510-x-250-px.webp'}
+                                    width={600}
+                                    height={400}
+                                    alt='bg-img'
+                                    className='w-full duration-500'
+                                />
+                            </div>
+                            <div className="banner-content absolute left-[30px] top-1/2 -translate-y-1/2">
+                                <div className="heading6">Women{String.raw`'s`} Fashion <br />Must-Haves</div>
+                                <div className="caption1 font-semibold text-black relative inline-block pb-1 border-b-2 border-black duration-500 mt-2">Shop Now</div>
+                            </div>
+                        </Link>
+                        <Link href={'/shop/breadcrumb-img'} className="banner-item relative block duration-500">
+                            <div className="banner-img w-full rounded-2xl overflow-hidden">
+                                <Image
+                                    src={'https://ecogoodsdirect.com/next/wp-content/uploads/2025/08/Untitled-510-x-250-px-2.webp'}
+                                    width={600}
+                                    height={400}
+                                    alt='bg-img'
+                                    className='w-full duration-500'
+                                />
+                            </div>
+                            <div className="banner-content absolute left-[30px] top-1/2 -translate-y-1/2">
+                                <div className="heading6">Latest Men{String.raw`'s`} <br />Fashion Essentials</div>
+                                <div className="caption1 font-semibold text-black relative inline-block pb-1 border-b-2 border-black duration-500 mt-2">Shop Now</div>
+                            </div>
+                        </Link>
+                        <Link href={'/shop/breadcrumb-img'} className="banner-item relative block duration-500 max-lg:hidden">
+                            <div className="banner-img w-full rounded-2xl overflow-hidden">
+                                <Image
+                                    src={'https://ecogoodsdirect.com/next/wp-content/uploads/2025/08/Untitled-510-x-250-px-1.webp'}
+                                    width={600}
+                                    height={400}
+                                    alt='bg-img'
+                                    className='w-full duration-500'
+                                />
+                            </div>
+                            <div className="banner-content absolute left-[30px] top-1/2 -translate-y-1/2">
+                                <div className="heading6">Summer Sale <br />collection</div>
+                                <div className="caption1 font-semibold text-black relative inline-block pb-1 border-b-2 border-black duration-500 mt-2">Shop Now</div>
+                            </div>
+                        </Link>
                     </div>
-                    <div className="banner-content absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
-                        <div className="heading2 text-pretty">Best Sellers</div>
-                        <div className="text-button text-pretty relative inline-block pb-1 border-b-2 border-black-500 duration-500 mt-2">Shop Now</div>
-                    </div>
-                </Link>
-                <Link href={'/shop?type=promotion_new-arrival'} className="banner-item relative block overflow-hidden duration-500">
-                    <div className="banner-img">
-                        <Image
-                            src={'/images/banner/new_arrival.jpg'}
-                            width={2000}
-                            height={1300}
-                            alt='banner2'
-                            priority={true}
-                            className='duration-1000'
-                        />
-                    </div>
-                    <div className="banner-content absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
-                        <div className="heading2 text-pretty">New Arrivals</div>
-                        <div className="text-button text-pretty relative inline-block pb-1 border-b-2 border-black-500 duration-500 mt-2">Shop Now</div>
-                    </div>
-                </Link>
+                </div>
             </div>
         </>
     )
