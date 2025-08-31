@@ -61,7 +61,7 @@ const ProductDefault = async ({ params }: ProductDefaultProps) => {
 
     return (
         <>
-            <div id="header" className="relative w-full">
+            <div id="header h-fit" className="relative w-full">
                 <BreadcrumbProduct productName={product.name} productId={productId} />
             </div>
             <Default key={productId} data={product} productId={productId} variations={variations} relatedProducts={relatedProducts} reviews={reviews || []} />
