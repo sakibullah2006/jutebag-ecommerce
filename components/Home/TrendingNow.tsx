@@ -37,7 +37,7 @@ const TrendingNow = () => {
 
     const isLoading = !categories || categories.length === 0;
 
-    console.log('Categories in TrendingNow:', categories);
+    // console.log('Categories in TrendingNow:', categories);
 
     return (
         <>
@@ -87,7 +87,7 @@ const TrendingNow = () => {
                                                     height={1000}
                                                     alt={item.name}
                                                     priority={true}
-                                                    className='max-w-[260px]'
+                                                    className='aspect-square'
                                                 />
                                             </div>
                                             <div className="trending-name bg-white absolute bottom-5 left-1/2 -translate-x-1/2 w-[140px] h-10 rounded-xl flex items-center justify-center duration-500 hover:bg-black hover:text-white">
