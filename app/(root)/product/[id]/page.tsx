@@ -62,7 +62,6 @@ const ProductDefault = async ({ params }: ProductDefaultProps) => {
     return (
         <>
             <div id="header" className="relative w-full">
-                <MenuOne props="bg-white" categories={categories} />
                 <BreadcrumbProduct productName={product.name} productId={productId} />
             </div>
             <Default key={productId} data={product} productId={productId} variations={variations} relatedProducts={relatedProducts} reviews={reviews || []} />
