@@ -56,11 +56,11 @@ const Login = () => {
         }
     };
 
-    if (isAuthenticated) {
-        // If the user is already authenticated, redirect them to the dashboard
-        router.push('/dashboard');
-        return null; // Prevent rendering the login form
-    }
+    // if (isAuthenticated) {
+    //     // If the user is already authenticated, redirect them to the dashboard
+    //     router.push('/dashboard');
+    //     return null; // Prevent rendering the login form
+    // }
 
     return (
         <>
