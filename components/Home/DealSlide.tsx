@@ -18,8 +18,8 @@ const DealSlide = ({ deal, isFirstSlide }: DealSlideProps) => {
         // This is our positioning context. `relative` is crucial for `absolute` children.
         <div className="relative w-full h-full">
             <Image
-                onClick={() => router.push(`${PATH.OFFERS_INFO}/${deal.slug}`)}
-                src={'/images/slider/slider-bg.png'}
+                // onClick={() => router.push(`${PATH.OFFERS_INFO}/${deal.slug}`)}
+                src={deal.image.src || '/images/slider/slider-bg.png'}
                 alt={'Promotional Banner'}
                 fill
                 priority={isFirstSlide}

@@ -91,11 +91,11 @@ const SliderNine = ({ deals }: SliderNineProps) => {
                             spaceBetween={0}
                             slidesPerView={1}
                             loop={true}
-                            pagination={{ clickable: true }}
+                            pagination={{ clickable: false }}
                             modules={[Pagination, Autoplay]}
                             className='h-full relative rounded-2xl overflow-hidden'
                             autoplay={{
-                                delay: 4000,
+                                delay: 5000,
                             }}
                         >
                             {deals && deals.filter(deal => deal.landing_section).map((deal, index) => (
