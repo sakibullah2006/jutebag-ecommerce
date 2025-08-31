@@ -97,7 +97,7 @@ const Collection: React.FC<Props> = ({ props }) => {
                                                     src={item.image.src || '/images/collection/swimwear.png'}
                                                     width={400}
                                                     height={400}
-                                                    className='w-full h-full object-cover max-h-[400px] max-w-[320px] xl:max-w-[360px] 2xl:max-w-[400px]'
+                                                    className='h-full object-cover max-h-[400px] max-w-[320px] xl:max-w-[360px] 2xl:max-w-[400px]'
                                                     alt={item.name + " image"}
                                                     style={{ maxWidth: '400px', maxHeight: '400px', width: '100%', height: '100%', objectFit: 'cover' }}
                                                 />
