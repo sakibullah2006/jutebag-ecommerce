@@ -75,12 +75,12 @@ const TrendingNow = () => {
                                         spaceBetween: 30,
                                     },
                                 }}
-                                className='h-full'
+                                className='h-full '
                             >
                                 {categories.filter(cat => cat.slug.toLowerCase().split("_").includes("common")).sort((a, b) => b.count - a.count)?.slice(0, 7).map((item) => (
                                     <SwiperSlide key={item.id}>
                                         <Link href={`${PATH.SHOP}?category=${item.slug.trim()}`} className="trending-item block relative cursor-pointer">
-                                            <div className="bg-img rounded-2xl overflow-hidden">
+                                            <div className="bg-img rounded-2xl overflow-hidden max-w-[230px]">
                                                 <Image
                                                     src={item.image?.src || 'https://ecogoodsdirect.com/next/wp-content/uploads/2025/08/Asda-Jute-Bag.jpg'}
                                                     width={1000}
