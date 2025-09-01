@@ -28,8 +28,8 @@ const DealSlide = ({ deal, isFirstSlide }: DealSlideProps) => {
 
             {/* CHANGE #1: New container specifically for the absolutely positioned timer. */}
             {/* It's placed at the top of the slide and horizontally centered. */}
-            <div className="absolute top-[3%] left-1/2 -translate-x-1/2 z-20 w-full">
-                <div className="bg-red-700/90 text-white p-2 rounded-xl flex gap-2 justify-center items-center">
+            <div className="absolute top-[0%] left-1/2 -translate-x-1/2 z-20 w-full">
+                <div className="bg-red-700/90 text-white p-2 rounded-none flex gap-2 justify-center items-center">
                     <p className="max-sm:text-xs md:text-xl uppercase text-center font-bold text-white/90">Hurry, offer ends in:</p>
                     <CountdownTimer expiryDate={deal.expiry_date} />
                 </div>
@@ -40,7 +40,7 @@ const DealSlide = ({ deal, isFirstSlide }: DealSlideProps) => {
             <div className="relative z-10 flex h-full flex-col items-center justify-end pb-[15%] max-sm:pb-[25%] md:pb-[13%]">
                 <Link
                     href={deal.redirect_link}
-                    className="group flex items-center gap-x-2 rounded-full text-green-600 bg-white font-bold py-2 px-6 text-base md:py-3 md:px-8 md:text-lg transition-all duration-300 ease-in-out hover:bg-green-500 hover:text-gray-900"
+                    className="group flex items-center gap-x-2 rounded-full text-green-600 bg-white font-bold py-2 px-6 text-base md:py-3 md:px-8 md:text-lg transition-all duration-300 ease-in-out hover:bg-green-500 hover:text-white"
                 >
                     Shop Now
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

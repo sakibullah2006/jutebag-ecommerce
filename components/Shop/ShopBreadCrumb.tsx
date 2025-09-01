@@ -264,10 +264,10 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
         <>
             <div className="breadcrumb-block style-img">
                 <div className="breadcrumb-main bg-linear overflow-hidden">
-                    <div className="container lg:pt-[134px] pt-24 pb-10 relative">
+                    <div className="container lg:pt-[80px] pt-24 pb-10 relative">
                         <div className="main-content w-full h-full flex flex-col items-center justify-center relative z-[1]">
                             <div className="text-content">
-                                <div className="heading2 text-center">{selectedCategory === null ? 'Shop' : categories.find(cat => cat.slug === selectedCategory)?.name}</div>
+                                <div className="heading2 text-center max-md:text-4xl">{selectedCategory === null ? 'Shop' : categories.find(cat => cat.slug === selectedCategory)?.name}</div>
                                 <div className="link flex items-center justify-center gap-1 caption1 mt-3">
                                     <Link href={'/'}>Homepage</Link>
                                     <Icon.CaretRightIcon size={14} className='text-secondary2' />
