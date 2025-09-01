@@ -217,7 +217,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                     <div className="product-main cursor-pointer block">
                         <div className="product-thumb bg-white relative overflow-hidden rounded-2xl">
                             {(data.tags.some(tag => tag.slug.includes("promotion_new-arrival")) &&
-                                <div className="product-tag text-button-uppercase bg-green-500 px-3 py-0.5 inline-block rounded-full absolute top-3 left-3 z-[1]">
+                                <div className="product-tag text-button-uppercase bg-green-400 px-3 py-0.5 inline-block rounded-full absolute top-3 left-3 z-[1]">
                                     New
                                 </div>
                             )}
@@ -543,7 +543,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     {selectedVariation.on_sale && percentSale > 0 && selectedVariation.regular_price && (
                                         <>
                                             <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(selectedVariation.regular_price || 0).toFixed(2)}</del></div>
-                                            <div className="product-sale caption1 font-medium bg-green-500 px-3 py-0.5 inline-block rounded-full">
+                                            <div className="product-sale caption1 font-medium bg-green-400 px-3 py-0.5 inline-block rounded-full">
                                                 -{percentSale}%
                                             </div>
                                         </>
@@ -558,7 +558,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     {data.on_sale && percentSale > 0 && data.regular_price && (
                                         <>
                                             <div className="product-origin-price caption1 text-secondary2"><del>{decodeHtmlEntities(currentCurrency?.symbol || "$")}{Number(data.regular_price || 0).toFixed(2)}</del></div>
-                                            <div className="product-sale caption1 font-medium bg-green-500 px-3 py-0.5 inline-block rounded-full">
+                                            <div className="product-sale caption1 font-medium bg-green-400 px-3 py-0.5 inline-block rounded-full">
                                                 -{percentSale}%
                                             </div>
                                         </>
