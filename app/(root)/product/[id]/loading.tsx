@@ -5,7 +5,7 @@ export default function ProductLoading() {
         <>
             {/* Breadcrumb Loading Skeleton */}
             <div className="breadcrumb-product">
-                <div className="main bg-surface md:pt-[2px] pt-[20px] pb-[20px]">
+                <div className="main bg-surface md:pt-[20px] pt-[20px] pb-[20px]">
                     <div className="container flex items-center justify-between flex-wrap gap-3">
                         <div className="left flex items-center gap-1">
                             <div className="w-16 h-4 bg-gray-200 rounded animate-pulse"></div>
