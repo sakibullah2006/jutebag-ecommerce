@@ -52,7 +52,12 @@ const TabFeatures: React.FC<Props> = ({ data, start, limit }) => {
 
     return (
         <>
-            <div className="tab-features-block md:pt-20 pt-10">
+            <MotionDiv
+                initial={{ opacity: 0, y: -20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.75, ease: "easeInOut" }}
+                className="tab-features-block md:pt-20 pt-10">
                 <div className="container">
                     <div className="heading flex flex-col items-center text-center">
                         <div className="menu-tab flex items-center gap-2 p-1 bg-surface rounded-2xl">
@@ -65,6 +70,7 @@ const TabFeatures: React.FC<Props> = ({ data, start, limit }) => {
                                     {activeTab === item && (
                                         <MotionDiv
                                             layoutId='active-pill'
+                                            transition={{ duration: 0.3 }}
                                             className='absolute inset-0 rounded-2xl bg-white'
                                         ></MotionDiv>
                                     )}
@@ -77,12 +83,21 @@ const TabFeatures: React.FC<Props> = ({ data, start, limit }) => {
                     </div>
 
                     <div className="list-product hide-product-sold  grid lg:grid-cols-4 grid-cols-2 sm:gap-[30px] gap-[20px] md:mt-10 mt-6">
+
                         {filteredProducts.slice(start, limit).map((prd, index) => (
-                            <Product key={index} data={prd} type='grid' style='style-1' />
+                            <MotionDiv
+                                initial={{ opacity: 0, y: -20, filter: 'blur(5px)' }}
+                                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.3, ease: "easeInOut", delay: 0.1 * index }}
+                                className="products"
+                            >
+                                <Product key={index} data={prd} type='grid' style='style-1' />
+                            </MotionDiv>
                         ))}
                     </div>
                 </div>
-            </div>
+            </MotionDiv>
         </>
     )
 }

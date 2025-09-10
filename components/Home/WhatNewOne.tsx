@@ -34,7 +34,12 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
 
     return (
         <>
-            <div className="whate-new-block md:pt-20 pt-10">
+            <MotionDiv
+                initial={{ opacity: 0, y: -20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.75, ease: "easeInOut" }}
+                className="whate-new-block md:pt-20 pt-10">
                 <div className="container">
                     <div className="heading flex flex-col items-center text-center">
                         <div className="heading3">What{String.raw`'s`} new</div>
@@ -48,6 +53,7 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
                                     {activeTab.toLowerCase() === item.slug.toLowerCase() && (
                                         <MotionDiv
                                             layoutId='active-pill'
+                                            transition={{ duration: 0.3 }}
                                             className='absolute inset-0 rounded-2xl bg-white'
                                         ></MotionDiv>
                                     )}
@@ -61,11 +67,20 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
 
                     <div className="list-product hide-product-sold grid lg:grid-cols-4 grid-cols-2 sm:gap-[30px] gap-[20px] md:mt-10 mt-6">
                         {filteredProducts.slice(start, limit).map((prd, index) => (
-                            <Product data={prd} type='grid' key={`${activeTab}-${prd.id}-${index}`} style='style-1' />
+                            <MotionDiv
+                                initial={{ opacity: 0, y: -20, filter: 'blur(5px)' }}
+                                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.3, ease: "easeInOut", delay: 0.1 * index }}
+                                key={`${activeTab}-${prd.id}-${index}`}
+                                className="products"
+                            >
+                                <Product data={prd} type='grid' key={`${activeTab}-${prd.id}-${index}`} style='style-1' />
+                            </MotionDiv>
                         ))}
                     </div>
                 </div>
-            </div>
+            </MotionDiv>
         </>
     )
 }

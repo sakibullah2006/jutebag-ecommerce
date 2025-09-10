@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { CategorieType } from '../../types/data-type';
 import { useAppData } from '../../context/AppDataContext';
 import { PATH } from '../../constant/pathConstants';
+import { MotionDiv } from '../../types/montion-types';
 
 
 const TrendingNow = () => {
@@ -41,7 +42,12 @@ const TrendingNow = () => {
 
     return (
         <>
-            <div className="trending-block style-nine md:pt-20 pt-10">
+            <MotionDiv
+                initial={{ opacity: 0, y: -20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.75, ease: "easeInOut" }}
+                className="trending-block style-nine md:pt-20 pt-10">
                 <div className="container">
                     <div className="heading3 text-center">Trending Right Now
                     </div>
@@ -100,7 +106,7 @@ const TrendingNow = () => {
                         )}
                     </div>
                 </div>
-            </div>
+            </MotionDiv>
         </>
     )
 }

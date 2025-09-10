@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import * as Icon from "@phosphor-icons/react/dist/ssr";
+import { motion, AnimatePresence } from 'motion/react';
 
 // --- Consolidated Imports ---
 import { useAuth } from '@/context/AuthContext';
@@ -18,11 +19,40 @@ import { PATH } from '@/constant/pathConstants';
 import { STOREINFO } from '@/constant/storeConstants';
 import { generateMenuItems, MenuItem } from '@/lib/categoryUtils';
 import { CategorieType } from '@/types/data-type';
+import { MotionDiv } from '../../../types/montion-types';
 
 interface Props {
     props?: string;
     categories: CategorieType[];
 }
+
+// Reusable animation variants for clean and consistent animations
+const dropdownVariants = {
+    hidden: { opacity: 0, y: -10, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2, ease: "easeOut" } },
+    exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.15, ease: "easeIn" } }
+} as const;
+
+const mobileMenuVariants = {
+    hidden: { x: '-100%' },
+    visible: { x: '0%', transition: { duration: 0.3, ease: 'easeInOut' } },
+    exit: { x: '-100%', transition: { duration: 0.25, ease: 'easeInOut' } }
+} as const;
+
+const mobileNavListVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.05,
+        },
+    },
+} as const;
+
+const mobileNavItemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: { opacity: 1, x: 0 },
+} as const;
 
 const MenuEight: React.FC<Props> = ({ props, categories }) => {
     const router = useRouter();
@@ -42,7 +72,7 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
     const [openSubNavMobile, setOpenSubNavMobile] = useState<number | null>(null);
     const [searchKeyword, setSearchKeyword] = useState('');
     const [fixedHeader, setFixedHeader] = useState(false);
-    const [lastScrollPosition, setLastScrollPosition] = useState(0);
+    const [isScrollingUp, setIsScrollingUp] = useState(true);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
     // --- Effects ---
@@ -54,21 +84,30 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
     }, [categories, categoriesData]);
 
     useEffect(() => {
+        let lastScrollY = window.scrollY;
         let ticking = false;
+
         const handleScroll = () => {
+            const currentScrollY = window.scrollY;
             if (!ticking) {
                 window.requestAnimationFrame(() => {
-                    const scrollPosition = window.scrollY;
-                    setFixedHeader(scrollPosition > 0 && scrollPosition < lastScrollPosition);
-                    setLastScrollPosition(scrollPosition);
+                    if (currentScrollY > 100) {
+                        setFixedHeader(true);
+                        setIsScrollingUp(currentScrollY < lastScrollY);
+                    } else {
+                        setFixedHeader(false);
+                    }
+                    lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
                     ticking = false;
                 });
                 ticking = true;
             }
         };
+
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [lastScrollPosition]);
+    }, []);
+
 
     // --- Handlers ---
     const handleSearch = (value: string) => {
@@ -83,7 +122,14 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
 
     return (
         <>
-            <div className={`header-menu style-eight ${fixedHeader ? ' fixed' : ''} ${props || 'bg-white'} w-full md:h-[74px] h-[56px]`}>
+            {/* <div className={`header-placeholder w-full md:h-[74px] h-[56px]`}></div> */}
+            <motion.div
+                className={`header-menu style-eight ${props || 'bg-white'} w-full md:h-[74px] h-[56px] ${fixedHeader ? 'fixed top-0 left-0 z-50 shadow-md' : 'relative'}`}
+                animate={{
+                    y: fixedHeader && isScrollingUp ? '0%' : (fixedHeader ? '-100%' : '0%')
+                }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+            >
                 <div className="container mx-auto h-full">
                     <div className="header-main flex items-center justify-between h-full">
                         <div className="menu-mobile-icon lg:hidden flex items-center" onClick={handleMenuMobile}>
@@ -92,7 +138,8 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
                         <Link href={PATH.HOME} className='flex items-center'>
                             <div className="heading4">{STOREINFO.name}</div>
                         </Link>
-                        <div className="form-search w-2/3 mr-4 pl-8 flex items-center h-[44px] max-lg:hidden">
+                        <div
+                            className="form-search w-2/3 mr-4 pl-8 flex items-center h-[44px] max-lg:hidden">
                             <input
                                 type="text"
                                 className="search-input h-full px-4 w-full border border-line rounded-l"
@@ -108,49 +155,65 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
                                 Search
                             </button>
                         </div>
-                        <div className="right flex gap-12">
+                        <div
+                            className="right flex gap-12"
+                        >
                             <div className="list-action flex items-center gap-4">
-                                <div className="user-icon flex items-center justify-center cursor-pointer">
-                                    <Icon.UserIcon size={24} color='black' onClick={handleLoginPopup} />
-                                    <div className={`login-popup absolute top-[74px] w-[320px] p-7 rounded-xl bg-white box-shadow-sm ${openLoginPopup ? 'open' : ''}`}>
-                                        {!isAuthenticated ? (
-                                            <>
-                                                <Link href={PATH.LOGIN} className="button-main w-full text-center">Login</Link>
-                                                <div className="text-secondary text-center mt-3 pb-4">Don’t have an account?
-                                                    <Link href={PATH.REGISTER} className='text-black pl-1 hover:underline'>Register</Link>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="text-secondary text-center mt-3 pb-4">Hello, <span className='text-black'>{user?.user_display_name}</span></div>
-                                                <Link href={PATH.DASHBOARD} className="button-main bg-white text-black border border-black w-full text-center">Dashboard</Link>
-                                                <div
-                                                    className={`button-main w-full text-center mt-3 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                    onClick={() => {
-                                                        if (loading) return;
-                                                        logout();
-                                                        handleLoginPopup();
-                                                        router.push(PATH.LOGIN);
-                                                    }}
-                                                >
-                                                    {loading ? "Logging Out..." : "Log Out"}
-                                                </div>
-                                            </>
+                                <div className="user-icon flex items-center justify-center cursor-pointer relative">
+                                    <MotionDiv
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}>
+                                        <Icon.User size={24} color='black' onClick={handleLoginPopup} />
+                                    </MotionDiv>
+                                    <AnimatePresence>
+                                        {openLoginPopup && (
+                                            <motion.div
+                                                className="login-popup absolute top-[50px] right-0 w-[320px] p-7 rounded-xl bg-white box-shadow-sm origin-top-right"
+                                                variants={dropdownVariants}
+                                                initial="hidden"
+                                                animate="visible"
+                                                exit="exit"
+                                            >
+                                                {!isAuthenticated ? (
+                                                    <>
+                                                        <Link href={PATH.LOGIN} className="button-main w-full text-center">Login</Link>
+                                                        <div className="text-secondary text-center mt-3 pb-4">Don’t have an account?
+                                                            <Link href={PATH.REGISTER} className='text-black pl-1 hover:underline'>Register</Link>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <div className="text-secondary text-center mt-3 pb-4">Hello, <span className='text-black'>{user?.user_display_name}</span></div>
+                                                        <Link href={PATH.DASHBOARD} className="button-main bg-white text-black border border-black w-full text-center">Dashboard</Link>
+                                                        <div
+                                                            className={`button-main w-full text-center mt-3 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            onClick={() => {
+                                                                if (loading) return;
+                                                                logout();
+                                                                handleLoginPopup();
+                                                                router.push(PATH.LOGIN);
+                                                            }}
+                                                        >
+                                                            {loading ? "Logging Out..." : "Log Out"}
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </motion.div>
                                         )}
-                                    </div>
+                                    </AnimatePresence>
                                 </div>
-                                <div className="max-md:hidden wishlist-icon flex items-center cursor-pointer" onClick={openModalWishlist}>
+                                <motion.div className="max-md:hidden wishlist-icon flex items-center cursor-pointer" onClick={openModalWishlist} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                                     <Icon.Heart size={24} color='black' />
-                                </div>
-                                <div className="cart-icon flex items-center relative cursor-pointer" onClick={openModalCart}>
+                                </motion.div>
+                                <motion.div className="cart-icon flex items-center relative cursor-pointer" onClick={openModalCart} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                                     <Icon.Handbag size={24} color='black' />
                                     <span className="quantity cart-quantity absolute -right-1.5 -top-1.5 text-xs text-white bg-black w-4 h-4 flex items-center justify-center rounded-full">{cartState.cartArray.length}</span>
-                                </div>
+                                </motion.div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </motion.div>
 
             <div className="top-nav-menu relative bg-white border-t border-b border-line h-[44px] max-lg:hidden z-10">
                 <div className="container h-full">
@@ -240,82 +303,96 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
                 </div>
             </div>
 
-            <div id="menu-mobile" className={`${openMenuMobile ? 'open' : ''}`}>
-                <div className="menu-container bg-white h-full">
-                    <div className="container h-full">
-                        <div className="menu-main h-full overflow-hidden">
-                            <div className="heading py-2 relative flex items-center justify-center">
-                                <div
-                                    className="close-menu-mobile-btn absolute left-0 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-surface flex items-center justify-center"
-                                    onClick={handleMenuMobile}
-                                >
-                                    <Icon.X size={14} />
-                                </div>
-                                <Link href={PATH.HOME} className='logo text-3xl font-semibold text-center'>{STOREINFO.name}</Link>
-                            </div>
-                            <div className="form-search relative mt-2">
-                                <Icon.MagnifyingGlass size={20} className='absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer' onClick={() => handleSearch(searchKeyword)} />
-                                <input
-                                    type="text"
-                                    placeholder='What are you looking for?'
-                                    className=' h-12 rounded-lg border border-line text-sm w-full pl-10 pr-4'
-                                    value={searchKeyword}
-                                    onChange={(e) => setSearchKeyword(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchKeyword)}
-                                />
-                            </div>
-                            <div className="list-nav mt-6">
-                                <ul>
-                                    <li>
-                                        <Link href={PATH.SHOP} className='text-xl font-semibold flex items-center justify-between'>
-                                            Shop
-                                        </Link>
-                                    </li>
-                                    <li className={`${openSubNavMobile === 1 ? 'open' : ''}`}>
+            <AnimatePresence>
+                {openMenuMobile && (
+                    <motion.div
+                        id="menu-mobile"
+                        className="fixed inset-0 bg-white z-[100]"
+                        variants={mobileMenuVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                    >
+                        <div className="menu-container h-full">
+                            <div className="container h-full">
+                                <div className="menu-main h-full overflow-y-auto">
+                                    <div className="heading py-2 relative flex items-center justify-center">
                                         <div
-                                            onClick={() => handleOpenSubNavMobile(1)}
-                                            className='text-xl font-semibold flex items-center justify-between mt-5 cursor-pointer'
+                                            className="close-menu-mobile-btn absolute left-0 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-surface flex items-center justify-center"
+                                            onClick={handleMenuMobile}
                                         >
-                                            Categories
-                                            <span className='text-right'>
-                                                <Icon.CaretRight size={20} />
-                                            </span>
+                                            <Icon.X size={14} />
                                         </div>
-                                        <div className="sub-nav-mobile">
+                                        <Link href={PATH.HOME} className='logo text-3xl font-semibold text-center'>{STOREINFO.name}</Link>
+                                    </div>
+                                    <div className="form-search relative mt-2">
+                                        <Icon.MagnifyingGlass size={20} className='absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer' onClick={() => handleSearch(searchKeyword)} />
+                                        <input
+                                            type="text"
+                                            placeholder='What are you looking for?'
+                                            className=' h-12 rounded-lg border border-line text-sm w-full pl-10 pr-4'
+                                            value={searchKeyword}
+                                            onChange={(e) => setSearchKeyword(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchKeyword)}
+                                        />
+                                    </div>
+                                    <motion.ul
+                                        className="list-nav mt-6"
+                                        variants={mobileNavListVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                    >
+                                        <motion.li variants={mobileNavItemVariants}>
+                                            <Link href={PATH.SHOP} className='text-xl font-semibold flex items-center justify-between'>
+                                                Shop
+                                            </Link>
+                                        </motion.li>
+                                        <motion.li className={`${openSubNavMobile === 1 ? 'open' : ''}`} variants={mobileNavItemVariants}>
                                             <div
-                                                className="back-btn flex items-center gap-3"
-                                                onClick={(e) => { e.stopPropagation(); handleOpenSubNavMobile(1); }}
+                                                onClick={() => handleOpenSubNavMobile(1)}
+                                                className='text-xl font-semibold flex items-center justify-between mt-5 cursor-pointer'
                                             >
-                                                <Icon.CaretLeft />
-                                                Back
+                                                Categories
+                                                <span className='text-right'>
+                                                    <Icon.CaretRight size={20} />
+                                                </span>
                                             </div>
-                                            <div className="list-nav-item w-full pt-3 pb-12 grid grid-cols-2 gap-5 gap-y-6">
-                                                {menuItems.map((menuItem) => (
-                                                    <div key={menuItem.id} className="nav-item">
-                                                        <div className="text-button-uppercase pb-1">{menuItem.name}</div>
-                                                        <ul>
-                                                            {menuItem.subMenu?.map((subMenuItem) => (
-                                                                <li key={subMenuItem.id}>
-                                                                    <Link
-                                                                        href={`${PATH.SHOP}?category=${subMenuItem.slug}` + (menuItem.isGenderCat ? `&gender=${menuItem.genderCategory}` : '')}
-                                                                        className={`link text-secondary duration-300 cursor-pointer`}
-                                                                    >
-                                                                        {subMenuItem.name}
-                                                                    </Link>
-                                                                </li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                ))}
+                                            <div className="sub-nav-mobile">
+                                                <div
+                                                    className="back-btn flex items-center gap-3"
+                                                    onClick={(e) => { e.stopPropagation(); handleOpenSubNavMobile(1); }}
+                                                >
+                                                    <Icon.CaretLeft />
+                                                    Back
+                                                </div>
+                                                <div className="list-nav-item w-full pt-3 pb-12 grid grid-cols-2 gap-5 gap-y-6">
+                                                    {menuItems.map((menuItem) => (
+                                                        <div key={menuItem.id} className="nav-item">
+                                                            <div className="text-button-uppercase pb-1">{menuItem.name}</div>
+                                                            <ul>
+                                                                {menuItem.subMenu?.map((subMenuItem) => (
+                                                                    <li key={subMenuItem.id}>
+                                                                        <Link
+                                                                            href={`${PATH.SHOP}?category=${subMenuItem.slug}` + (menuItem.isGenderCat ? `&gender=${menuItem.genderCategory}` : '')}
+                                                                            className={`link text-secondary duration-300 cursor-pointer`}
+                                                                        >
+                                                                            {subMenuItem.name}
+                                                                        </Link>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </li>
-                                </ul>
+                                        </motion.li>
+                                    </motion.ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 }
