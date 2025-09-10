@@ -83,17 +83,8 @@ const TabFeatures: React.FC<Props> = ({ data, start, limit }) => {
                     </div>
 
                     <div className="list-product hide-product-sold  grid lg:grid-cols-4 grid-cols-2 sm:gap-[30px] gap-[20px] md:mt-10 mt-6">
-
                         {filteredProducts.slice(start, limit).map((prd, index) => (
-                            <MotionDiv
-                                initial={{ opacity: 0, y: -20, filter: 'blur(5px)' }}
-                                whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.3, ease: "easeInOut", delay: 0.1 * index }}
-                                className="products"
-                            >
-                                <Product key={index} data={prd} type='grid' style='style-1' />
-                            </MotionDiv>
+                            <Product key={index} data={prd} type='grid' style='style-1' />
                         ))}
                     </div>
                 </div>

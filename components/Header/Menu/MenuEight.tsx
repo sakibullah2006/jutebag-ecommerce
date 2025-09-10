@@ -123,7 +123,7 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
     return (
         <>
             {/* <div className={`header-placeholder w-full md:h-[74px] h-[56px]`}></div> */}
-            <motion.div
+            <MotionDiv
                 className={`header-menu style-eight ${props || 'bg-white'} w-full md:h-[74px] h-[56px] ${fixedHeader ? 'fixed top-0 left-0 z-50 shadow-md' : 'relative'}`}
                 animate={{
                     y: fixedHeader && isScrollingUp ? '0%' : (fixedHeader ? '-100%' : '0%')
@@ -132,7 +132,7 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
             >
                 <div className="container mx-auto h-full">
                     <div className="header-main flex items-center justify-between h-full">
-                        <div className="menu-mobile-icon lg:hidden flex items-center" onClick={handleMenuMobile}>
+                        <div className="menu-mobile-icon lg:hidden flex items-center cursor-pointer" onClick={handleMenuMobile}>
                             <i className="icon-category text-2xl"></i>
                         </div>
                         <Link href={PATH.HOME} className='flex items-center'>
@@ -159,61 +159,47 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
                             className="right flex gap-12"
                         >
                             <div className="list-action flex items-center gap-4">
-                                <div className="user-icon flex items-center justify-center cursor-pointer relative">
-                                    <MotionDiv
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}>
-                                        <Icon.User size={24} color='black' onClick={handleLoginPopup} />
-                                    </MotionDiv>
-                                    <AnimatePresence>
-                                        {openLoginPopup && (
-                                            <motion.div
-                                                className="login-popup absolute top-[50px] right-0 w-[320px] p-7 rounded-xl bg-white box-shadow-sm origin-top-right"
-                                                variants={dropdownVariants}
-                                                initial="hidden"
-                                                animate="visible"
-                                                exit="exit"
-                                            >
-                                                {!isAuthenticated ? (
-                                                    <>
-                                                        <Link href={PATH.LOGIN} className="button-main w-full text-center">Login</Link>
-                                                        <div className="text-secondary text-center mt-3 pb-4">Don’t have an account?
-                                                            <Link href={PATH.REGISTER} className='text-black pl-1 hover:underline'>Register</Link>
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <div className="text-secondary text-center mt-3 pb-4">Hello, <span className='text-black'>{user?.user_display_name}</span></div>
-                                                        <Link href={PATH.DASHBOARD} className="button-main bg-white text-black border border-black w-full text-center">Dashboard</Link>
-                                                        <div
-                                                            className={`button-main w-full text-center mt-3 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                            onClick={() => {
-                                                                if (loading) return;
-                                                                logout();
-                                                                handleLoginPopup();
-                                                                router.push(PATH.LOGIN);
-                                                            }}
-                                                        >
-                                                            {loading ? "Logging Out..." : "Log Out"}
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </motion.div>
+                                <div className="user-icon flex items-center justify-center cursor-pointer">
+                                    <Icon.User size={24} color='black' onClick={handleLoginPopup} />
+                                    <div className={`login-popup absolute top-[74px] w-[320px] p-7 rounded-xl bg-white box-shadow-sm ${openLoginPopup ? 'open' : ''}`}>
+                                        {!isAuthenticated ? (
+                                            <>
+                                                <Link href={PATH.LOGIN} className="button-main w-full text-center">Login</Link>
+                                                <div className="text-secondary text-center mt-3 pb-4">Don’t have an account?
+                                                    <Link href={PATH.REGISTER} className='text-black pl-1 hover:underline'>Register</Link>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="text-secondary text-center mt-3 pb-4">Hello, <span className='text-black'>{user?.user_display_name}</span></div>
+                                                <Link href={PATH.DASHBOARD} className="button-main bg-white text-black border border-black w-full text-center">Dashboard</Link>
+                                                <div
+                                                    className={`button-main w-full text-center mt-3 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    onClick={() => {
+                                                        if (loading) return;
+                                                        logout();
+                                                        handleLoginPopup();
+                                                        router.push(PATH.LOGIN);
+                                                    }}
+                                                >
+                                                    {loading ? "Logging Out..." : "Log Out"}
+                                                </div>
+                                            </>
                                         )}
-                                    </AnimatePresence>
+                                    </div>
                                 </div>
-                                <motion.div className="max-md:hidden wishlist-icon flex items-center cursor-pointer" onClick={openModalWishlist} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                <MotionDiv className="max-md:hidden wishlist-icon flex items-center cursor-pointer" onClick={openModalWishlist} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                                     <Icon.Heart size={24} color='black' />
-                                </motion.div>
-                                <motion.div className="cart-icon flex items-center relative cursor-pointer" onClick={openModalCart} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                </MotionDiv>
+                                <MotionDiv className="cart-icon flex items-center relative cursor-pointer" onClick={openModalCart} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                                     <Icon.Handbag size={24} color='black' />
                                     <span className="quantity cart-quantity absolute -right-1.5 -top-1.5 text-xs text-white bg-black w-4 h-4 flex items-center justify-center rounded-full">{cartState.cartArray.length}</span>
-                                </motion.div>
+                                </MotionDiv>
                             </div>
                         </div>
                     </div>
                 </div>
-            </motion.div>
+            </MotionDiv>
 
             <div className="top-nav-menu relative bg-white border-t border-b border-line h-[44px] max-lg:hidden z-10">
                 <div className="container h-full">
@@ -303,96 +289,82 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
                 </div>
             </div>
 
-            <AnimatePresence>
-                {openMenuMobile && (
-                    <motion.div
-                        id="menu-mobile"
-                        className="fixed inset-0 bg-white z-[100]"
-                        variants={mobileMenuVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                    >
-                        <div className="menu-container h-full">
-                            <div className="container h-full">
-                                <div className="menu-main h-full overflow-y-auto">
-                                    <div className="heading py-2 relative flex items-center justify-center">
-                                        <div
-                                            className="close-menu-mobile-btn absolute left-0 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-surface flex items-center justify-center"
-                                            onClick={handleMenuMobile}
-                                        >
-                                            <Icon.X size={14} />
-                                        </div>
-                                        <Link href={PATH.HOME} className='logo text-3xl font-semibold text-center'>{STOREINFO.name}</Link>
-                                    </div>
-                                    <div className="form-search relative mt-2">
-                                        <Icon.MagnifyingGlass size={20} className='absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer' onClick={() => handleSearch(searchKeyword)} />
-                                        <input
-                                            type="text"
-                                            placeholder='What are you looking for?'
-                                            className=' h-12 rounded-lg border border-line text-sm w-full pl-10 pr-4'
-                                            value={searchKeyword}
-                                            onChange={(e) => setSearchKeyword(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchKeyword)}
-                                        />
-                                    </div>
-                                    <motion.ul
-                                        className="list-nav mt-6"
-                                        variants={mobileNavListVariants}
-                                        initial="hidden"
-                                        animate="visible"
-                                    >
-                                        <motion.li variants={mobileNavItemVariants}>
-                                            <Link href={PATH.SHOP} className='text-xl font-semibold flex items-center justify-between'>
-                                                Shop
-                                            </Link>
-                                        </motion.li>
-                                        <motion.li className={`${openSubNavMobile === 1 ? 'open' : ''}`} variants={mobileNavItemVariants}>
-                                            <div
-                                                onClick={() => handleOpenSubNavMobile(1)}
-                                                className='text-xl font-semibold flex items-center justify-between mt-5 cursor-pointer'
-                                            >
-                                                Categories
-                                                <span className='text-right'>
-                                                    <Icon.CaretRight size={20} />
-                                                </span>
-                                            </div>
-                                            <div className="sub-nav-mobile">
-                                                <div
-                                                    className="back-btn flex items-center gap-3"
-                                                    onClick={(e) => { e.stopPropagation(); handleOpenSubNavMobile(1); }}
-                                                >
-                                                    <Icon.CaretLeft />
-                                                    Back
-                                                </div>
-                                                <div className="list-nav-item w-full pt-3 pb-12 grid grid-cols-2 gap-5 gap-y-6">
-                                                    {menuItems.map((menuItem) => (
-                                                        <div key={menuItem.id} className="nav-item">
-                                                            <div className="text-button-uppercase pb-1">{menuItem.name}</div>
-                                                            <ul>
-                                                                {menuItem.subMenu?.map((subMenuItem) => (
-                                                                    <li key={subMenuItem.id}>
-                                                                        <Link
-                                                                            href={`${PATH.SHOP}?category=${subMenuItem.slug}` + (menuItem.isGenderCat ? `&gender=${menuItem.genderCategory}` : '')}
-                                                                            className={`link text-secondary duration-300 cursor-pointer`}
-                                                                        >
-                                                                            {subMenuItem.name}
-                                                                        </Link>
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </motion.li>
-                                    </motion.ul>
+            <div id="menu-mobile" className={`${openMenuMobile ? 'open' : ''}`}>
+                <div className="menu-container bg-white h-full">
+                    <div className="container h-full">
+                        <div className="menu-main h-full overflow-hidden">
+                            <div className="heading py-2 relative flex items-center justify-center">
+                                <div
+                                    className="close-menu-mobile-btn absolute left-0 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-surface flex items-center justify-center"
+                                    onClick={handleMenuMobile}
+                                >
+                                    <Icon.X size={14} />
                                 </div>
+                                <Link href={PATH.HOME} className='logo text-3xl font-semibold text-center'>{STOREINFO.name}</Link>
+                            </div>
+                            <div className="form-search relative mt-2">
+                                <Icon.MagnifyingGlass size={20} className='absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer' onClick={() => handleSearch(searchKeyword)} />
+                                <input
+                                    type="text"
+                                    placeholder='What are you looking for?'
+                                    className=' h-12 rounded-lg border border-line text-sm w-full pl-10 pr-4'
+                                    value={searchKeyword}
+                                    onChange={(e) => setSearchKeyword(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchKeyword)}
+                                />
+                            </div>
+                            <div className="list-nav mt-6">
+                                <ul>
+                                    <li>
+                                        <Link href={PATH.SHOP} className='text-xl font-semibold flex items-center justify-between'>
+                                            Shop
+                                        </Link>
+                                    </li>
+                                    <li className={`${openSubNavMobile === 1 ? 'open' : ''}`}>
+                                        <div
+                                            onClick={() => handleOpenSubNavMobile(1)}
+                                            className='text-xl font-semibold flex items-center justify-between mt-5 cursor-pointer'
+                                        >
+                                            Categories
+                                            <span className='text-right'>
+                                                <Icon.CaretRight size={20} />
+                                            </span>
+                                        </div>
+                                        <div className="sub-nav-mobile">
+                                            <div
+                                                className="back-btn flex items-center gap-3"
+                                                onClick={(e) => { e.stopPropagation(); handleOpenSubNavMobile(1); }}
+                                            >
+                                                <Icon.CaretLeft />
+                                                Back
+                                            </div>
+                                            <div className="list-nav-item w-full pt-3 pb-12 grid grid-cols-2 gap-5 gap-y-6">
+                                                {menuItems.map((menuItem) => (
+                                                    <div key={menuItem.id} className="nav-item">
+                                                        <div className="text-button-uppercase pb-1">{menuItem.name}</div>
+                                                        <ul>
+                                                            {menuItem.subMenu?.map((subMenuItem) => (
+                                                                <li key={subMenuItem.id}>
+                                                                    <Link
+                                                                        href={`${PATH.SHOP}?category=${subMenuItem.slug}` + (menuItem.isGenderCat ? `&gender=${menuItem.genderCategory}` : '')}
+                                                                        className={`link text-secondary duration-300 cursor-pointer`}
+                                                                    >
+                                                                        {subMenuItem.name}
+                                                                    </Link>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    </div>
+                </div>
+            </div>
         </>
     );
 }
