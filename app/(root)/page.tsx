@@ -1,20 +1,13 @@
-import { getProductCategories, getProductTags } from '@/actions/data-actions'
 import { getAllProductsPaginated } from '@/actions/products-actions'
-import Footer from '@/components/Footer/Footer'
 import Banner from '@/components/Home/Banner'
 import Benefit from '@/components/Home/Benefit'
 import Brand from '@/components/Home/Brand'
-import Collection from '@/components/Home/Collection'
 import TabFeatures from '@/components/Home/TabFeatures'
 import WhatNewOne from '@/components/Home/WhatNewOne'
-// import ModalNewsletter from '@/components/Modal/ModalNewsletter'
-import TopNavOne from '@/components/Header/TopNav/TopNavOne'
-import SliderTwo from '@/components/Slider/SliderTwo'
 import { Metadata } from 'next'
 import React from 'react'
 import { STOREINFO } from '../../constant/storeConstants'
 import { getDeals } from '../../actions/deal-actions'
-import MenuEight from '../../components/Header/Menu/MenuEight'
 import SliderNine from '../../components/Slider/SliderNine'
 import TrendingNow from '../../components/Home/TrendingNow'
 import { getBanners } from '../../actions/banner-actions'
@@ -61,7 +54,9 @@ export default async function HomeTwo() {
 
   return (
     <>
-      <div id="header" className='relative w-full style-nine'>
+      <div
+        id="header"
+        className='relative w-full style-nine'>
         <SliderNine deals={deals} />
       </div>
       <TrendingNow />

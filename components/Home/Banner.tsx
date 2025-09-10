@@ -1,7 +1,10 @@
+"use client"
+
 import React from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Banner as BannerType } from '../../types/banner-type'
+import { MotionDiv } from '../../types/montion-types'
 
 interface BannerProps {
     banners: BannerType[]
@@ -22,23 +25,32 @@ const Banner = ({ banners }: BannerProps) => {
             <div className="banner-block md:pt-20 pt-10">
                 <div className="container">
                     <div className="list-banner grid lg:grid-cols-3 md:grid-cols-2 lg:gap-[30px] gap-[20px]">
-                        {banners && banners.length > 0 && banners.slice(0, 6).map((banner) => (
-                            <Link href={banner.url} className="banner-item relative block duration-500">
-                                <div className="banner-img w-full rounded-2xl overflow-hidden relative">
-                                    <Image
-                                        src={banner.image.src || 'https://ecogoodsdirect.com/next/wp-content/uploads/2025/08/Untitled-510-x-250-px.webp'}
-                                        width={600}
-                                        height={400}
-                                        alt='bg-img'
-                                        className='w-full duration-500'
-                                    />
-                                    <div className="absolute inset-0 bg-black bg-opacity-10"></div>
-                                </div>
-                                <div className="banner-content absolute left-[30px] top-1/2 -translate-y-1/2">
-                                    <div className="heading6 text-white font-bold">{banner.title}</div>
-                                    <div className="caption1 font-bold text-white relative inline-block pb-1 border-b-2 border-white duration-500 mt-2">Shop Now</div>
-                                </div>
-                            </Link>
+                        {banners && banners.length > 0 && banners.slice(0, 6).map((banner, index) => (
+                            <MotionDiv
+                                key={banner.id}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.35, delay: index * 0.1 }}
+                                whileHover={{ scale: 1.05 }}
+                                viewport={{ once: true }}
+                            >
+                                <Link href={banner.url} className="banner-item relative block duration-500">
+                                    <div className="banner-img w-full rounded-2xl overflow-hidden relative">
+                                        <Image
+                                            src={banner.image.src || 'https://ecogoodsdirect.com/next/wp-content/uploads/2025/08/Untitled-510-x-250-px.webp'}
+                                            width={600}
+                                            height={400}
+                                            alt='bg-img'
+                                            className='w-full duration-500'
+                                        />
+                                        <div className="absolute inset-0 bg-black bg-opacity-10"></div>
+                                    </div>
+                                    <div className="banner-content absolute left-[30px] top-1/2 -translate-y-1/2">
+                                        <div className="heading6 text-white font-bold">{banner.title}</div>
+                                        <div className="caption1 font-bold text-white relative inline-block pb-1 border-b-2 border-white duration-500 mt-2">Shop Now</div>
+                                    </div>
+                                </Link>
+                            </MotionDiv>
                         ))}
                     </div>
                 </div>

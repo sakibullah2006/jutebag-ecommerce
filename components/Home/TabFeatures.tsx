@@ -52,7 +52,12 @@ const TabFeatures: React.FC<Props> = ({ data, start, limit }) => {
 
     return (
         <>
-            <div className="tab-features-block md:pt-20 pt-10">
+            <MotionDiv
+                initial={{ opacity: 0, y: -20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.75, ease: "easeInOut" }}
+                className="tab-features-block md:pt-20 pt-10">
                 <div className="container">
                     <div className="heading flex flex-col items-center text-center">
                         <div className="menu-tab flex items-center gap-2 p-1 bg-surface rounded-2xl">
@@ -65,6 +70,7 @@ const TabFeatures: React.FC<Props> = ({ data, start, limit }) => {
                                     {activeTab === item && (
                                         <MotionDiv
                                             layoutId='active-pill'
+                                            transition={{ duration: 0.3 }}
                                             className='absolute inset-0 rounded-2xl bg-white'
                                         ></MotionDiv>
                                     )}
@@ -82,7 +88,7 @@ const TabFeatures: React.FC<Props> = ({ data, start, limit }) => {
                         ))}
                     </div>
                 </div>
-            </div>
+            </MotionDiv>
         </>
     )
 }

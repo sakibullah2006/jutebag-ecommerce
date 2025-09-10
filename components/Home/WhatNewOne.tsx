@@ -34,12 +34,17 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
 
     return (
         <>
-            <div className="whate-new-block md:pt-20 pt-10">
+            <MotionDiv
+                initial={{ opacity: 0, y: -20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.75, ease: "easeInOut" }}
+                className="whate-new-block md:pt-20 pt-10">
                 <div className="container">
                     <div className="heading flex flex-col items-center text-center">
                         <div className="heading3">What{String.raw`'s`} new</div>
                         <div className="menu-tab flex items-center gap-2 p-1 bg-surface rounded-2xl mt-6">
-                            {commonCategories && commonCategories.map((item) => (
+                            {commonCategories && commonCategories.filter(item => item.count > 0).map((item) => (
                                 <div
                                     key={item.id}
                                     className={`tab-item relative text-secondary text-button-uppercase py-2 px-5 cursor-pointer duration-500 hover:text-black ${activeTab.toLowerCase() === item.slug.toLowerCase() ? 'active' : ''}`}
@@ -48,6 +53,7 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
                                     {activeTab.toLowerCase() === item.slug.toLowerCase() && (
                                         <MotionDiv
                                             layoutId='active-pill'
+                                            transition={{ duration: 0.3 }}
                                             className='absolute inset-0 rounded-2xl bg-white'
                                         ></MotionDiv>
                                     )}
@@ -65,7 +71,7 @@ const WhatNewOne: React.FC<Props> = ({ data, start, limit }) => {
                         ))}
                     </div>
                 </div>
-            </div>
+            </MotionDiv>
         </>
     )
 }

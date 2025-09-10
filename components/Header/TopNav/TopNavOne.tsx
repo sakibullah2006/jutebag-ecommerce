@@ -22,7 +22,7 @@ const TopNavOne: React.FC<Props> = ({ props, slogan }) => {
                 <div className="container mx-auto h-full">
                     <div className="top-nav-main flex justify-between max-md:justify-center h-full">
                         <div className="left-content flex items-center gap-5 max-md:hidden">
-                            {/* <div
+                            <div
                                 className="choose-type choose-language flex items-center gap-1.5"
                                 onClick={() => {
                                     setIsOpenLanguage(!isOpenLanguage)
@@ -33,7 +33,7 @@ const TopNavOne: React.FC<Props> = ({ props, slogan }) => {
                                     <p className="selected caption2 text-white">{language}</p>
                                     <ul className={`list-option bg-white ${isOpenLanguage ? 'open' : ''}`}>
                                         {
-                                            ['English', 'Espana', 'France'].map((item, index) => (
+                                            ['English'].map((item, index) => (
                                                 <li key={index} className="caption2" onClick={() => setLanguage(item)}>{item}</li>
                                             ))
                                         }
@@ -59,7 +59,7 @@ const TopNavOne: React.FC<Props> = ({ props, slogan }) => {
                                     </ul>
                                 </div>
                                 <Icon.CaretDownIcon size={12} color='#fff' />
-                            </div> */}
+                            </div>
                         </div>
                         <div className="text-center text-button-uppercase text-white flex items-center">
                             {slogan}
