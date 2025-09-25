@@ -39,7 +39,7 @@ export default async function BreadCrumb1({ searchParams }: BreadCrumb1Props) {
         <>
             <ShopBreadCrumb1
                 data={products}
-                productPerPage={9}
+                productPerPage={6}
                 dataType={type}
                 gender={gender ?? null}
                 category={category ?? null}

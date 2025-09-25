@@ -19,6 +19,7 @@ const HandlePagination: React.FC<Props> = ({ pageCount, onPageChange }) => {
             onPageChange={(selectedItem) => onPageChange(selectedItem.selected)}
             containerClassName={'pagination'}
             activeClassName={'active'}
+            disabledClassName={'opacity-40 bg-neutral-200 pointer-events-none cursor-not-allowed'}
         />
     );
 };
