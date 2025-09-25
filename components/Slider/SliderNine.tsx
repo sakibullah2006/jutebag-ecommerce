@@ -17,9 +17,9 @@ const SliderNine = ({ deals }: SliderNineProps) => {
     return (
         <>
             <MotionDiv
-                initial={{ opacity: 0, filter: "blur(8px)" }}
+                initial={{ opacity: 1, filter: "blur(8px)" }}
                 animate={{ opacity: 1, filter: "blur(0px)" }}
-                transition={{ duration: 0.4, ease: "easeInOut" }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
                 className="slider-block style-nine lg:h-[480px] md:h-[400px] sm:h-[320px] h-[280px] w-full"
             >
                 <div className="container lg:pt-5 flex justify-end h-full w-full">

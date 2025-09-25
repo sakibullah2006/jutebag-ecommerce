@@ -60,9 +60,9 @@ export default async function HomeTwo() {
         <SliderNine deals={deals} />
       </div>
       <TrendingNow />
-      <div className='max-w-[1200px] 2xl:max-w-[80%] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12'>
-        {/* <Collection props="pt-5" /> */}
-      </div>
+      {/* <div className='max-w-[1200px] 2xl:max-w-[80%] mx-auto px-4 md:px-6 lg:px-8 xl:px-10 2xl:px-12'> */}
+      {/* <Collection props="pt-5" /> */}
+      {/* </div> */}
       <div className='max-w-[1200px] 2xl:max-w-[80%] mx-auto'>
         <WhatNewOne data={products} start={0} limit={4} />
         <Banner banners={banners} />
