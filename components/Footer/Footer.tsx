@@ -117,7 +117,7 @@ const Footer = () => {
             <div className="container">
                 <div className="footer-bottom py-4 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-4 border-t border-line">
                     <div className="left flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
-                        <div className="copyright caption1 text-secondary">©{new Date().getFullYear()} Vetex. All Rights Reserved.</div>
+                        <div className="copyright caption1 text-secondary">©{new Date().getFullYear()} {STOREINFO.name}. All Rights Reserved.</div>
                         <div className="select-block flex items-center gap-5">
                             {/* Language and Currency selectors here */}
                         </div>

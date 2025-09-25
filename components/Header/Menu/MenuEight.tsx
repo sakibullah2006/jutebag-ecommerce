@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import * as Icon from "@phosphor-icons/react/dist/ssr";
-import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Consolidated Imports ---
 import { useAuth } from '@/context/AuthContext';
@@ -19,40 +18,11 @@ import { PATH } from '@/constant/pathConstants';
 import { STOREINFO } from '@/constant/storeConstants';
 import { generateMenuItems, MenuItem } from '@/lib/categoryUtils';
 import { CategorieType } from '@/types/data-type';
-import { MotionDiv } from '../../../types/montion-types';
 
 interface Props {
     props?: string;
     categories: CategorieType[];
 }
-
-// Reusable animation variants for clean and consistent animations
-const dropdownVariants = {
-    hidden: { opacity: 0, y: -10, scale: 0.95 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.2, ease: "easeOut" } },
-    exit: { opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.15, ease: "easeIn" } }
-} as const;
-
-const mobileMenuVariants = {
-    hidden: { x: '-100%' },
-    visible: { x: '0%', transition: { duration: 0.3, ease: 'easeInOut' } },
-    exit: { x: '-100%', transition: { duration: 0.25, ease: 'easeInOut' } }
-} as const;
-
-const mobileNavListVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.05,
-        },
-    },
-} as const;
-
-const mobileNavItemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0 },
-} as const;
 
 const MenuEight: React.FC<Props> = ({ props, categories }) => {
     const router = useRouter();
@@ -72,7 +42,7 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
     const [openSubNavMobile, setOpenSubNavMobile] = useState<number | null>(null);
     const [searchKeyword, setSearchKeyword] = useState('');
     const [fixedHeader, setFixedHeader] = useState(false);
-    const [isScrollingUp, setIsScrollingUp] = useState(true);
+    const [lastScrollPosition, setLastScrollPosition] = useState(0);
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
     // --- Effects ---
@@ -84,30 +54,21 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
     }, [categories, categoriesData]);
 
     useEffect(() => {
-        let lastScrollY = window.scrollY;
         let ticking = false;
-
         const handleScroll = () => {
-            const currentScrollY = window.scrollY;
             if (!ticking) {
                 window.requestAnimationFrame(() => {
-                    if (currentScrollY > 100) {
-                        setFixedHeader(true);
-                        setIsScrollingUp(currentScrollY < lastScrollY);
-                    } else {
-                        setFixedHeader(false);
-                    }
-                    lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
+                    const scrollPosition = window.scrollY;
+                    setFixedHeader(scrollPosition > 0 && scrollPosition < lastScrollPosition);
+                    setLastScrollPosition(scrollPosition);
                     ticking = false;
                 });
                 ticking = true;
             }
         };
-
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
+    }, [lastScrollPosition]);
 
     // --- Handlers ---
     const handleSearch = (value: string) => {
@@ -122,24 +83,16 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
 
     return (
         <>
-            {/* <div className={`header-placeholder w-full md:h-[74px] h-[56px]`}></div> */}
-            <MotionDiv
-                className={`header-menu style-eight ${props || 'bg-white'} w-full md:h-[74px] h-[56px] ${fixedHeader ? 'fixed top-0 left-0 z-50 shadow-md' : 'relative'}`}
-                animate={{
-                    y: fixedHeader && isScrollingUp ? '0%' : (fixedHeader ? '-100%' : '0%')
-                }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-            >
+            <div className={`header-menu style-eight ${fixedHeader ? ' fixed' : ''} ${props || 'bg-white'} w-full md:h-[74px] h-[56px]`}>
                 <div className="container mx-auto h-full">
                     <div className="header-main flex items-center justify-between h-full">
-                        <div className="menu-mobile-icon lg:hidden flex items-center cursor-pointer" onClick={handleMenuMobile}>
+                        <div className="menu-mobile-icon lg:hidden flex items-center" onClick={handleMenuMobile}>
                             <i className="icon-category text-2xl"></i>
                         </div>
                         <Link href={PATH.HOME} className='flex items-center'>
                             <div className="heading4">{STOREINFO.name}</div>
                         </Link>
-                        <div
-                            className="form-search w-2/3 mr-4 pl-8 flex items-center h-[44px] max-lg:hidden">
+                        <div className="form-search w-2/3 mr-4 pl-8 flex items-center h-[44px] max-lg:hidden">
                             <input
                                 type="text"
                                 className="search-input h-full px-4 w-full border border-line rounded-l"
@@ -155,12 +108,10 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
                                 Search
                             </button>
                         </div>
-                        <div
-                            className="right flex gap-12"
-                        >
+                        <div className="right flex gap-12">
                             <div className="list-action flex items-center gap-4">
                                 <div className="user-icon flex items-center justify-center cursor-pointer">
-                                    <Icon.User size={24} color='black' onClick={handleLoginPopup} />
+                                    <Icon.UserIcon size={24} color='black' onClick={handleLoginPopup} />
                                     <div className={`login-popup absolute top-[74px] w-[320px] p-7 rounded-xl bg-white box-shadow-sm ${openLoginPopup ? 'open' : ''}`}>
                                         {!isAuthenticated ? (
                                             <>
@@ -188,18 +139,18 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
                                         )}
                                     </div>
                                 </div>
-                                <MotionDiv className="max-md:hidden wishlist-icon flex items-center cursor-pointer" onClick={openModalWishlist} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                <div className="max-md:hidden wishlist-icon flex items-center cursor-pointer" onClick={openModalWishlist}>
                                     <Icon.Heart size={24} color='black' />
-                                </MotionDiv>
-                                <MotionDiv className="cart-icon flex items-center relative cursor-pointer" onClick={openModalCart} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                                </div>
+                                <div className="cart-icon flex items-center relative cursor-pointer" onClick={openModalCart}>
                                     <Icon.Handbag size={24} color='black' />
                                     <span className="quantity cart-quantity absolute -right-1.5 -top-1.5 text-xs text-white bg-black w-4 h-4 flex items-center justify-center rounded-full">{cartState.cartArray.length}</span>
-                                </MotionDiv>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </MotionDiv>
+            </div>
 
             <div className="top-nav-menu relative bg-white border-t border-b border-line h-[44px] max-lg:hidden z-10">
                 <div className="container h-full">
@@ -346,6 +297,7 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
                                                             {menuItem.subMenu?.map((subMenuItem) => (
                                                                 <li key={subMenuItem.id}>
                                                                     <Link
+                                                                        onClick={handleMenuMobile}
                                                                         href={`${PATH.SHOP}?category=${subMenuItem.slug}` + (menuItem.isGenderCat ? `&gender=${menuItem.genderCategory}` : '')}
                                                                         className={`link text-secondary duration-300 cursor-pointer`}
                                                                     >
