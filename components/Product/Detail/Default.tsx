@@ -393,7 +393,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
                                     <div className="item flex items-center gap-8 py-3 px-10">
                                         <div className="text-title sm:w-1/4 w-fit">Origin</div>
-                                        <p>{allCountries.find((con => con.code === data.production_details?.manufacturer?.countryCode))?.name}</p>
+                                        <p>{allCountries.find((con => con.code === data.production_details?.manufacturer?.countryCode))?.name ?? "N/A"}</p>
                                     </div>
 
                                     <div className="item bg-surface flex justify-center gap-8 pl-8 py-0">
@@ -731,7 +731,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
                                         <div className="item flex bg-surface items-center gap-8 py-3 px-10">
                                             <div className="text-title sm:w-1/4 w-fit">Origin</div>
-                                            <p>{allCountries.find((con => con.code === data.production_details?.manufacturer?.countryCode))?.name}</p>
+                                            <p>{allCountries.find((con => con.code === data.production_details?.manufacturer?.countryCode))?.name ?? "N/A"}</p>
                                         </div>
 
                                         <div className="item  flex items-center gap-8 py-3 px-10">

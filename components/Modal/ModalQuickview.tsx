@@ -113,7 +113,7 @@ const ModalQuickview = () => {
         if (selectedProduct) {
             const colorAttr = selectedProduct.attributes?.find(attr => attr.name.toLowerCase() === "color");
             setActiveColor(colorAttr?.options[0] || '');
-            setQuantity(1);
+            setQuantity(quantities[0]);
         }
 
     }, [selectedProduct]);
@@ -266,14 +266,14 @@ const ModalQuickview = () => {
     };
 
     const handleClose = () => {
-        // ✨ 2. Reset all local state to its initial state
+        // Reset all local state to its initial state
         setVariations([]);
         setSelectedVariation(null);
         setActiveColor('');
         setQuantity(1);
         setReviews([]);
 
-        // ✨ 3. Call the original context function to finish closing
+        // Call the original context function to finish closing
         closeQuickview();
     };
 
@@ -491,10 +491,14 @@ const ModalQuickview = () => {
                                             <div className="text-title">SKU:</div>
                                             <div className="text-secondary">{selectedProduct?.sku || "N/A"}</div>
                                         </div>
-                                        <div className="flex items-center gap-1 mt-3">
-                                            <div className="text-title">Categories:</div>
-                                            <div className="text-secondary">
-                                                {selectedProduct?.categories?.map((item, index) => item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()).join(", ") || "N/A"}
+                                        <div className="flex items-center gap-3 mt-3">
+                                            <div className="flex items-start gap-2">
+                                                <div className="text-title">Categories:</div>
+                                                <div className='text-secondary'>
+                                                    {selectedProduct?.categories?.map((item, index) =>
+                                                        item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()).join(", ") || "N/A"
+                                                    }
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1 mt-3">
