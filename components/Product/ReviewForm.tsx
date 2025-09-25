@@ -123,18 +123,26 @@ const ReviewForm = ({ productId, onReviewSubmitted }: ReviewFormProps) => {
 
         {/* 👇 Updated Rating Component Section */}
         <div className="col-span-full">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Your Rating *
+          </label>
           <Controller
             key="rating"
             name="rating"
             control={control}
             render={({ field }) => (
-              <Rating
-                onChange={(newRating: number) => field.onChange(newRating)}
-                value={field.value}
-                size={30}
-                activeColor="#ffd700"
-                isEdit={true}
-              />
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border">
+                <Rating
+                  onChange={(newRating: number) => field.onChange(newRating)}
+                  value={field.value}
+                  size={50}
+                  activeColor="#ffd700"
+                  isEdit={true}
+                />
+                <span className="text-sm text-gray-600">
+                  {field.value > 0 ? `${field.value} star${field.value > 1 ? 's' : ''}` : 'Click to rate'}
+                </span>
+              </div>
             )}
           />
           {errors.rating && (

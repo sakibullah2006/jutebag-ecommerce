@@ -22,7 +22,7 @@ const ModalPrintguide: React.FC<Props> = ({ data, isOpen, onClose }) => {
     return (
         <div className={`modal-sizeguide-block`} onClick={onClose}>
             <div
-                className={`modal-sizeguide-main md:p-10 p-6 rounded-[32px] ${isOpen ? 'open' : ''}`}
+                className={`modal-sizeguide-main md:p-10 p-6 min-h-[400px] rounded-[32px] ${isOpen ? 'open' : ''}`}
                 onClick={(e) => { e.stopPropagation() }}
             >
                 <div
@@ -34,13 +34,13 @@ const ModalPrintguide: React.FC<Props> = ({ data, isOpen, onClose }) => {
 
                 <div className=" bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                     {/* Header */}
-                    <div className="bg-gray-900 text-white">
+                    <div className="bg-black text-white">
                         <div
                             className={`grid gap-4 px-6 py-4`}
-                            style={{ gridTemplateColumns: `1fr repeat(${1 + (otherCountries?.length || 0)}, 1fr)` }}
+                            style={{ gridTemplateColumns: `1fr repeat(${(otherCountries?.length || 0)}, 1fr)` }}
                         >
                             <div className="font-semibold text-sm uppercase tracking-wide">Screen Print</div>
-                            <div className="font-semibold text-sm uppercase tracking-wide text-center">UK</div>
+                            {/* <div className="font-semibold text-sm uppercase tracking-wide text-center">UK</div> */}
                             {otherCountries?.map((country) => (
                                 <div key={country.countryCode} className="font-semibold text-sm uppercase tracking-wide text-center">
                                     {country.countryCode}
@@ -53,10 +53,10 @@ const ModalPrintguide: React.FC<Props> = ({ data, isOpen, onClose }) => {
                     <div className="divide-y divide-gray-100">
                         <div
                             className={`grid gap-4 px-6 py-4 hover:bg-gray-50 transition-colors duration-150`}
-                            style={{ gridTemplateColumns: `1fr repeat(${1 + (otherCountries?.length || 0)}, 1fr)` }}
+                            style={{ gridTemplateColumns: `1fr repeat(${(otherCountries?.length || 0)}, 1fr)` }}
                         >
                             <div className="text-gray-600 font-medium">Print Area</div>
-                            <div className="text-center text-gray-900">{primaryCountryDetails?.area || "N/A"}</div>
+                            {/* <div className="text-center text-gray-900">{primaryCountryDetails?.area || "N/A"}</div> */}
                             {otherCountries?.map((country) => (
                                 <div key={country.countryCode} className="text-center text-gray-900">
                                     {country.area}
@@ -66,10 +66,10 @@ const ModalPrintguide: React.FC<Props> = ({ data, isOpen, onClose }) => {
 
                         <div
                             className={`grid gap-4 px-6 py-4 hover:bg-gray-50 transition-colors duration-150`}
-                            style={{ gridTemplateColumns: `1fr repeat(${1 + (otherCountries?.length || 0)}, 1fr)` }}
+                            style={{ gridTemplateColumns: `1fr repeat(${(otherCountries?.length || 0)}, 1fr)` }}
                         >
                             <div className="text-gray-600 font-medium">Minimum Order</div>
-                            <div className="text-center text-gray-900">{primaryCountryDetails?.quantity || "N/A"}</div>
+                            {/* <div className="text-center text-gray-900">{primaryCountryDetails?.quantity || "N/A"}</div> */}
                             {otherCountries?.map((country) => (
                                 <div key={country.countryCode} className="text-center text-gray-900">
                                     {country.quantity}
@@ -79,10 +79,10 @@ const ModalPrintguide: React.FC<Props> = ({ data, isOpen, onClose }) => {
 
                         <div
                             className={`grid gap-4 px-6 py-4 hover:bg-gray-50 transition-colors duration-150`}
-                            style={{ gridTemplateColumns: `1fr repeat(${1 + (otherCountries?.length || 0)}, 1fr)` }}
+                            style={{ gridTemplateColumns: `1fr repeat(${(otherCountries?.length || 0)}, 1fr)` }}
                         >
                             <div className="text-gray-600 font-medium">Lead Times</div>
-                            <div className="text-center text-gray-900">{primaryCountryDetails?.time || "N/A"}</div>
+                            {/* <div className="text-center text-gray-900">{primaryCountryDetails?.time || "N/A"}</div> */}
                             {otherCountries?.map((country) => (
                                 <div key={country.countryCode} className="text-center text-gray-900">
                                     {country.time}
