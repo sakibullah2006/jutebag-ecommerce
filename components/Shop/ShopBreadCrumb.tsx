@@ -14,6 +14,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import HandlePagination from '../Other/HandlePagination';
 import Product from '../Product/Product';
+import Image from "next/image";
 
 interface Props {
     data: Array<ProductType>
@@ -448,7 +449,7 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                 </div>
                             </div>
                         </div>
-                        <div className="list-product-block lg:w-3/4 md:w-2/3 w-full md:pl-3">
+                        <div className="list-product-block relative lg:w-3/4 md:w-2/3 w-full md:pl-3">
                             <div className="filter-heading flex items-center justify-between gap-5 flex-wrap">
                                 <div className="left flex has-line items-center flex-wrap gap-5">
                                     {/* <div className="choose-layout flex items-center gap-2">
@@ -552,21 +553,30 @@ const ShopBreadCrumb1: React.FC<Props> = ({ data, productPerPage, dataType, gend
                                 }
                             </div>
 
-                            <div className="list-product hide-product-sold grid lg:grid-cols-3 grid-cols-2 sm:gap-[30px] gap-[20px] mt-7">
+                            <div className="list-product  hide-product-sold grid lg:grid-cols-3 grid-cols-2 sm:gap-[30px] gap-[20px] mt-7">
                                 {currentProducts.length !== 0 ? (
                                     currentProducts.map((item) => <Product key={item.id} data={item} type='grid' style='style-1' />)
                                 ) : (
-                                    <div className="no-data-product">
-                                        {/* <Icon.Empty */}
+                                    <div className="no-data flex flex-col items-center justify-center w-full col-span-3 py-20">
+                                        <div className="relative mb-10">
+                                            <Image
+                                                src={`/images/shop/empty_inventory.svg`} alt="empty_inventory"
+                                                width={150}
+                                                height={150} />
+                                            <Icon.EmptyIcon size={80} className='text-red-500 absolute -right-6 -bottom-5' />
+                                        </div>
+                                        <div className="caption1 text-secondary text-xl font-bold">No products were found matching your selection.</div>
                                     </div>
                                 )}
                             </div>
 
-                            {((filteredPageCount && filteredPageCount > 1) || (pageCount && pageCount > 1)) && (sortedData.length > 0) && (
-                                <div className="list-pagination flex items-center md:mt-10 mt-7">
-                                    <HandlePagination pageCount={filteredPageCount} onPageChange={handlePageChange} />
+                            {((filteredPageCount && filteredPageCount > 1) || (pageCount && pageCount > 1)) && (sortedData.length > 0) ? (
+                                <div className="absolute bottom-5 left-1/2  -translate-x-1/2">
+                                    <div className="list-pagination flex items-center justify-center md:mt-10 mt-7">
+                                        <HandlePagination pageCount={filteredPageCount} onPageChange={handlePageChange} />
+                                    </div>
                                 </div>
-                            )}
+                            ) : null}
                         </div>
                     </div>
                 </div>

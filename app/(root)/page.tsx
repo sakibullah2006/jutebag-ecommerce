@@ -64,9 +64,9 @@ export default async function HomeTwo() {
         {/* <Collection props="pt-5" /> */}
       </div>
       <div className='max-w-[1200px] 2xl:max-w-[80%] mx-auto'>
-        <WhatNewOne data={products} start={0} limit={8} />
+        <WhatNewOne data={products} start={0} limit={4} />
         <Banner banners={banners} />
-        <TabFeatures data={products} start={0} limit={8} />
+        <TabFeatures data={products} start={0} limit={4} />
         <Benefit props="md:mt-20 mt-10 py-10 px-2.5 bg-surface rounded-3xl" />
       </div>
       {/* <Instagram /> */}
