@@ -2,9 +2,6 @@
 
 import { getAllProductsPaginated, getProductById, getProductReviews, getProductVariationsById } from '@/actions/products-actions';
 import BreadcrumbProduct from '@/components/Breadcrumb/BreadcrumbProduct';
-import Footer from '@/components/Footer/Footer';
-import MenuOne from '@/components/Header/Menu/MenuOne';
-import TopNavOne from '@/components/Header/TopNav/TopNavOne';
 import Default from '@/components/Product/Detail/Default';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -42,11 +39,10 @@ interface ProductDefaultProps {
 const ProductDefault = async ({ params }: ProductDefaultProps) => {
     const { id: productId } = await params || "1";
 
-    const [{ product, status }, { variations }, { reviews }, categories] = await Promise.all([
+    const [{ product, status }, { variations }, { reviews }] = await Promise.all([
         getProductById({ id: productId }),
         getProductVariationsById({ id: productId }),
         getProductReviews(Number(productId)),
-        getProductCategories(),
     ])
 
     const include = product.related_ids?.map((item) => Number(item))

@@ -65,7 +65,7 @@ const ModalQuickview = () => {
     useEffect(() => {
         const fetchVariations = async () => {
             // Exit if there's no product or it has no variation IDs to fetch
-            if (!selectedProduct?.id || selectedProduct.variations.length === 0) {
+            if (!selectedProduct?.id || !Array.isArray(selectedProduct.variations) || selectedProduct.variations.length === 0) {
                 setVariations([]); // Clear out old variations
                 setIsLoadingVariations(false);
                 return;
@@ -148,7 +148,7 @@ const ModalQuickview = () => {
 
     // Find matching variation based on activeColor only
     const findMatchingVariation = useCallback(() => {
-        if (!variations || variations.length === 0) return null;
+        if (!variations || !Array.isArray(variations) || variations.length === 0) return null;
         const hasColorAttribute = selectedProduct?.attributes?.some(attr => attr.name.toLowerCase() === 'color' && attr.variation);
         const matchingVariant = variations.find((variation) => {
             const colorMatch = !hasColorAttribute || variation.attributes.some(
@@ -160,10 +160,10 @@ const ModalQuickview = () => {
     }, [selectedProduct, activeColor, variations]);
 
     useEffect(() => {
-        if (!selectedProduct || !selectedProduct.variations || selectedProduct.variations.length === 0) {
+        if (!selectedProduct || !Array.isArray(selectedProduct.variations) || selectedProduct.variations.length === 0) {
             return;
         }
-        if (variations && variations.length > 0) {
+        if (variations && Array.isArray(variations) && variations.length > 0) {
             const initialVariation = findMatchingVariation();
             if (initialVariation) {
                 setSelectedVariation(initialVariation);
@@ -337,7 +337,7 @@ const ModalQuickview = () => {
                                     <span className='caption1 text-secondary'>({reviews.length} review{reviews.length !== 1 ? "s" : ""})</span>
                                 </div>
                                 <div className="flex items-center gap-3 flex-wrap mt-5 pb-6 border-b border-line">
-                                    {isLoadingVariations && selectedProduct?.variations && selectedProduct.variations.length > 0 ? (
+                                    {isLoadingVariations && selectedProduct?.variations && Array.isArray(selectedProduct.variations) && selectedProduct.variations.length > 0 ? (
                                         <div className="animate-pulse">
                                             <div className="h-6 bg-surface rounded w-20"></div>
                                         </div>
@@ -399,7 +399,7 @@ const ModalQuickview = () => {
                                     </div>
                                 </div>
                                 <div className="list-action mt-6">
-                                    {isLoadingVariations && selectedProduct?.variations && selectedProduct.variations.length > 0 ? (
+                                    {isLoadingVariations && selectedProduct?.variations && Array.isArray(selectedProduct.variations) && selectedProduct.variations.length > 0 ? (
                                         <VariationSkeleton />
                                     ) : (
                                         <>

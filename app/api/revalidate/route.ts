@@ -49,7 +49,17 @@ export async function POST(request: NextRequest) {
             case 'product.restored':
                 revalidateTag('products');
                 // You could also do fine-grained revalidation for a single product page
-                // if (resourceId) revalidateTag(`product:${resourceId}`);
+                if (resourceId) {
+                    revalidateTag(`product:${resourceId}`);
+                }
+                break;
+
+            case 'review.created':
+                const productId = payload.product_id;
+                if (productId) {
+                    console.log(`Revalidating reviews for product: ${productId}`);
+                    revalidateTag(`reviews:${productId}`); // Invalidates getProductReviews for that specific product
+                }
                 break;
 
             case 'coupon.created':
@@ -57,6 +67,9 @@ export async function POST(request: NextRequest) {
             case 'coupon.deleted':
             case 'coupon.restored':
                 revalidateTag('coupons');
+                if (resourceId) {
+                    revalidateTag(`coupons:${resourceId}`);
+                }
                 break;
 
             // The "order" topics are tricky. You might not want to cache order data
@@ -67,27 +80,33 @@ export async function POST(request: NextRequest) {
             case 'order.deleted':
                 revalidateTag('orders');
                 // Example for revalidating a specific user's orders
-                // if (payload.customer_id) revalidateTag(`orders:${payload.customer_id}`);
+                if (payload.customer_id) {
+                    revalidateTag(`orders:${payload.customer_id}`);
+                }
                 break;
 
             case 'customer.created':
             case 'customer.updated':
             case 'customer.deleted':
-                revalidateTag(`customer-${resourceId}`);
+                revalidateTag(`customers`);
                 // Example for revalidating a specific customer
-                // if (payload.id) revalidateTag(`customer-${payload.customer_id}`);
+                if (payload.id) {
+                    revalidateTag(`customers:${payload.id}`);
+                }
                 break;
-
-
-
 
             // WooCommerce doesn't have default webhooks for tags/categories.
             // This would require a custom plugin in WordPress to fire webhooks
             // on `edited_term` or `created_term` actions.
             // If you implement that, you could handle it like this:
-            // case 'category.updated':
-            //   revalidateTag('categories');
-            //   break;
+            case 'category.updated':
+                revalidateTag('categories');
+                break;
+
+            case 'tag.updated':
+                revalidateTag('tags');
+                break
+
             default:
                 break
         }

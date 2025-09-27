@@ -68,11 +68,11 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     useEffect(() => {
         let isMounted = true;
 
-        if (data.variations.length === 0) {
+        if (!Array.isArray(data.variations) || data.variations.length === 0) {
             return;
         }
         // Find the first variation that matches the active color and size
-        if (variations) {
+        if (variations && Array.isArray(variations)) {
             const initialVariation = findMatchingVariation();
             if (initialVariation) {
                 setSelectedVariation(initialVariation);
@@ -111,9 +111,9 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
     // Find matching variation based on activeColor only
     const findMatchingVariation = useCallback(() => {
-        if (variations?.length === 0) return null;
+        if (!variations || !Array.isArray(variations) || variations.length === 0) return null;
         const hasColorAttribute = data.attributes?.some(attr => attr.name.toLowerCase() === 'color' && attr.variation);
-        const matchingVariant = variations?.find((variation) => {
+        const matchingVariant = variations.find((variation) => {
             // A variation is a match if its color matches the active selection.
             const colorMatch = !hasColorAttribute || variation.attributes?.some(
                 attr => attr.name.toLowerCase() === 'color' && attr.option === activeColor
@@ -253,6 +253,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                             src={item.src}
                                             width={1000}
                                             height={1000}
+                                            priority={true}
                                             alt='prd-img'
                                             className='w-full aspect-[3/4] object-cover'
                                         />
