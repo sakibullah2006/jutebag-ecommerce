@@ -232,9 +232,9 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
     return (
         <>
-            <div className="product-detail default">
+            <div className="product-detail default" >
                 <div className="featured-product underwear md:py-20 py-10">
-                    <div className="container out-of-stock flex justify-between gap-y-6 flex-wrap">
+                    <div className="container out-of-stock flex justify-between gap-y-6 flex-wrap" id='showcase'>
                         <div className="list-img md:w-1/2 md:pr-[45px] w-full">
                             <Swiper
                                 slidesPerView={1}
@@ -623,7 +623,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                             </div>
                         </div>
                     </div>
-                    <div className="desc-tab md:pb-20 pb-10">
+                    <div className="desc-tab md:pb-20 pb-10 max-w-screen-lg mx-auto" id='desc-tab'>
                         <div className="container">
                             <div className="flex items-center justify-center w-full">
                                 <div className="menu-tab flex items-center md:gap-[60px] gap-8">
@@ -786,12 +786,12 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                         </div>
                     </div>
 
-                    <div className={`review-block md:py-20 py-10 bg-surface`}>
-                        <div className='container'>
-                            <div className="top-overview flex max-sm:flex-col items-center justify-between gap-12 gap-y-4">
+                    <div className={`review-block md:py-20 py-10 bg-surface`} id='reviews'>
+                        <div className='container max-auto'>
+                            <div className="top-overview max-w-screen-lg mx-auto flex max-sm:flex-col items-center justify-between gap-12 gap-y-4">
                                 <div className="left flex max-sm:flex-col gap-y-4 items-center justify-between lg:w-1/2 sm:w-2/3 w-full sm:pr-5">
                                     <div className='rating  flex flex-col items-center'>
-                                        <div className="text-display">{(reviewsInfo.calculatedAverage_rating).toFixed(2)}</div>
+                                        <div className="text-display max-md:text-4xl max-sm:text-5xl">{(reviewsInfo.calculatedAverage_rating).toFixed(2)}</div>
                                         <Rate currentRate={Number(reviewsInfo.calculatedAverage_rating)} size={18} />
                                         <div className='text-center whitespace-nowrap mt-1'>({reviews.length} Ratings)</div>
                                     </div>
@@ -867,7 +867,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                     <Link href={'#form-review'} className='button-main bg-white text-black border border-black whitespace-nowrap'>Write Reviews</Link>
                                 </div>
                             </div>
-                            <div className="mt-8">
+                            <div className="mt-8 max-w-screen-lg mx-auto">
                                 <div className="heading flex items-center justify-between flex-wrap gap-4">
                                     <div className="heading4">{reviews.length.toString().padStart(2, '0')} Comments</div>
                                 </div>

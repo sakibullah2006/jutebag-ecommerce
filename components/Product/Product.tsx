@@ -260,7 +260,7 @@ const Product: React.FC<ProductProps> = ({ data, type, style }) => {
                                     </div>
                                 </div>
                             ) : null}
-                            <Link href={`/product/${data.id}`}>
+                            <Link href={`/product/${data.id}`} prefetch>
                                 <div className="product-img w-full h-full aspect-[3/4]">
                                     {selectedVariation?.image?.src ? (
                                         <Image
