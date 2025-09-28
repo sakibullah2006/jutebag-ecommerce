@@ -7,7 +7,7 @@ import { useModalCartContext } from '@/context/ModalCartContext';
 import { calculatePrice, cn, decodeHtmlEntities } from '@/lib/utils';
 import { CountryDataType, ShippingMethodDataType, ShippingZoneDataType, StateDataType, TaxDataType } from '@/types/data-type';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as Icon from "@phosphor-icons/react/dist/ssr";
+import * as Icon from "@phosphor-icons/react";
 import Image from "next/image";
 import Link from 'next/link';
 import { redirect, useRouter } from 'next/navigation';
@@ -22,25 +22,6 @@ import { PATH } from '../../constant/pathConstants';
 import StripeCheckout from './StripeCheckoutForm';
 
 
-// 1. Zod Schema for client-side validation
-const checkoutSchema = z.object({
-    email: z.string().email({ message: "A valid email is required." }),
-    emailOffers: z.boolean().optional(),
-    phone: z.string().refine(isValidPhoneNumber, { message: "A valid phone number is required." }),
-    country: z.string().min(1, { message: "Country is required." }),
-    firstName: z.string().min(1, { message: "Last name is required." }),
-    lastName: z.string().min(1, { message: "Last name is required." }),
-    address: z.string().min(1, { message: "Address is required." }),
-    apartment: z.string().optional(),
-    city: z.string().min(1, { message: "City is required." }),
-    state: z.string().min(1, { message: "State is required." }),
-    zipcode: z.string().min(1, { message: "ZIP code is required." }),
-    paymentMethod: z.enum(["cod", "stripe"]),
-    useShippingAsBilling: z.boolean(),
-    customerNote: z.string().max(1000, { message: "Note is too long." }).optional(),
-});
-
-type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
 import { Address } from '@/types/customer-type';
 import { STOREINFO } from '../../constant/storeConstants';
@@ -87,6 +68,38 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
     const [paymentIntentOrderId, setPaymentIntentOrderId] = useState<number | null>(null)
     const router = useRouter();
 
+    // 1. Zod Schema for client-side validation
+    const checkoutSchema = z.object({
+        email: z.string().email({ message: "A valid email is required." }),
+        emailOffers: z.boolean().optional(),
+        phone: z.string().refine(isValidPhoneNumber, { message: "A valid phone number is required." }),
+        country: z.string().min(1, { message: "Country is required." }),
+        firstName: z.string().min(1, { message: "Last name is required." }),
+        lastName: z.string().min(1, { message: "Last name is required." }),
+        address: z.string().min(1, { message: "Address is required." }),
+        apartment: z.string().optional(),
+        city: z.string().min(1, { message: "City is required." }),
+        state: z.string().refine((value) => {
+
+            const states = getSelectedCountryStates()
+
+            // Dynamic validation for state based on selected country
+            if (states && Object.keys(states).length > 0) {
+                const isValid = value && value.trim().length > 0;
+                console.log("Validating state:", value, "isValid:", isValid);
+                return isValid;
+            }
+            return true
+
+        }),
+        zipcode: z.string().min(1, { message: "ZIP code is required." }),
+        paymentMethod: z.enum(["cod", "stripe"]),
+        useShippingAsBilling: z.boolean(),
+        customerNote: z.string().max(1000, { message: "Note is too long." }).optional(),
+    })
+    type CheckoutFormValues = z.infer<typeof checkoutSchema>;
+
+
 
     const {
         register,
@@ -118,8 +131,17 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
 
     useEffect(() => {
         setSelectedCountry(watchedCountry || '');
+
+        // Clear state if country changes to one without states
+        if (watchedCountry) {
+            const selectedCountryData = countriesData.find(c => c.code === watchedCountry);
+            if (selectedCountryData && selectedCountryData.states.length === 0) {
+                setValue('state', '');
+            }
+        }
+
         setSelectedState(watchedState || '');
-    }, [watchedCountry, watchedState]);
+    }, [watchedCountry, watchedState, countriesData, setValue]);
 
 
     // Debounce hook for shipping calculation
@@ -553,14 +575,16 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                                             <div className="heading5">Delivery</div>
                                             <div className="form-checkout mt-5">
                                                 <div className="grid sm:grid-cols-2 gap-4 gap-y-5 flex-wrap">
-                                                    <div className="col-span-full select-block">
-                                                        <select className={`border px-4 py-3 w-full rounded-lg ${errors.country ? 'border-red' : 'border-line'}`} {...register("country")}>
-                                                            <option value="">Choose Country/Region</option>
-                                                            {countriesData.map((country) => (
-                                                                <option key={country.code} value={country.code}>{country.name}</option>
-                                                            ))}
-                                                        </select>
-                                                        <Icon.CaretDownIcon className="arrow-down" />
+                                                    <div className="col-span-full">
+                                                        <div className="select-block relative" >
+                                                            <select className={`border cursor-pointer px-4 py-3 w-full rounded-lg ${errors.country ? 'border-red' : 'border-line'}`} {...register("country")}>
+                                                                <option value="">Choose Country/Region</option>
+                                                                {countriesData.map((country) => (
+                                                                    <option key={country.code} value={country.code}>{country.name}</option>
+                                                                ))}
+                                                            </select>
+                                                            <Icon.CaretDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" size={16} />
+                                                        </div>
                                                         {errors.country && <p className="text-red text-sm mt-1">{errors.country.message}</p>}
                                                     </div>
 
@@ -588,14 +612,20 @@ const CheckoutClient: React.FC<CheckoutClientProps> = ({
                                                         {errors.city && <p className="text-red text-sm mt-1">{errors.city.message}</p>}
                                                     </div>
 
-                                                    <div className="select-block">
-                                                        <select className={`border px-4 py-3 w-full rounded-lg ${errors.state ? 'border-red' : 'border-line'}`} disabled={!selectedCountry} {...register("state")}>
-                                                            <option value="">State</option>
-                                                            {getSelectedCountryStates().map((state) => (
-                                                                <option key={state.code} value={state.code}>{state.name}</option>
-                                                            ))}
-                                                        </select>
-                                                        <Icon.CaretDown className="arrow-down align-middle" />
+                                                    <div>
+                                                        <div className={`select-block relative ${!selectedCountry || getSelectedCountryStates().length === 0 ? 'bg-gray-100 cursor-not-allowed' : 'cursor-pointer'}`} >
+                                                            <select
+                                                                className={`border px-4 py-3 w-full rounded-lg ${errors.state ? 'border-red' : 'border-line'} ${!selectedCountry || getSelectedCountryStates().length === 0 ? 'bg-gray-100 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                                disabled={!selectedCountry || getSelectedCountryStates().length === 0}
+                                                                {...register("state")}
+                                                            >
+                                                                <option value="">{!selectedCountry ? "Select country first" : getSelectedCountryStates().length === 0 ? "No states available" : "State"}</option>
+                                                                {getSelectedCountryStates().map((state) => (
+                                                                    <option key={state.code} value={state.code}>{state.name}</option>
+                                                                ))}
+                                                            </select>
+                                                            <Icon.CaretDown className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" size={16} />
+                                                        </div>
                                                         {errors.state && <p className="text-red text-sm mt-1">{errors.state.message}</p>}
                                                     </div>
 
