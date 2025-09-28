@@ -4,17 +4,34 @@ import { OrderData, orderDataSchema } from "@/lib/validations/validation";
 import { LineItem, OrderType } from "@/types/order-type";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import Cookies from "js-cookie";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { cookies, headers } from "next/headers";
+import { wooCommerceFetch } from "./wooCommerceFetch";
+
+// Valid WooCommerce order statuses
+const VALID_ORDER_STATUSES = [
+    'pending',
+    'processing',
+    'on-hold',
+    'completed',
+    'cancelled',
+    'refunded',
+    'failed',
+    'trash'
+];
+
+// Validate order status
+function isValidOrderStatus(status: string): boolean {
+    return VALID_ORDER_STATUSES.includes(status);
+}
 
 
 const WooCommerce = new WooCommerceRestApi({
     url: process.env.WORDPRESS_SITE_URL as string,
-    consumerKey: process.env.WC_CONSUMER_KEY! as string,
-    consumerSecret: process.env.WC_CONSUMER_SECRET! as string,
+    consumerKey: process.env.WC_CONSUMER_KEY as string,
+    consumerSecret: process.env.WC_CONSUMER_SECRET as string,
     version: "wc/v3",
 });
-
 
 export async function createOrder({
     orderData,
@@ -28,19 +45,17 @@ export async function createOrder({
     cart_tax: number;
     shipping_lines?: { total: string, method_id: string, method_title: string }[];
     coupon_lines?: { code: string }[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-}): Promise<{ success: boolean, order?: OrderType, error?: any }> {
-
+}) {
 
     const validatedData = orderDataSchema.parse(orderData)
 
     const storedUser = (await cookies()).get("user")?.value
-    // const email = JSON.parse(storedUser!).user_email
     const userId = storedUser ? (JSON.parse(storedUser).user_id || 0) : 0;
     const headersList = await headers();
     const ip = headersList.get('x-forwarded-for')
 
-    // Construct the order payload
+
+
     const payload = {
         ...validatedData,
         customer_id: userId || 0,
@@ -57,27 +72,33 @@ export async function createOrder({
     try {
         const response = await WooCommerce.post("orders", payload);
 
-        revalidatePath('/')
+        // ACTION: Revalidate the order list for this specific user.
+        // This is much more efficient than revalidating the whole home page.
+        if (userId) {
+            revalidateTag(`orders:${userId}`);
+        }
+
         return { order: response.data, success: true };
-    } catch {
-        // const errorMessage = error || "Failed to create order";
-        const res = { error: "failed", success: false }
-        return res;
+    } catch (error) {
+        console.error("Failed to create order:", error);
+        return { error: "Failed to create order", success: false };
     }
 }
 
-
-// Function to fetch order data
+// Function to fetch a single order using tag-based caching
 export async function getOrder(orderId: string): Promise<OrderType | null> {
     try {
-        const response = await WooCommerce.get(`orders/${orderId}`)
-        return response.data as OrderType
+        // Use the fetch wrapper and tag the request specifically to this order
+        const { data } = await wooCommerceFetch(`orders/${orderId}`, {
+            tags: [`order:${orderId}`]
+        });
+        return data as OrderType;
     } catch (error) {
-        console.error("Error fetching order:", error)
-        return null
+        return null;
     }
 }
 
+// Fetch a user's orders using tag-based caching
 export const fetchOrdersByUserId = async ({
     params,
 }: {
@@ -87,42 +108,26 @@ export const fetchOrdersByUserId = async ({
     totalItems: number;
     status: 'OK' | 'ERROR';
 }> => {
-    let allOrders: OrderType[] = [];
-    let page = 1;
-    let totalPages = 1;
-    let totalItems = 0;
+    // This function can now be simplified as we don't need the manual pagination loop
+    // if we trust the `x-wp-total` header or get a reasonable number of orders per page.
+    // For simplicity, let's fetch up to 100 recent orders.
+    const perPage = 100;
 
     try {
-        do {
-            const response = await WooCommerce.get("orders", {
-                per_page: 100,
-                page: page,
-                customer: params.userId,
-            });
+        const endpoint = `orders?customer=${params.userId}&per_page=${perPage}`;
+        // Tag this request to the specific user's orders
+        const { data, headers } = await wooCommerceFetch(endpoint, {
+            tags: [`orders:${params.userId}`]
+        });
 
-            if (response.data && Array.isArray(response.data)) {
-                allOrders = allOrders.concat(response.data);
-            }
-
-            if (page === 1 && response.headers) {
-                if (response.headers['x-wp-totalpages']) {
-                    totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
-                }
-                if (response.headers['x-wp-total']) {
-                    totalItems = parseInt(response.headers['x-wp-total'], 10);
-                }
-            }
-
-            page++;
-        } while (page <= totalPages);
+        const totalItems = parseInt(headers.get('x-wp-total') || '0', 10);
 
         return {
-            orders: allOrders,
+            orders: data,
             totalItems: totalItems,
             status: 'OK',
         };
     } catch (error) {
-        console.error(`Error fetching orders for user ${params.userId}:`, error);
         return {
             orders: [],
             totalItems: 0,
@@ -131,21 +136,79 @@ export const fetchOrdersByUserId = async ({
     }
 };
 
-
+// Update an order and revalidate the relevant caches
 export async function updateOrderStatus(orderId: number, status: string, transactionId: string, paid: boolean, date: string) {
     try {
-        const payload = {
-            status,
-            transaction_id: transactionId,
-            set_paid: paid,
-            date_paid: date,
-            // customer_note: `Payment completed via Stripe. Transaction ID: ${transactionId}`
+        // Validate inputs
+        if (!orderId || orderId <= 0) {
+            throw new Error('Invalid order ID');
+        }
+
+        if (!isValidOrderStatus(status)) {
+            throw new Error(`Invalid order status: ${status}. Valid statuses are: ${VALID_ORDER_STATUSES.join(', ')}`);
+        }
+
+        const storedUser = (await cookies()).get("user")?.value
+        const userId = storedUser ? (JSON.parse(storedUser).user_id || 0) : 0;
+
+        // Build the payload with WooCommerce API fields
+        const payload: any = {
+            status: status,
         };
-        await WooCommerce.put(`orders/${orderId}`, payload);
-        return { success: true };
-    } catch (err) {
+
+        // Add transaction_id directly as a field (not meta_data)
+        if (transactionId && transactionId.trim()) {
+            payload.transaction_id = transactionId.trim();
+        }
+
+        // Only add set_paid if explicitly marking as paid
+        if (paid === true) {
+            payload.set_paid = true;
+        }
+
+        // Add date_paid only if we have a valid date and marking as paid
+        if (paid && date && date.trim()) {
+            try {
+                const dateObj = new Date(date);
+                if (!isNaN(dateObj.getTime())) {
+                    payload.date_paid = dateObj.toISOString();
+                }
+            } catch (dateError) {
+                console.warn('Invalid date format, skipping date_paid:', date);
+            }
+        }
+
+
+
+        console.log(`Updating order ${orderId} with payload:`, payload);
+
+        const response = await WooCommerce.put(`orders/${orderId}`, payload);
+
+        console.log(`Order ${orderId} updated successfully:`, response.data.status);
+
+        // ACTION: Revalidate the specific order and the user's order list
+        revalidateTag(`order:${orderId}`);
+        if (userId) {
+            revalidateTag(`orders:${userId}`);
+        }
+
+        return { success: true, data: response.data };
+    } catch (err: any) {
         console.error(`Failed to update order ${orderId}:`, err);
-        return { success: false, error: "Failed to update order status." };
+
+        // Log detailed error information
+        if (err.response) {
+            console.error('Error response status:', err.response.status);
+            console.error('Error response data:', JSON.stringify(err.response.data, null, 2));
+        }
+
+        const errorMessage = err.response?.data?.message || err.message || "Failed to update order status.";
+
+        return {
+            success: false,
+            error: errorMessage,
+            details: err.response?.data || null
+        };
     }
 }
 
@@ -156,26 +219,21 @@ export interface CheckedOrder {
     is_paid: boolean;
 }
 
-
 export async function checkOrderExists(orderId: number): Promise<CheckedOrder | null> {
     try {
-        const response = await WooCommerce.get(`orders/${orderId}`);
-        const order: OrderType = response.data;
+        const { data: order } = await wooCommerceFetch(`orders/${orderId}`, {
+            tags: [`order:${orderId}`]
+        });
 
-        // If the request succeeds, the order exists.
-        // We can determine the paid status by checking if 'date_paid' has a value.
         const checkedOrder: CheckedOrder = {
             id: order.id,
             status: order.status,
             date_created: order.date_created,
-            is_paid: !!order.date_paid, // Converts truthy (date string) or falsy (null/empty) to boolean
+            is_paid: !!order.date_paid,
         };
 
         return checkedOrder;
     } catch (error) {
-        // The API client throws an error for non-2xx responses, like a 404 Not Found.
-        // We'll treat any error as "order not found" and return null.
-        // console.error(`Order with ID ${orderId} not found or error fetching:`, error);
         return null;
     }
 }

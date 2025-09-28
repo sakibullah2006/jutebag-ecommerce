@@ -80,6 +80,9 @@ export async function POST(request: NextRequest) {
             case 'order.deleted':
                 revalidateTag('orders');
                 // Example for revalidating a specific user's orders
+                if (resourceId) {
+                    revalidateTag(`order:${resourceId}`);
+                }
                 if (payload.customer_id) {
                     revalidateTag(`orders:${payload.customer_id}`);
                 }
@@ -90,7 +93,7 @@ export async function POST(request: NextRequest) {
             case 'customer.deleted':
                 revalidateTag(`customers`);
                 // Example for revalidating a specific customer
-                if (payload.id) {
+                if (resourceId) {
                     revalidateTag(`customers:${payload.id}`);
                 }
                 break;
