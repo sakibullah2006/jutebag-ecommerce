@@ -267,7 +267,10 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
                             <div className="list-nav mt-6">
                                 <ul>
                                     <li>
-                                        <Link href={PATH.SHOP} className='text-xl font-semibold flex items-center justify-between'>
+                                        <Link
+                                            onClick={handleMenuMobile}
+                                            href={PATH.SHOP}
+                                            className='text-xl font-semibold flex items-center justify-between'>
                                             Shop
                                         </Link>
                                     </li>
@@ -297,7 +300,7 @@ const MenuEight: React.FC<Props> = ({ props, categories }) => {
                                                             {menuItem.subMenu?.map((subMenuItem) => (
                                                                 <li key={subMenuItem.id}>
                                                                     <Link
-                                                                        onClick={handleMenuMobile}
+                                                                        onClick={() => { handleMenuMobile(); handleOpenSubNavMobile(1); }}
                                                                         href={`${PATH.SHOP}?category=${subMenuItem.slug}` + (menuItem.isGenderCat ? `&gender=${menuItem.genderCategory}` : '')}
                                                                         className={`link text-secondary duration-300 cursor-pointer`}
                                                                     >

@@ -190,6 +190,7 @@ export default function ProductLoading() {
                         </div>
                     </div>
                 </div>
+                <div className="h-10"></div>
             </div>
 
         </>
