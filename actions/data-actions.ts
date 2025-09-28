@@ -2,6 +2,7 @@
 
 import { AttributesWithTermsType, AttributeTermType, CategorieType, CountryDataType, CurrencyType, ProductAttributeType, ProductBrandType, ShippingLocationDataType, ShippingMethodDataType, ShippingZoneDataType, StoreConfig, TagType, TaxDataType, } from "@/types/data-type";
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
+import { wooCommerceFetch } from "./wooCommerceFetch";
 
 const WooCommerce = new WooCommerceRestApi({
   url: process.env.WORDPRESS_SITE_URL as string,
@@ -60,8 +61,8 @@ export const getAllCountries = async (): Promise<CountryDataType[]> => {
 
 export const getTaxes = async (): Promise<TaxDataType[]> => {
   try {
-    const response = await WooCommerce.get("taxes", { caches: true });
-    return response.data;
+    const { data } = await wooCommerceFetch("taxes", { revalidate: 60 }, "default");
+    return data;
   } catch (error) {
     console.error("Error fetching countries:", error);
     return [];
@@ -70,23 +71,24 @@ export const getTaxes = async (): Promise<TaxDataType[]> => {
 
 export async function getShippingZones(): Promise<ShippingZoneDataType[]> {
   try {
-    const zonesResponse = await WooCommerce.get('shipping/zones', { caches: true });
+    const zonesResponse = await wooCommerceFetch('shipping/zones', { revalidate: 60 * 60 }, "default");
     const zones: ShippingZoneDataType[] = zonesResponse.data.filter((zone: ShippingZoneDataType) => zone.id !== 0); // Exclude "Locations not covered"
 
     const zonesWithMethods = await Promise.all(
       zones.map(async (zone) => {
-        const methodsResponse = await WooCommerce.get(`shipping/zones/${zone.id}/methods`, { caches: true });
+        const methodsResponse = await wooCommerceFetch(`shipping/zones/${zone.id}/methods`, { revalidate: 60 * 30 }, "default");
         const methods: ShippingMethodDataType[] = methodsResponse.data.filter((method: ShippingMethodDataType) => method.enabled);
         return {
           ...zone,
           methods,
-          locations: (await WooCommerce.get(`shipping/zones/${zone.id}/locations`, { caches: true })).data,
+          locations: (await wooCommerceFetch(`shipping/zones/${zone.id}/locations`, { revalidate: 60 * 30 }, "default")).data,
         };
       })
     );
 
     // Include zone ID 0 as fallback
-    const defaultZoneMethods = await WooCommerce.get('shipping/zones/0/methods', { caches: true });
+    const defaultZoneMethods = await wooCommerceFetch('shipping/zones/0/methods', { revalidate: 60 * 30 }, "default");
+
     zonesWithMethods.push({
       id: 0,
       name: 'Locations not covered',
@@ -168,19 +170,22 @@ export const getAttributesWithTerms = async (): Promise<AttributesWithTermsType[
     let page = 1;
     let totalPages = 1;
 
+    const queryParams = new URLSearchParams()
+    queryParams.append("per_page", "100")
+
     do {
-      const response = await WooCommerce.get('products/attributes', {
-        per_page: 100,
-        page: page,
-        caches: true
+      queryParams.set("page", page.toString())
+
+      const { data, headers } = await wooCommerceFetch(`products/attributes?${queryParams.toString()}`, {
+        revalidate: 60 * 60
       });
 
-      if (response.data && Array.isArray(response.data)) {
-        allAttributes = allAttributes.concat(response.data);
+      if (data && Array.isArray(data)) {
+        allAttributes = allAttributes.concat(data);
       }
 
-      if (page === 1 && response.headers && response.headers['x-wp-totalpages']) {
-        totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
+      if (page === 1 && headers && headers.get('x-wp-totalpages')) {
+        totalPages = parseInt(headers.get('x-wp-totalpages') || '1', 10);
       }
 
       page++;
@@ -189,7 +194,14 @@ export const getAttributesWithTerms = async (): Promise<AttributesWithTermsType[
 
     // Fetch terms for each attribute
     const attributesWithTerms: AttributesWithTermsType[] = await Promise.all(allAttributes.map(async (attribute) => {
-      const terms: AttributeTermType[] = await WooCommerce.get(`products/attributes/${attribute.id}/terms`, { per_page: 100, caches: true }).then(res => res.data);
+      const terms: AttributeTermType[] = await wooCommerceFetch(
+        `products/attributes/${attribute.id}/terms?per_page=100`,
+        {
+          revalidate: 60 * 60
+        },
+        "default"
+      ).then(res => res.data);
+
       return {
         attribute: attribute,
         terms: terms,
@@ -209,20 +221,32 @@ export const getProductCategories = async (): Promise<CategorieType[]> => {
     let page = 1;
     let totalPages = 1;
 
-    do {
-      const response = await WooCommerce.get('products/categories', {
-        per_page: 100,
-        page: page,
-        caches: true
-      });
+    const queryParams = new URLSearchParams()
+    queryParams.append("per_page", "100")
 
-      if (response.data && Array.isArray(response.data)) {
-        allCategories = allCategories.concat(response.data);
+    do {
+      queryParams.set("page", page.toString())
+
+      // const response = await WooCommerce.get('products/categories', {
+      //   page: page,
+      //   caches: true
+      // });
+
+      const { data, headers } = await wooCommerceFetch(
+        `products/categories?${queryParams.toString()}`,
+        {
+          revalidate: 60 * 60
+        },
+        "default"
+      );
+
+      if (data && Array.isArray(data)) {
+        allCategories = allCategories.concat(data);
       }
 
       // Get total pages from headers on the first request
-      if (page === 1 && response.headers && response.headers['x-wp-totalpages']) {
-        totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
+      if (page === 1 && headers && headers.get('x-wp-totalpages')) {
+        totalPages = parseInt(headers.get('x-wp-totalpages') || '1', 10);
       }
 
       page++;
@@ -241,20 +265,25 @@ export const getProductTags = async (): Promise<TagType[]> => {
     let page = 1;
     let totalPages = 1;
 
-    do {
-      const response = await WooCommerce.get('products/tags', {
-        per_page: 100,
-        page: page,
-        caches: true
-      });
+    const queryParams = new URLSearchParams()
+    queryParams.append("per_page", "100")
 
-      if (response.data && Array.isArray(response.data)) {
-        allTags = allTags.concat(response.data);
+    do {
+      queryParams.set("page", page.toString())
+
+      const { data, headers } = await wooCommerceFetch(`products/tags?${queryParams.toString()}`, {
+        revalidate: 60 * 60
+      },
+        "default"
+      );
+
+      if (data && Array.isArray(data)) {
+        allTags = allTags.concat(data);
       }
 
       // Get total pages from headers on the first request
-      if (page === 1 && response.headers && response.headers['x-wp-totalpages']) {
-        totalPages = parseInt(response.headers['x-wp-totalpages'], 10);
+      if (page === 1 && headers && headers.get('x-wp-totalpages')) {
+        totalPages = parseInt(headers.get('x-wp-totalpages') || '1', 10);
       }
 
       page++;

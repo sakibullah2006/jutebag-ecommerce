@@ -9,7 +9,7 @@ const CONSUMER_SECRET = process.env.WC_CONSUMER_SECRET as string;
  * A centralized fetch wrapper for WooCommerce API calls.
  * This ensures consistent authentication and allows us to pass Next.js caching options.
  */
-export async function wooCommerceFetch(endpoint: string, nextConfig: NextFetchRequestConfig) {
+export async function wooCommerceFetch(endpoint: string, nextConfig: NextFetchRequestConfig, cache?: RequestCache) {
     const url = `${API_URL}/wp-json/wc/v3/${endpoint}`;
     const encodedAuth = Buffer.from(`${CONSUMER_KEY}:${CONSUMER_SECRET}`).toString('base64');
 
@@ -18,6 +18,7 @@ export async function wooCommerceFetch(endpoint: string, nextConfig: NextFetchRe
             headers: {
                 'Authorization': `Basic ${encodedAuth}`,
             },
+            cache: cache,
             next: nextConfig
         });
 
