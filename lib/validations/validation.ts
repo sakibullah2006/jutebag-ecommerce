@@ -8,7 +8,7 @@ export const deliverySchema = z.object({
   address_1: z.string().min(1, "Address is required"),
   address_2: z.string().optional(),
   city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State/District is required").optional(),
+  state: z.string().optional(),
   postcode: z.string().min(1, "Postal code is required"),
   country: z.string().min(1, "Country is required"),
   email: z
