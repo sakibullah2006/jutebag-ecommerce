@@ -75,7 +75,7 @@ export const getProductVariationsById = async ({ id, per_page }: { id: string, p
 
   try {
     // Variations are part of a product, so they share the same tags
-    const { data } = await wooCommerceFetch(`products/${id}?${queryParams.toString()}`, {
+    const { data } = await wooCommerceFetch(`products/${id}/variations?${queryParams.toString()}`, {
       tags: [`product:${id}`, 'products']
     });
     return {

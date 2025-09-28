@@ -68,6 +68,8 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
     useEffect(() => {
         let isMounted = true;
 
+        if (!isMounted) return;
+
         if (!Array.isArray(data.variations) || data.variations.length === 0) {
             return;
         }
