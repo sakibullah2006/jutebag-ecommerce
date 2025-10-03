@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { getProductCategories } from '../../../actions/data-actions';
 import { STOREINFO } from '../../../constant/storeConstants';
+import ErrorIllustration from '../../../components/Other/ErrorIllustration';
 
 // Define props type for the component
 type BreadCrumb1Props = {
@@ -31,7 +32,7 @@ export default async function BreadCrumb1({ searchParams }: BreadCrumb1Props) {
     if (status !== 'OK') {
         // You can add error handling here, e.g., return a fallback UI
         return (
-            <div>Error fetching products</div>
+            <ErrorIllustration />
         );
     }
 
