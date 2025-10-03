@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -11,25 +11,27 @@ import * as Icon from "@phosphor-icons/react/dist/ssr"
 interface DashboardSidebarProps {
     customer: Customer
     activeTab: string
-    setActiveTab: (tab: string) => void
 }
 
-const DashboardSidebar = ({ customer, activeTab, setActiveTab }: DashboardSidebarProps) => {
+const DashboardSidebar = React.memo(({ customer, activeTab }: DashboardSidebarProps) => {
     const { logout } = useAuth()
     const router = useRouter()
-    const pathName = usePathname()
+    const pathname = usePathname()
     const searchParams = useSearchParams()
 
-    useEffect(() => {
-        const params = new URLSearchParams(searchParams.toString())
-        params.set('tab', activeTab)
-        const newUrl = `${pathName}?${params.toString()}`
-        router.replace(newUrl, { scroll: false })
-    }, [activeTab, router])
+    // Function to handle tab navigation via URL
+    const handleTabChange = useCallback(
+        (tabName: string) => {
+            const params = new URLSearchParams(searchParams.toString())
+            params.set('tab', tabName)
+            router.push(`${pathname}?${params.toString()}`, { scroll: false })
+        },
+        [searchParams, pathname, router]
+    )
 
-    const handleLogout = () => {
+    const handleLogout = useCallback(() => {
         logout()
-    }
+    }, [logout])
 
     return (
         <div className="left md:w-1/3 w-full xl:pr-[3.125rem] lg:pr-[28px] md:pr-[16px]">
@@ -54,28 +56,28 @@ const DashboardSidebar = ({ customer, activeTab, setActiveTab }: DashboardSideba
                 <div className="menu-tab w-full max-w-none lg:mt-10 mt-6">
                     <button
                         className={`item flex items-center gap-3 w-full px-5 py-4 rounded-lg cursor-pointer duration-300 hover:bg-white ${activeTab === 'dashboard' ? 'active bg-white' : ''}`}
-                        onClick={() => setActiveTab('dashboard')}
+                        onClick={() => handleTabChange('dashboard')}
                     >
                         <Icon.HouseIcon size={20} />
                         <strong className="heading6">Dashboard</strong>
                     </button>
                     <button
                         className={`item flex items-center gap-3 w-full px-5 py-4 rounded-lg cursor-pointer duration-300 hover:bg-white mt-1.5 ${activeTab === 'orders' ? 'active bg-white' : ''}`}
-                        onClick={() => setActiveTab('orders')}
+                        onClick={() => handleTabChange('orders')}
                     >
                         <Icon.PackageIcon size={20} />
                         <strong className="heading6">Order History</strong>
                     </button>
                     <button
                         className={`item flex items-center gap-3 w-full px-5 py-4 rounded-lg cursor-pointer duration-300 hover:bg-white mt-1.5 ${activeTab === 'address' ? 'active bg-white' : ''}`}
-                        onClick={() => setActiveTab('address')}
+                        onClick={() => handleTabChange('address')}
                     >
                         <Icon.MapPinIcon size={20} />
                         <strong className="heading6">My Address</strong>
                     </button>
                     <button
                         className={`item flex items-center gap-3 w-full px-5 py-4 rounded-lg cursor-pointer duration-300 hover:bg-white mt-1.5 ${activeTab === 'setting' ? 'active bg-white' : ''}`}
-                        onClick={() => setActiveTab('setting')}
+                        onClick={() => handleTabChange('setting')}
                     >
                         <Icon.GearIcon size={20} />
                         <strong className="heading6">Settings</strong>
@@ -91,6 +93,8 @@ const DashboardSidebar = ({ customer, activeTab, setActiveTab }: DashboardSideba
             </div>
         </div>
     )
-}
+})
+
+DashboardSidebar.displayName = 'DashboardSidebar'
 
 export default DashboardSidebar

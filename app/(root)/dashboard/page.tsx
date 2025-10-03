@@ -3,12 +3,8 @@ import { redirect } from 'next/navigation'
 import { fetchProfileData } from '@/actions/customer-action'
 import DashboardClient from '@/components/Dashboard/DashboardClient'
 import { cookies } from 'next/headers'
-import TopNavOne from '../../../components/Header/TopNav/TopNavOne'
 import Breadcrumb from '../../../components/Breadcrumb/Breadcrumb'
-import Footer from '../../../components/Footer/Footer'
 import { Metadata } from 'next'
-import { getProductCategories } from '../../../actions/data-actions'
-import MenuEight from '../../../components/Header/Menu/MenuEight'
 
 
 

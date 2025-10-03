@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { OrderType } from '@/types/order-type'
 import { formatDistanceToNow } from 'date-fns'
 import { useAppData } from '../../context/AppDataContext'
@@ -11,48 +11,58 @@ interface OrderHistoryProps {
     customerId: number
 }
 
-const OrderHistory = ({ orders, customerId }: OrderHistoryProps) => {
+const OrderHistory = React.memo(({ orders, customerId }: OrderHistoryProps) => {
     const [expandedOrder, setExpandedOrder] = useState<number | null>(null)
     const { currentCurrency } = useAppData()
 
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'completed':
-                return 'text-green-800 bg-green-200'
-            case 'processing':
-                return 'text-blue-600 bg-blue-100'
-            case 'on-hold':
-                return 'text-yellow-600 bg-yellow-100'
-            case 'cancelled':
-                return 'text-red-600 bg-red-100'
-            case 'refunded':
-                return 'text-gray-600 bg-gray-100'
-            case 'failed':
-                return 'text-red-600 bg-red-100'
-            default:
-                return 'text-gray-600 bg-gray-100'
+    // Memoize expensive calculations
+    const { getStatusColor, formatDate, formatPrice } = useMemo(() => {
+        const getStatusColor = (status: string) => {
+            switch (status) {
+                case 'completed':
+                    return 'text-green-800 bg-green-200'
+                case 'processing':
+                    return 'text-blue-600 bg-blue-100'
+                case 'on-hold':
+                    return 'text-yellow-600 bg-yellow-100'
+                case 'cancelled':
+                    return 'text-red-600 bg-red-100'
+                case 'refunded':
+                    return 'text-gray-600 bg-gray-100'
+                case 'failed':
+                    return 'text-red-600 bg-red-100'
+                default:
+                    return 'text-gray-600 bg-gray-100'
+            }
         }
-    }
 
-    const formatDate = (dateString: string) => {
-        try {
-            const date = new Date(dateString)
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            })
-        } catch {
-            return 'Invalid Date'
+        const formatDate = (dateString: string) => {
+            try {
+                const date = new Date(dateString)
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                })
+            } catch {
+                return 'Invalid Date'
+            }
         }
-    }
 
-    const formatPrice = (price: string) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currentCurrency?.code,
-        }).format(parseFloat(price))
-    }
+        const formatPrice = (price: string) => {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: currentCurrency?.code || 'USD',
+            }).format(parseFloat(price))
+        }
+
+        return { getStatusColor, formatDate, formatPrice }
+    }, [currentCurrency?.code])
+
+    // Memoize the toggle function
+    const handleToggleOrder = useCallback((orderId: number) => {
+        setExpandedOrder(prev => prev === orderId ? null : orderId)
+    }, [])
 
     if (orders.length === 0) {
         return (
@@ -104,7 +114,7 @@ const OrderHistory = ({ orders, customerId }: OrderHistoryProps) => {
                                             <p className="font-medium text-gray-900">{formatPrice(order.total)}</p>
                                         </div>
                                         <button
-                                            onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
+                                            onClick={() => handleToggleOrder(order.id)}
                                             className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                                         >
                                             {expandedOrder === order.id ? 'Hide Details' : 'View Details'}
@@ -182,6 +192,8 @@ const OrderHistory = ({ orders, customerId }: OrderHistoryProps) => {
             </div>
         </div>
     )
-}
+})
+
+OrderHistory.displayName = 'OrderHistory'
 
 export default OrderHistory
