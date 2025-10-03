@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Customer, DownloadData } from '@/types/customer-type'
@@ -13,16 +13,18 @@ interface DashboardOverviewProps {
     downloads: DownloadData[]
 }
 
-const DashboardOverview = ({ customer, orders, downloads }: DashboardOverviewProps) => {
-    // Calculate order statistics
-    const awaitingPickup = orders.filter(order => order.status === 'processing').length
-    const cancelledOrders = orders.filter(order => order.status === 'cancelled').length
-    const totalOrders = orders.length
+const DashboardOverview = React.memo(({ customer, orders, downloads }: DashboardOverviewProps) => {
+    // Memoize calculations to prevent recalculation on every render
+    const orderStats = useMemo(() => {
+        const awaitingPickup = orders.filter(order => order.status === 'processing').length
+        const cancelledOrders = orders.filter(order => order.status === 'cancelled').length
+        const totalOrders = orders.length
+        const recentOrders = orders.slice(0, 5)
 
-    // Get recent orders (last 5)
-    const recentOrders = orders.slice(0, 5)
+        return { awaitingPickup, cancelledOrders, totalOrders, recentOrders }
+    }, [orders])
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = useMemo(() => (status: string) => {
         switch (status) {
             case 'pending': return 'bg-yellow-200 text-yellow-600'
             case 'processing': return 'bg-blue-200 text-blue-500'
@@ -30,7 +32,7 @@ const DashboardOverview = ({ customer, orders, downloads }: DashboardOverviewPro
             case 'cancelled': return 'bg-red-200 text-red-900'
             default: return 'bg-gray text-gray'
         }
-    }
+    }, [])
 
     return (
         <div className="tab text-content w-full">
@@ -38,27 +40,27 @@ const DashboardOverview = ({ customer, orders, downloads }: DashboardOverviewPro
                 <div className="item flex items-center justify-between p-5 border border-line rounded-lg box-shadow-xs">
                     <div className="counter">
                         <span className="text-secondary">Processing Orders</span>
-                        <h5 className="heading5 mt-1">{awaitingPickup}</h5>
+                        <h5 className="heading5 mt-1">{orderStats.awaitingPickup}</h5>
                     </div>
                     <Icon.HourglassIcon className='text-4xl text-blue-500' />
                 </div>
                 <div className="item flex items-center justify-between p-5 border border-line rounded-lg box-shadow-xs">
                     <div className="counter">
                         <span className="text-secondary">Cancelled Orders</span>
-                        <h5 className="heading5 mt-1">{cancelledOrders}</h5>
+                        <h5 className="heading5 mt-1">{orderStats.cancelledOrders}</h5>
                     </div>
                     <Icon.XCircleIcon className='text-4xl text-red-500' />
                 </div>
                 <div className="item flex items-center justify-between p-5 border border-line rounded-lg box-shadow-xs">
                     <div className="counter">
                         <span className="text-secondary">Total Orders</span>
-                        <h5 className="heading5 mt-1">{totalOrders}</h5>
+                        <h5 className="heading5 mt-1">{orderStats.totalOrders}</h5>
                     </div>
                     <Icon.PackageIcon className='text-4xl text-green-500' />
                 </div>
             </div>
 
-            {recentOrders.length > 0 && (
+            {orderStats.recentOrders.length > 0 && (
                 <div className="recent_order pt-5 px-5 pb-2 mt-7 border border-line rounded-xl">
                     <h6 className="heading6">Recent Orders</h6>
                     <div className="list overflow-x-auto w-full mt-5">
@@ -72,7 +74,7 @@ const DashboardOverview = ({ customer, orders, downloads }: DashboardOverviewPro
                                 </tr>
                             </thead>
                             <tbody>
-                                {recentOrders.map((order) => (
+                                {orderStats.recentOrders.map((order: OrderType) => (
                                     <tr key={order.id} className="item duration-300 border-b border-line">
                                         <th scope="row" className="py-3 text-left">
                                             <strong className="text-title">#{order.id}</strong>
@@ -123,6 +125,8 @@ const DashboardOverview = ({ customer, orders, downloads }: DashboardOverviewPro
             )}
         </div>
     )
-}
+})
+
+DashboardOverview.displayName = 'DashboardOverview'
 
 export default DashboardOverview

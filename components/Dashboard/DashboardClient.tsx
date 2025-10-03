@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import DashboardSidebar from './DashboardSidebar'
 import DashboardOverview from './DashboardOverview'
@@ -22,15 +22,19 @@ interface DashboardClientProps {
 }
 
 const DashboardClient = ({ initialTab, profileData, userId }: DashboardClientProps) => {
-    const [activeTab, setActiveTab] = useState(initialTab)
     const [customerData, setCustomerData] = useState<Customer>(profileData.customer)
     const { user, isAuthenticated, loading } = useAuth()
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const pathname = usePathname()
 
-    // Callback to handle customer data updates from child components
-    const handleCustomerUpdate = (updatedCustomer: Customer) => {
+    // Get current tab from URL, fallback to initialTab
+    const activeTab = searchParams.get('tab') || initialTab
+
+    // Memoized callback to handle customer data updates from child components
+    const handleCustomerUpdate = useCallback((updatedCustomer: Customer) => {
         setCustomerData(updatedCustomer)
-    }
+    }, [])
 
     // Redirect if not authenticated
     useEffect(() => {
@@ -39,24 +43,8 @@ const DashboardClient = ({ initialTab, profileData, userId }: DashboardClientPro
         }
     }, [isAuthenticated, loading, router])
 
-    // Show loading while checking authentication
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading...</p>
-                </div>
-            </div>
-        )
-    }
-
-    // Don't render if not authenticated
-    if (!isAuthenticated) {
-        return null
-    }
-
-    const renderTabContent = () => {
+    // Memoize tab content to prevent unnecessary re-renders
+    const tabContent = useMemo(() => {
         switch (activeTab) {
             case 'dashboard':
                 return (
@@ -98,21 +86,36 @@ const DashboardClient = ({ initialTab, profileData, userId }: DashboardClientPro
                     />
                 )
         }
+    }, [activeTab, customerData, profileData.orders, profileData.downloads, userId, handleCustomerUpdate])
+
+    // Show loading while checking authentication
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading...</p>
+                </div>
+            </div>
+        )
+    }
+
+    // Don't render if not authenticated
+    if (!isAuthenticated) {
+        return null
     }
 
     return (
         <>
-
             <div className="profile-block md:py-20 py-10">
                 <div className="container">
                     <div className="content-main flex gap-y-8 max-md:flex-col w-full">
                         <DashboardSidebar
                             customer={customerData}
                             activeTab={activeTab}
-                            setActiveTab={setActiveTab}
                         />
                         <div className="right md:w-2/3 w-full pl-2.5">
-                            {renderTabContent()}
+                            {tabContent}
                         </div>
                     </div>
                 </div>
