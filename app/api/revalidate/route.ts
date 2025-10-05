@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
                 revalidateTag(`customers`);
                 // Example for revalidating a specific customer
                 if (resourceId) {
-                    revalidateTag(`customers:${payload.id}`);
+                    revalidateTag(`customers:${resourceId}`);
                 }
                 break;
 
