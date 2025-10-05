@@ -6,7 +6,9 @@ import { Customer, DownloadData } from "@/types/customer-type";
 
 import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 import next from "next";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { wooCommerceFetch } from "./wooCommerceFetch";
+import { PATH } from "../constant/pathConstants";
 
 const WooCommerce = new WooCommerceRestApi({
   url: process.env.WORDPRESS_SITE_URL! as string,
@@ -17,54 +19,54 @@ const WooCommerce = new WooCommerceRestApi({
 
 
 export async function fetchProfileData(userId: number) {
-  if (!process.env.WC_CONSUMER_KEY || !process.env.WC_CONSUMER_SECRET) {
-    throw new Error("WooCommerce API credentials are missing");
+  if (!userId) {
+    throw new Error("User ID is required to fetch profile data");
   }
 
-  //   const token = cookies().get("jwt_token")?.value;
-  // const token = (await cookies()).get("jwt_token")?.value
-
-
   try {
-    const [customerResponse, ordersResponse, customerDownloads] = await Promise.all([
-      WooCommerce.get(`customers/${encodeURIComponent(userId)}`, { next: { revalidate: 2 } }),
-      WooCommerce.get("orders", { params: { customer: userId }, next: { revalidate: 0 } }),
-      WooCommerce.get(`customers/${userId}/downloads`, { next: { revalidate: 0 } })
+    // Fetch customer, orders, and downloads in parallel with specific cache tags
+    const [customerResult, ordersResult, downloadsResult] = await Promise.all([
+      wooCommerceFetch(`customers/${userId}`, { tags: [`customers:${userId}`, 'customers'], revalidate: 1 },),
+      wooCommerceFetch(`orders?customer=${userId}`, { tags: [`orders:${userId}`] },),
+      wooCommerceFetch(`customers/${userId}/downloads`, { tags: [`customers:${userId}`, 'customers'], revalidate: 1 },)
     ]);
 
-    const customer = customerResponse.data as Customer;
-    const orders = ordersResponse.data as OrderType[];
-    const downloads = customerDownloads.data as DownloadData[];
+    const customer = customerResult.data as Customer;
+    const orders = ordersResult.data as OrderType[];
+    const downloads = downloadsResult.data as DownloadData[];
 
-    // Additional validation to ensure orders belong to the userId
+    // Your existing validation logic is good
     const filteredOrders = orders.filter((order) => order.customer_id === userId || order.billing?.email === customer.email);
-
-    if (filteredOrders.length !== orders.length) {
-      console.warn(`Filtered out ${orders.length - filteredOrders.length} orders not belonging to userId ${userId}`);
-    }
 
     return { customer, orders: filteredOrders, downloads };
   } catch (error) {
     console.error("Error fetching profile data:", error);
-    throw error instanceof Error ? error : new Error("Failed to fetch profile data");
+    throw new Error("Failed to fetch profile data");
   }
 }
 
+
+
 export async function getCustomerInfo(userId: number) {
   try {
-    const response = await WooCommerce.get(`customers/${encodeURIComponent(userId)}`, { cache: 'force-cache', next: { revalidate: 30 } });
-    const customer = response.data as Customer;
-    return { success: true, data: customer };
+    // Use the fetch wrapper and tag the request
+    const { data: customer } = await wooCommerceFetch(`customers/${userId}`, {
+      tags: [`customers:${userId}`, 'customers']
+    });
+    return { success: true, data: customer as Customer };
   } catch (error) {
-    console.error("Error retrieving customer info:", error);
     return { success: false, message: "Failed to retrieve customer information" };
   }
 }
 
 
+
+
 export async function updateCustomerPersonalInfo(userId: number, data: PersonalInfoFormValues) {
   try {
-    const customersResponse = await WooCommerce.get(`customers?email=${encodeURIComponent(data.email)}`, { cache: 'force-cache', next: { revalidate: 30 } });
+    const customersResponse = await wooCommerceFetch(`customers?email=${encodeURIComponent(data.email)}`, {
+      tags: [`customers:` + userId, 'customers']
+    });
     const existingCustomer = customersResponse.data.find((c: Customer) => c.id !== userId);
     if (existingCustomer) {
       return { success: false, message: 'Email is already in use by another account' };
@@ -74,8 +76,10 @@ export async function updateCustomerPersonalInfo(userId: number, data: PersonalI
 
     const response = await WooCommerce.put(`customers/${userId}`, {
       ...validatedData,
-      next: { revalidatePath: `/profile/${userId}` },
     });
+
+    revalidateTag(`customers:` + userId)
+    revalidatePath(PATH.DASHBOARD)
 
     console.log('Personal info updated successfully:', response.data);
     return { success: true, message: 'Personal information updated successfully', data: response.data };
@@ -85,8 +89,11 @@ export async function updateCustomerPersonalInfo(userId: number, data: PersonalI
   }
 }
 
+
 export async function updateCustomerAddress(id: number, type: 'billing' | 'shipping', data: AddressFormValues) {
   try {
+    // const updateData = { [type]: data };
+
     const updateData = {
       [type]: {
         first_name: data.first_name,
@@ -102,14 +109,18 @@ export async function updateCustomerAddress(id: number, type: 'billing' | 'shipp
       },
     };
 
-    const response = await WooCommerce.put(`customers/${encodeURIComponent(id)}`, {
-      ...updateData,
-      next: { revalidatePath: `/dashboard` },
-    });
-    revalidatePath("/dashboard")
+    // NOTE: Removed `next` object from the PUT request body.
+    const response = await WooCommerce.put(`customers/${id}`, updateData);
+
+    // ACTION: Revalidate the specific customer's data.
+    // This is more precise than revalidating a generic path.
+    revalidateTag(`customers:${id}`);
+
     return { success: true, message: `${type.charAt(0).toUpperCase() + type.slice(1)} address updated successfully`, data: response.data };
   } catch (error) {
     console.error(`Error updating ${type} address:`, error);
     return { success: false, message: `Failed to update ${type} address` };
   }
 }
+
+
