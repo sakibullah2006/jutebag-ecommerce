@@ -125,6 +125,71 @@ export const getAllProductsPaginated = async ({
 };
 
 
+export const getProductsPaginated = async ({
+  page,
+  search,
+  category,
+  tag,
+  gender,
+  per_page
+}: {
+  page: number,
+  search?: string,
+  category?: string,
+  tag?: string,
+  gender?: string,
+  per_page?: number
+}): Promise<{
+  products: Product[],
+  totalItems: number,
+  totalPages: number,
+  status: 'OK' | 'ERROR',
+}> => {
+
+  const queryParams = new URLSearchParams();
+  if (per_page) queryParams.append('per_page', (per_page || 6).toString());
+  // if (category) queryParams.append('category', category);
+  // if (search) queryParams.append('search', search);
+  // if (tag) queryParams.append('tag', tag);
+  if (page) queryParams.append('page', page.toString());
+
+  try {
+    const endpoint = `products?${queryParams.toString()}`;
+
+    // We tag this generic fetch with the 'products' tag
+    const { data, headers } = await wooCommerceFetch(endpoint, {
+      tags: ['products']
+    });
+
+
+
+    // The totalItems count can be derived from the first page's header
+    // This part of the logic needs adjustment if you don't fetch all pages.
+    const totalItems = parseInt(headers.get('x-wp-total') || '0', 10);
+    const totalPages = parseInt(headers.get('x-wp-totalpages') || '1', 10);
+
+    console.log("total Products", totalItems)
+    console.log("total pages", totalPages)
+
+    return {
+      products: data,
+      totalItems: totalItems,
+      totalPages: totalPages,
+      status: 'OK',
+    };
+  } catch (error) {
+    console.log("Unexpected Error", error)
+
+    return {
+      products: [],
+      totalItems: 0,
+      totalPages: 0,
+      status: 'ERROR',
+    };
+  }
+};
+
+
 export async function getProductReviews(productId: number) {
   if (!productId || isNaN(productId)) {
     return { success: false, message: "Invalid product ID" };
