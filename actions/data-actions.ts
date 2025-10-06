@@ -322,6 +322,7 @@ export const getBrands = async (): Promise<ProductBrandType[]> => {
 export const getStoreSettings = async (): Promise<StoreConfig | null> => {
   try {
     const { data: settings } = await WooCommerce.get("settings/general", { caches: true });
+    const { data: productSettings } = await WooCommerce.get("settings/products", { caches: true });
 
     if (!settings || !Array.isArray(settings)) {
       throw new Error("Invalid settings format received from API.");
@@ -331,6 +332,11 @@ export const getStoreSettings = async (): Promise<StoreConfig | null> => {
     const findSettingValue = (id: string, defaultValue: string | string[] = '') => {
       const setting = settings.find((s) => s.id === id);
       return setting ? setting.value : defaultValue;
+    };
+
+    const findProductSettingValue = (id: string, defaultValue: string | string[] = '') => {
+      const productSetting = productSettings.find((s: any) => s.id === id);
+      return productSetting ? productSetting.value : defaultValue;
     };
 
     // Find the currency symbol from the options list
@@ -350,6 +356,7 @@ export const getStoreSettings = async (): Promise<StoreConfig | null> => {
         countryState: findSettingValue('woocommerce_default_country'),
         countryCode: String(findSettingValue('woocommerce_default_country')).split(':')[0],
       },
+      defaultWeightUnit: findProductSettingValue('woocommerce_weight_unit'),
       currency: currencyCode,
       currencySymbol: currencySymbol,
       currencyPosition: findSettingValue('woocommerce_currency_pos'),
