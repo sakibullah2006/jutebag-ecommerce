@@ -223,6 +223,7 @@ export interface StoreConfig {
     address: StoreAddress;
     currency: string;
     currencySymbol: string;
+    defaultWeightUnit: string,
     currencyPosition: string;
     thousandSeparator: string;
     decimalSeparator: string;

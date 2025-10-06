@@ -232,10 +232,10 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
     return (
         <>
-            <div className="product-detail default" >
+            <div className="product-detail default sale" >
                 <div className="featured-product underwear md:py-20 py-10">
-                    <div className="container out-of-stock flex justify-between gap-y-6 flex-wrap" id='showcase'>
-                        <div className="list-img md:w-1/2 md:pr-[45px] w-full">
+                    <div className="container flex justify-between gap-y-6 flex-wrap" id='showcase'>
+                        <div className="list-img md:w-1/2 md:pr-[45px] w-full z-0">
                             <Swiper
                                 slidesPerView={1}
                                 spaceBetween={0}
@@ -253,9 +253,8 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                     >
                                         <Image
                                             src={item.src}
-                                            width={1000}
-                                            height={1000}
-                                            priority={true}
+                                            width={800}
+                                            height={800}
                                             alt='prd-img'
                                             className='w-full aspect-[3/4] object-cover'
                                         />
@@ -263,29 +262,27 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                 ))}
                             </Swiper>
                             <Swiper
-                                onSwiper={(swiper) => {
-                                    handleSwiper(swiper)
-                                }}
+                                onSwiper={handleSwiper}
                                 spaceBetween={0}
-                                slidesPerView={4}
+                                slidesPerView={Math.min(data.images.length, 4)}
                                 freeMode={true}
-                                watchSlidesProgress={true}
+                                watchSlidesProgress={false}
                                 modules={[Navigation, Thumbs]}
-                                className="mySwiper"
+                                className="mySwiper style-rectangle "
                             >
                                 {data.images.map((item, index) => (
-                                    <SwiperSlide
-                                        key={index}
-                                    >
+                                    <SwiperSlide key={index}>
                                         <Image
                                             src={item.src}
                                             width={1000}
-                                            height={1000}
+                                            height={1300}
                                             alt='prd-img'
                                             className='w-full aspect-[3/4] object-cover rounded-xl'
                                         />
                                     </SwiperSlide>
                                 ))}
+
+
                             </Swiper>
                             <div className={`popup-img ${openPopupImg ? 'open' : ''}`}>
                                 <span
@@ -409,7 +406,11 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                         </div>
                                     </div>
                                 </div>
-                                <ModalPrintguide data={data} isOpen={openSizeGuide} onClose={handleCloseSizeGuide} />
+                                <ModalPrintguide
+                                    data={data}
+                                    isOpen={openSizeGuide}
+                                    onClose={handleCloseSizeGuide}
+                                />
                             </div>
                             <div className="list-action mt-6">
                                 {data.attributes?.some(item => item.name.toLowerCase() === "color") && (
@@ -494,7 +495,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                     <div className="flex items-center gap-1 mt-3">
                                         <Icon.TimerIcon className='body1' />
                                         <div className="text-title">Estimated Delivery:</div>
-                                        <div>{new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString()}</div>
+                                        <div>{new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString()}</div>
                                     </div>
                                     {/* <div className="flex items-center gap-1 mt-3">
                                         <Icon.EyeIcon className='body1' />
@@ -506,9 +507,11 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                                         <div className="text-secondary">{data.sku || "N/A"}</div>
                                     </div>
                                     <div className="flex items-center gap-1 mt-3">
-                                        <div className="text-title">Categories:</div>
-                                        <div className="text-secondary">
-                                            {data.categories?.map((item, index) => item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()).join(", ") || "N/A"}
+                                        <div className="flex items-start gap-2">
+                                            <div className="text-title">Categories:</div>
+                                            <div className="text-secondary">
+                                                {data.categories?.map((item, index) => item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase()).join(", ") || "N/A"}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1 mt-3">
@@ -729,7 +732,10 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
 
                                         <div className="item flex items-center gap-8 py-3 px-10">
                                             <div className="text-title sm:w-1/4 w-1/3">Unit Wight</div>
-                                            <p>{data.weight} lbs</p>
+                                            {data.weight.length > 0 ?
+                                                <p>{data.weight} {storeConfig?.defaultWeightUnit}</p> :
+                                                <p>N/A</p>
+                                            }
                                         </div>
 
                                         <div className="item flex bg-surface items-center gap-8 py-3 px-10">
@@ -946,7 +952,7 @@ const Default: React.FC<Props> = ({ data, productId, variations, relatedProducts
                         </div>
                     }
                 </div>
-            </div>
+            </div >
         </>
     )
 }
